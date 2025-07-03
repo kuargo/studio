@@ -1,18 +1,90 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { HeartPulse } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BrainCircuit, CalendarPlus, Ear, HeartPulse, Users } from "lucide-react";
+import Link from "next/link";
+
+const resources = [
+  {
+    icon: Ear,
+    title: "Guided Prayer & Meditation",
+    description: "Audio-led sessions to help you focus on God and find peace.",
+    link: "#",
+    cta: "Listen Now",
+    color: "text-blue-500",
+    bg: "bg-blue-500/10"
+  },
+  {
+    icon: BrainCircuit,
+    title: "Stress Management Hub",
+    description: "Practical exercises and biblical wisdom for navigating anxiety and stress.",
+    link: "#",
+    cta: "Find Techniques",
+    color: "text-green-500",
+    bg: "bg-green-500/10"
+  },
+  {
+    icon: CalendarPlus,
+    title: "Book a Confidential Session",
+    description: "Connect with a trained lay counselor or pastor for support.",
+    link: "#",
+    cta: "Request Appointment",
+    color: "text-amber-500",
+    bg: "bg-amber-500/10"
+  },
+  {
+    icon: Users,
+    title: "Find a Support Group",
+    description: "Join a community of people who understand what you're going through.",
+    link: "#",
+    cta: "Browse Groups",
+    color: "text-violet-500",
+    bg: "bg-violet-500/10"
+  },
+]
 
 export default function WellBeingPage() {
   return (
-    <div className="flex justify-center items-start pt-16 h-full">
-      <Card className="w-full max-w-md text-center">
-        <CardHeader className="items-center">
-          <div className="p-3 rounded-full bg-primary/10 mb-2">
-            <HeartPulse className="h-8 w-8 text-primary" />
-          </div>
-          <CardTitle className="font-headline">Stress Management Hub</CardTitle>
+    <div className="space-y-8">
+      <div className="text-center max-w-3xl mx-auto">
+        <div className="inline-block p-3 bg-primary/10 rounded-full mb-4">
+            <HeartPulse className="h-10 w-10 text-primary" />
+        </div>
+        <h1 className="text-4xl font-headline font-bold">Mental & Spiritual Well-being Hub</h1>
+        <p className="text-muted-foreground mt-2 text-lg">
+          Caring for your soul and mind is vital. Here are some resources to support your journey towards wholeness in Christ.
+        </p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {resources.map(res => (
+          <Card key={res.title} className="flex flex-col">
+            <CardHeader className="flex-row items-start gap-4">
+              <div className={`p-3 rounded-lg ${res.bg}`}>
+                <res.icon className={`w-6 h-6 ${res.color}`} />
+              </div>
+              <div>
+                <CardTitle className="font-headline text-lg">{res.title}</CardTitle>
+                <CardDescription className="mt-1">{res.description}</CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-grow"></CardContent>
+            <CardContent>
+              <Button asChild className="w-full">
+                <Link href={res.link}>{res.cta}</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+       <Card className="border-destructive/50 bg-destructive/5">
+        <CardHeader>
+          <CardTitle className="font-headline text-destructive flex items-center gap-2">Emergency Support</CardTitle>
+          <CardDescription className="text-destructive/80">
+            If you are in crisis or need immediate help, please do not use this app. Contact a professional crisis line.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">This feature is coming soon! Self-guided exercises, meditation playlists, and guided prayer.</p>
+            <p className="font-semibold">National Suicide & Crisis Lifeline: Call or text 988</p>
         </CardContent>
       </Card>
     </div>
