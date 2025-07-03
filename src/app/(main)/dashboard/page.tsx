@@ -1,19 +1,20 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { PrayButton } from "@/components/app/pray-button";
 import {
-    Activity,
     CalendarCheck,
     Clapperboard,
     Flame,
     HandHelping,
     PlusCircle,
-    Send,
-    Video,
+    Search,
     Users,
+    Video,
+    Globe,
+    School,
+    Church
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -47,7 +48,7 @@ export default function DashboardPage() {
             <section>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {quickActions.map(action => (
-                         <Card key={action.label} className="flex flex-col items-center justify-center p-4 hover:shadow-lg transition-shadow">
+                         <Card key={action.label} className="flex flex-col items-center justify-center p-4 hover:shadow-lg transition-shadow cursor-pointer">
                             <div className={`p-3 rounded-full ${action.color} mb-2`}>
                                 <action.icon className="h-6 w-6 text-white" />
                             </div>
@@ -58,6 +59,29 @@ export default function DashboardPage() {
             </section>
             
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <Card className="flex flex-col lg:col-span-2">
+                    <CardHeader>
+                        <CardTitle className="font-headline">Find Your Community</CardTitle>
+                        <CardDescription>Search for churches, groups, and events globally, or add your own listing.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex gap-2">
+                            <div className="relative flex-grow">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                <Input placeholder="Search globally..." className="pl-10 h-11" />
+                            </div>
+                            <Button size="lg">Search</Button>
+                        </div>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                            <Button variant="outline"><Church className="mr-2"/>Churches</Button>
+                            <Button variant="outline"><Users className="mr-2"/>Youth Groups</Button>
+                            <Button variant="outline"><CalendarCheck className="mr-2"/>Events</Button>
+                            <Button variant="outline"><School className="mr-2"/>Campus Groups</Button>
+                            <Button variant="outline"><PlusCircle className="mr-2"/>Add Listing</Button>
+                        </div>
+                    </CardContent>
+                </Card>
+
                 <Card className="flex flex-col justify-between">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 font-headline">

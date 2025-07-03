@@ -2,7 +2,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, MapPin, PlusCircle } from "lucide-react";
+import { Calendar, MapPin, PlusCircle, Heart, Users, Search, Map } from "lucide-react";
+import Image from "next/image";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 const events = [
   {
@@ -11,7 +14,9 @@ const events = [
     time: "7:00 PM - 9:00 PM",
     location: "Main Sanctuary",
     description: "Join us for a powerful night of worship, prayer, and community.",
-    type: "Worship"
+    type: "Worship",
+    rsvps: 128,
+    likes: 45
   },
   {
     title: "Community Food Drive",
@@ -19,7 +24,9 @@ const events = [
     time: "9:00 AM - 12:00 PM",
     location: "Church Parking Lot",
     description: "Help us serve our city by donating non-perishable food items.",
-    type: "Outreach"
+    type: "Outreach",
+    rsvps: 72,
+    likes: 30
   },
   {
     title: "Sunday Morning Service",
@@ -27,7 +34,9 @@ const events = [
     time: "10:00 AM",
     location: "Main Sanctuary",
     description: "Our weekly gathering. All are welcome!",
-    type: "Service"
+    type: "Service",
+    rsvps: 250,
+    likes: 110
   },
   {
     title: "Theology on Tap (Online)",
@@ -35,7 +44,9 @@ const events = [
     time: "8:00 PM",
     location: "Zoom",
     description: "A casual online discussion about faith and life.",
-    type: "Online"
+    type: "Online",
+    rsvps: 45,
+    likes: 15
   },
 ];
 
@@ -53,39 +64,84 @@ export default function EventsPage() {
         </Button>
       </div>
 
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="all">All Events</TabsTrigger>
-          <TabsTrigger value="worship">Worship</TabsTrigger>
-          <TabsTrigger value="outreach">Outreach</TabsTrigger>
-          <TabsTrigger value="online">Online</TabsTrigger>
-        </TabsList>
-        <TabsContent value="all">
-          <div className="grid gap-4 md:grid-cols-2">
-            {events.map((event, i) => <EventCard key={i} {...event} />)}
-          </div>
-        </TabsContent>
-        <TabsContent value="worship">
-          <div className="grid gap-4 md:grid-cols-2">
-            {events.filter(e => e.type === 'Worship').map((event, i) => <EventCard key={i} {...event} />)}
-          </div>
-        </TabsContent>
-        <TabsContent value="outreach">
-          <div className="grid gap-4 md:grid-cols-2">
-            {events.filter(e => e.type === 'Outreach').map((event, i) => <EventCard key={i} {...event} />)}
-          </div>
-        </TabsContent>
-        <TabsContent value="online">
-          <div className="grid gap-4 md:grid-cols-2">
-            {events.filter(e => e.type === 'Online').map((event, i) => <EventCard key={i} {...event} />)}
-          </div>
-        </TabsContent>
-      </Tabs>
+      <div className="grid lg:grid-cols-3 gap-8 items-start">
+        <div className="lg:col-span-1 space-y-4 lg:sticky top-4">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg flex items-center gap-2"><Map className="text-primary"/> Map View</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="aspect-square bg-muted rounded-lg overflow-hidden">
+                        <Image src="https://placehold.co/600x600.png" width={600} height={600} alt="Map of events" className="object-cover" data-ai-hint="world map pins"/>
+                    </div>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg">Filters</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                     <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input placeholder="Search events..." className="pl-10"/>
+                    </div>
+                    <Select>
+                        <SelectTrigger><SelectValue placeholder="Category" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="worship">Worship</SelectItem>
+                            <SelectItem value="outreach">Outreach</SelectItem>
+                            <SelectItem value="online">Online</SelectItem>
+                            <SelectItem value="service">Service</SelectItem>
+                        </SelectContent>
+                    </Select>
+                     <Select>
+                        <SelectTrigger><SelectValue placeholder="Distance" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="5">Within 5 miles</SelectItem>
+                            <SelectItem value="10">Within 10 miles</SelectItem>
+                            <SelectItem value="25">Within 25 miles</SelectItem>
+                            <SelectItem value="any">Any distance</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </CardContent>
+             </Card>
+        </div>
+        <div className="lg:col-span-2">
+            <Tabs defaultValue="all" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="all">All Events</TabsTrigger>
+                <TabsTrigger value="worship">Worship</TabsTrigger>
+                <TabsTrigger value="outreach">Outreach</TabsTrigger>
+                <TabsTrigger value="online">Online</TabsTrigger>
+                </TabsList>
+                <TabsContent value="all" className="mt-6">
+                <div className="grid gap-4">
+                    {events.map((event, i) => <EventCard key={i} {...event} />)}
+                </div>
+                </TabsContent>
+                <TabsContent value="worship" className="mt-6">
+                <div className="grid gap-4">
+                    {events.filter(e => e.type === 'Worship').map((event, i) => <EventCard key={i} {...event} />)}
+                </div>
+                </TabsContent>
+                <TabsContent value="outreach" className="mt-6">
+                <div className="grid gap-4">
+                    {events.filter(e => e.type === 'Outreach').map((event, i) => <EventCard key={i} {...event} />)}
+                </div>
+                </TabsContent>
+                <TabsContent value="online" className="mt-6">
+                <div className="grid gap-4">
+                    {events.filter(e => e.type === 'Online').map((event, i) => <EventCard key={i} {...event} />)}
+                </div>
+                </TabsContent>
+            </Tabs>
+        </div>
+      </div>
     </div>
   );
 }
 
-function EventCard({ title, date, time, location, description }: typeof events[0]) {
+function EventCard({ title, date, time, location, description, rsvps, likes }: typeof events[0]) {
   return (
     <Card>
       <CardHeader>
@@ -103,12 +159,22 @@ function EventCard({ title, date, time, location, description }: typeof events[0
           <span>{location}</span>
         </div>
         <div className="flex items-center justify-between pt-2">
-            <div className="flex -space-x-2">
-                <img className="inline-block h-8 w-8 rounded-full ring-2 ring-background" src="https://placehold.co/40x40/f9a8d4/4c1d95.png" alt="User 1" data-ai-hint="woman portrait" />
-                <img className="inline-block h-8 w-8 rounded-full ring-2 ring-background" src="https://placehold.co/40x40/a5b4fc/1e3a8a.png" alt="User 2" data-ai-hint="man portrait" />
-                <div className="inline-flex items-center justify-center h-8 w-8 rounded-full ring-2 ring-background bg-muted text-muted-foreground text-xs font-semibold">+12</div>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                 <div className="flex items-center gap-1.5">
+                    <Users className="w-4 h-4" />
+                    <span className="font-semibold">{rsvps}</span> Going
+                 </div>
+                 <div className="flex items-center gap-1.5">
+                    <Heart className="w-4 h-4" />
+                    <span className="font-semibold">{likes}</span> Likes
+                 </div>
             </div>
-            <Button>RSVP</Button>
+            <div className="flex items-center gap-2">
+                <Button variant="ghost">
+                    <Heart className="w-4 h-4" />
+                </Button>
+                <Button>RSVP</Button>
+            </div>
         </div>
       </CardContent>
     </Card>

@@ -1,9 +1,10 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, UserCheck } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, UserCheck, MessageSquare, BookOpen, Globe } from "lucide-react";
 
 const mentors = [
   { name: "Pastor John", avatar: "https://placehold.co/100x100/a5b4fc/1e3a8a.png", aiHint: "man smiling", role: "Senior Pastor", specialties: ["Theology", "Leadership", "Marriage"] },
@@ -12,54 +13,99 @@ const mentors = [
   { name: "Sarah Kim", avatar: "https://placehold.co/100x100/fed7aa/9a3412.png", aiHint: "woman professional", role: "Small Group Leader", specialties: ["Community", "Biblical Studies", "Pastoral Care"] },
 ]
 
+const recentPosts = [
+  { user: "Pastor John", title: "On the importance of Sabbath", snippet: "In our fast-paced world, resting is a revolutionary act of faith..." },
+  { user: "Maria Garcia", title: "Discerning God's voice in worship", snippet: "Sometimes worship isn't about the big moments, but the quiet whispers..." },
+]
+
 export default function MentorshipPage() {
   return (
-    <div className="space-y-8">
-      <div className="text-center max-w-2xl mx-auto">
-        <h1 className="text-4xl font-headline font-bold">Spiritual Mentorship</h1>
-        <p className="text-muted-foreground mt-2 text-lg">Connect with experienced leaders who can guide you on your faith journey. Whether you're seeking wisdom or want to offer it, this is the place.</p>
+    <div className="grid lg:grid-cols-3 gap-8 items-start">
+      <div className="lg:col-span-2 space-y-8">
+          <div className="text-center">
+            <h1 className="text-4xl font-headline font-bold">Spiritual Mentorship</h1>
+            <p className="text-muted-foreground mt-2 text-lg max-w-2xl mx-auto">Connect with experienced leaders who can guide you on your faith journey.</p>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <h2 className="text-2xl font-headline font-bold">Find a Mentor</h2>
+            </CardHeader>
+            <CardContent className="flex flex-col md:flex-row gap-4">
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input placeholder="Search by name, specialty (e.g., 'Prayer')" className="pl-10 h-11" />
+                </div>
+                <Select>
+                  <SelectTrigger className="md:w-48 h-11"><SelectValue placeholder="Filter by Region" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="global">Global / Online</SelectItem>
+                    <SelectItem value="africa">Africa</SelectItem>
+                    <SelectItem value="asia">Asia</SelectItem>
+                    <SelectItem value="europe">Europe</SelectItem>
+                    <SelectItem value="north-america">North America</SelectItem>
+                    <SelectItem value="south-america">South America</SelectItem>
+                  </SelectContent>
+                </Select>
+            </CardContent>
+          </Card>
+
+          <div className="grid gap-6 sm:grid-cols-2">
+              {mentors.map(mentor => (
+                  <Card key={mentor.name}>
+                      <CardContent className="p-6 text-center flex flex-col items-center">
+                          <Avatar className="h-24 w-24 mb-4">
+                              <AvatarImage src={mentor.avatar} data-ai-hint={mentor.aiHint} />
+                              <AvatarFallback>{mentor.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <h3 className="font-headline font-semibold text-lg">{mentor.name}</h3>
+                          <p className="text-muted-foreground text-sm">{mentor.role}</p>
+                          <div className="flex flex-wrap gap-2 justify-center mt-4">
+                              {mentor.specialties.map(spec => <Badge key={spec} variant="secondary">{spec}</Badge>)}
+                          </div>
+                      </CardContent>
+                      <CardContent className="p-4 border-t">
+                          <Button className="w-full">Request Mentorship</Button>
+                      </CardContent>
+                  </Card>
+              ))}
+          </div>
       </div>
-
-      <Card className="bg-primary/5">
-        <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="space-y-2">
-                <h3 className="font-headline text-xl font-semibold">Want to guide others?</h3>
-                <p className="text-muted-foreground">Become a mentor and invest in the next generation of believers. Your experience is valuable.</p>
-            </div>
-            <Button size="lg">
-                <UserCheck className="mr-2"/>
-                Apply to be a Mentor
-            </Button>
-        </CardContent>
-      </Card>
-
-      <div>
-        <h2 className="text-2xl font-headline font-bold mb-4">Find a Mentor</h2>
-        <div className="relative mb-6">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input placeholder="Search by name, specialty (e.g., 'Prayer')" className="pl-10 h-12" />
-        </div>
-
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {mentors.map(mentor => (
-                <Card key={mentor.name}>
-                    <CardContent className="p-6 text-center flex flex-col items-center">
-                        <Avatar className="h-24 w-24 mb-4">
-                            <AvatarImage src={mentor.avatar} data-ai-hint={mentor.aiHint} />
-                            <AvatarFallback>{mentor.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <h3 className="font-headline font-semibold text-lg">{mentor.name}</h3>
-                        <p className="text-muted-foreground text-sm">{mentor.role}</p>
-                        <div className="flex flex-wrap gap-2 justify-center mt-4">
-                            {mentor.specialties.map(spec => <Badge key={spec} variant="secondary">{spec}</Badge>)}
-                        </div>
-                    </CardContent>
-                    <CardContent className="p-4 border-t">
-                        <Button className="w-full">Request Mentorship</Button>
-                    </CardContent>
-                </Card>
-            ))}
-        </div>
+      <div className="lg:col-span-1 space-y-6 lg:sticky top-8">
+          <Card className="bg-primary/5">
+            <CardContent className="p-6">
+                <h3 className="font-headline text-lg font-semibold">Want to guide others?</h3>
+                <p className="text-muted-foreground text-sm mt-1">Become a mentor and invest in the next generation of believers. Your experience is valuable.</p>
+                <Button className="w-full mt-4">
+                    <UserCheck className="mr-2"/>
+                    Apply to be a Mentor
+                </Button>
+            </CardContent>
+          </Card>
+          <Card>
+              <CardHeader>
+                  <CardTitle className="font-headline text-lg flex items-center gap-2"><BookOpen/>Wisdom Posts</CardTitle>
+                  <CardDescription>Recent insights from our mentors.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                  {recentPosts.map(post => (
+                      <div key={post.title} className="p-3 rounded-md border">
+                          <p className="font-semibold text-sm">{post.title}</p>
+                          <p className="text-xs text-muted-foreground mb-1">by {post.user}</p>
+                          <p className="text-sm text-muted-foreground truncate">{post.snippet}</p>
+                      </div>
+                  ))}
+              </CardContent>
+          </Card>
+           <Card>
+              <CardHeader>
+                  <CardTitle className="font-headline text-lg flex items-center gap-2"><MessageSquare/>Discussion Panel</CardTitle>
+                  <CardDescription>Ask questions and discuss topics with the community.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                  <Button className="w-full">Join the Discussion</Button>
+              </CardContent>
+          </Card>
       </div>
     </div>
   );

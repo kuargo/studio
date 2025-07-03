@@ -2,9 +2,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Heart, MessageCircle, Share2, Image as ImageIcon, Video } from "lucide-react";
+import { Heart, MessageCircle, Share2, Image as ImageIcon, Video, Filter, MoreHorizontal } from "lucide-react";
 import Image from "next/image";
 import { PrayButton } from "@/components/app/pray-button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const posts = [
   {
@@ -56,9 +58,34 @@ export default function SocialFeedPage() {
             </CardFooter>
         </Card>
       
-        <div className="space-y-6">
-            {posts.map((post, i) => <PostCard key={i} post={post} />)}
-        </div>
+        <Tabs defaultValue="foryou" className="w-full">
+            <div className="flex justify-between items-center mb-4">
+                <TabsList>
+                    <TabsTrigger value="foryou">For You</TabsTrigger>
+                    <TabsTrigger value="following">Following</TabsTrigger>
+                    <TabsTrigger value="live">Live</TabsTrigger>
+                </TabsList>
+                <Button variant="outline" size="sm"><Filter className="mr-2 h-4 w-4" /> Filter</Button>
+            </div>
+            <TabsContent value="foryou">
+                <p className="text-sm text-center text-muted-foreground mb-4">Your personalized feed, powered by AI.</p>
+                <div className="space-y-6">
+                    {posts.map((post, i) => <PostCard key={i} post={post} />)}
+                </div>
+            </TabsContent>
+            <TabsContent value="following">
+                 <div className="space-y-6">
+                    {posts.slice().reverse().map((post, i) => <PostCard key={i} post={post} />)}
+                </div>
+            </TabsContent>
+             <TabsContent value="live">
+                <div className="text-center py-12 text-muted-foreground">
+                    <Video className="mx-auto h-12 w-12" />
+                    <h3 className="mt-2 text-lg font-medium">No Live Feeds</h3>
+                    <p className="text-sm">There are no live videos at the moment. Check back later!</p>
+                </div>
+            </TabsContent>
+        </Tabs>
     </div>
   );
 }
@@ -79,32 +106,52 @@ function PostCard({ post }: { post: typeof posts[0] }) {
                             <p className="text-xs text-muted-foreground">{post.timestamp}</p>
                         </div>
                     </div>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem>Follow {post.user.name}</DropdownMenuItem>
+                            <DropdownMenuItem>Hide this post</DropdownMenuItem>
+                            <DropdownMenuItem>Report post</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </CardHeader>
             <CardContent className="px-4 pb-2 space-y-4">
-                <p className="text-sm">{post.content}</p>
+                <p className="text-sm whitespace-pre-wrap">{post.content}</p>
                 {post.type === 'image' && post.imageUrl && (
                     <div className="rounded-lg overflow-hidden border">
                          <Image src={post.imageUrl} width={600} height={400} alt="Post image" data-ai-hint={post.aiHint || ''} />
                     </div>
                 )}
             </CardContent>
-            <CardFooter className="p-4 border-t flex justify-between">
+            <CardFooter className="p-2 border-t">
                 {post.type === 'prayer_request' ? (
-                    <div className="flex-1">
+                    <div className="flex-1 px-2">
                         <PrayButton count={post.initialPrayers!} />
                     </div>
                 ) : (
-                     <div className="flex gap-4 text-muted-foreground">
+                     <div className="flex justify-around text-muted-foreground w-full">
                         <Button variant="ghost" className="flex items-center gap-2">
                             <Heart className="w-5 h-5" /> {post.likes}
                         </Button>
                         <Button variant="ghost" className="flex items-center gap-2">
                             <MessageCircle className="w-5 h-5" /> {post.comments}
                         </Button>
-                        <Button variant="ghost" className="flex items-center gap-2">
-                            <Share2 className="w-5 h-5" /> Share
-                        </Button>
+                         <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                 <Button variant="ghost" className="flex items-center gap-2">
+                                    <Share2 className="w-5 h-5" /> Share
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuItem>Share to WhatsApp</DropdownMenuItem>
+                                <DropdownMenuItem>Share to Facebook</DropdownMenuItem>
+                                <DropdownMenuItem>Share to TikTok</DropdownMenuItem>
+                                <DropdownMenuItem>Copy Link</DropdownMenuItem>
+                            </DropdownMenuContent>
+                         </DropdownMenu>
                     </div>
                 )}
             </CardFooter>

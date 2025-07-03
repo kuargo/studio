@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BrainCircuit, CalendarPlus, Ear, HeartPulse, Users } from "lucide-react";
+import { BrainCircuit, CalendarPlus, Ear, HeartPulse, Users, Scale, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
 const resources = [
@@ -40,6 +40,24 @@ const resources = [
     color: "text-violet-500",
     bg: "bg-violet-500/10"
   },
+   {
+    icon: Scale,
+    title: "Mediation & Conflict Resolution",
+    description: "Request help resolving church, group, or personal conflicts with certified mediators.",
+    link: "#",
+    cta: "Get Assistance",
+    color: "text-orange-500",
+    bg: "bg-orange-500/10"
+  },
+  {
+    icon: ShieldCheck,
+    title: "Addiction & Recovery",
+    description: "Find resources and support for overcoming substance abuse and other addictions.",
+    link: "#",
+    cta: "Find Help",
+    color: "text-teal-500",
+    bg: "bg-teal-500/10"
+  },
 ]
 
 export default function WellBeingPage() {
@@ -55,7 +73,7 @@ export default function WellBeingPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {resources.map(res => (
           <Card key={res.title} className="flex flex-col">
             <CardHeader className="flex-row items-start gap-4">

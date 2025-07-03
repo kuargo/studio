@@ -13,7 +13,7 @@ import {
   Scissors,
   Users,
   Wallpaper,
-  Wrench,
+  HeartHandshake,
   Sparkles,
 } from "lucide-react";
 
@@ -43,7 +43,7 @@ const secondaryMenuItems = [
   { href: "/giving", label: "Giving", icon: Gift, tooltip: "Giving" },
   { href: "/journal", label: "Journal", icon: BookOpen, tooltip: "Journal" },
   { href: "/mentorship", label: "Mentorship", icon: Users, tooltip: "Mentorship" },
-  { href: "/volunteering", label: "Volunteering", icon: Wrench, tooltip: "Volunteering" },
+  { href: "/volunteering", label: "Volunteering", icon: HeartHandshake, tooltip: "Volunteering" },
   { href: "/well-being", label: "Well-being", icon: HeartPulse, tooltip: "Well-being" },
 ];
 

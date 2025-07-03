@@ -1,7 +1,9 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, Send, Music, Search, Plus } from "lucide-react";
+import { Heart, MessageCircle, Send, Music, Search, Plus, Upload, Link2, Download, Coins } from "lucide-react";
 import Image from "next/image";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+
 
 const reels = [
   {
@@ -48,7 +50,22 @@ export default function FaithReelsPage() {
           <h1 className="font-headline">Faith Reels</h1>
           <div className="flex gap-4">
             <Search className="cursor-pointer"/>
-            <Plus className="cursor-pointer"/>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Plus className="cursor-pointer"/>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create a New Reel</DialogTitle>
+                  <DialogDescription>Upload a video or import one from your favorite platforms.</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <Button variant="outline" size="lg"><Upload className="mr-2"/> Upload from Device</Button>
+                  <Button variant="outline" size="lg"><Link2 className="mr-2"/> Import from YouTube</Button>
+                  <Button variant="outline" size="lg"><svg className="mr-2 h-4 w-4" viewBox="0 0 24 24"><path fill="currentColor" d="M16.6 5.82s.08.03.1.05l.07.03.02.01.09.04.08.03.06.02.08.03.07.02.09.03.06.01.09.02.07.01.1.02h.02c.08.01.12.02.12.02s.09.01.14.02a1.88 1.88 0 0 1 1.52.82c.22.42.27.9.27 1.95v4.32c0 1.05-.05 1.53-.27 1.95a1.88 1.88 0 0 1-1.52.82c-.05.01-.09.01-.14.02s-.04.01-.12.02h-.02a.85.85 0 0 1-.1-.02l-.07-.01-.09-.02-.06-.01a1.2 1.2 0 0 1-.09-.03l-.07-.02-.08-.03-.06-.02-.08-.03-.09-.04-.02-.01-.07-.03a.3.3 0 0 1-.1-.05s-.08-.03-.1-.05l-4.12-2.38-4.12-2.38a2.17 2.17 0 0 1-1.08-1.9c0-1.19.97-2.16 2.16-2.16H15.5c.03 0 .07 0 .1.01s.09.01.14.02l4.12 2.38V7.77c0-1.05-.05-1.53-.27-1.95z"/></svg> Import from TikTok</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>
@@ -96,6 +113,17 @@ function Reel({ user, videoUrl, aiHint, caption, audio, likes, comments }: typeo
            <button className="flex flex-col items-center gap-1">
             <div className="bg-white/20 p-3 rounded-full">
               <Send className="w-6 h-6" />
+            </div>
+          </button>
+          <button className="flex flex-col items-center gap-1">
+            <div className="bg-white/20 p-3 rounded-full">
+              <Coins className="w-6 h-6" />
+            </div>
+             <span className="text-xs font-semibold">Gift</span>
+          </button>
+          <button className="flex flex-col items-center gap-1">
+            <div className="bg-white/20 p-3 rounded-full">
+              <Download className="w-6 h-6" />
             </div>
           </button>
         </div>

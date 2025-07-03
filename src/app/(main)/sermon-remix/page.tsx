@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
-import { Scissors, Music, Type, Clapperboard, Download, Share2 } from "lucide-react";
+import { Scissors, Music, Type, Clapperboard, Download, Share2, Eye, MessageCircle, Heart } from "lucide-react";
 import Image from "next/image";
+import { Textarea } from "@/components/ui/textarea";
 
 const recentSermons = [
   { title: "The Good Shepherd", pastor: "Pastor John", date: "Aug 11, 2024", thumbnail: "https://placehold.co/150x84.png", aiHint: "pastor preaching"},
@@ -36,13 +37,14 @@ export default function SermonRemixPage() {
                     <Button variant="outline"><Type className="mr-2"/> Add Text</Button>
                     <Button variant="outline"><Clapperboard className="mr-2"/> Effects</Button>
                 </div>
+                <Textarea placeholder="Add a caption, #hashtags, and @mentions..." />
             </div>
           </CardContent>
-        </Card>
-         <div className="flex justify-end gap-4">
-            <Button variant="outline" size="lg"><Download className="mr-2" /> Save Draft</Button>
+          <CardFooter className="flex justify-end gap-4">
+             <Button variant="outline" size="lg"><Download className="mr-2" /> Save Draft</Button>
             <Button size="lg"><Share2 className="mr-2" /> Export & Share</Button>
-        </div>
+          </CardFooter>
+        </Card>
       </div>
       
       <div className="space-y-4">
@@ -61,6 +63,30 @@ export default function SermonRemixPage() {
                         </div>
                     </div>
                 ))}
+            </CardContent>
+        </Card>
+        <Card>
+            <CardHeader>
+                <CardTitle className="font-headline">Shared Remix</CardTitle>
+                <CardDescription>This is how your remixed sermon will appear to others.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <div className="border rounded-lg p-4 space-y-3">
+                     <div className="aspect-video bg-zinc-800 rounded-md flex items-center justify-center text-zinc-500">
+                         <Clapperboard className="w-12 h-12"/>
+                     </div>
+                     <p className="text-sm">Here's the most powerful 60 seconds from Sunday's message! So good. <span className="text-primary">#faith</span> <span className="text-primary">#hope</span> <span className="text-primary">@PastorJohn</span></p>
+                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1.5"><Heart className="w-4 h-4"/> 1.2k</div>
+                        <div className="flex items-center gap-1.5"><MessageCircle className="w-4 h-4"/> 88</div>
+                        <div className="flex items-center gap-1.5"><Eye className="w-4 h-4"/> 15.7k</div>
+                     </div>
+                     <div className="flex gap-2 pt-2 border-t">
+                        <Button variant="secondary" size="sm" className="flex-1">Like</Button>
+                        <Button variant="secondary" size="sm" className="flex-1">Comment</Button>
+                        <Button variant="secondary" size="sm" className="flex-1">Share</Button>
+                     </div>
+                 </div>
             </CardContent>
         </Card>
       </div>
