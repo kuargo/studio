@@ -60,7 +60,7 @@ export default function FaithReelsPage() {
 function Reel({ user, videoUrl, aiHint, caption, audio, likes, comments }: typeof reels[0]) {
   return (
     <div className="relative h-full w-full snap-start flex-shrink-0">
-      <Image src={videoUrl} layout="fill" objectFit="cover" alt="Faith Reel" data-ai-hint={aiHint} />
+      <Image src={videoUrl} fill style={{ objectFit: 'cover' }} alt="Faith Reel" data-ai-hint={aiHint} />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
       
       <div className="absolute bottom-0 left-0 right-0 p-4 text-white flex justify-between items-end">

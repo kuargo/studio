@@ -128,7 +128,7 @@ export default function DashboardPage() {
                     <CardContent>
                         <div className="space-y-2">
                             <Link href="/faith-reels" className="block relative rounded-lg overflow-hidden aspect-[9/16] group">
-                                <Image src="https://placehold.co/300x533/ff00ff/ffffff.png" alt="Faith Reel thumbnail" layout="fill" objectFit="cover" data-ai-hint="worship concert" />
+                                <Image src="https://placehold.co/300x533/ff00ff/ffffff.png" alt="Faith Reel thumbnail" fill style={{ objectFit: 'cover' }} data-ai-hint="worship concert" />
                                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                     <Video className="w-12 h-12 text-white" />
                                 </div>
