@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BrainCircuit, CalendarPlus, Ear, HeartPulse, Users, Scale, ShieldCheck, ShieldHelp, Baby, FileCheck, Phone } from "lucide-react";
+import { BrainCircuit, CalendarPlus, Ear, HeartPulse, Users, Scale, ShieldCheck, LifeBuoy, Baby, FileCheck, Phone } from "lucide-react";
 import Link from "next/link";
 
 const resources = [
@@ -115,7 +115,7 @@ export default function WellBeingPage() {
       </div>
        <Card className="border-destructive/50 bg-destructive/5">
         <CardHeader>
-          <CardTitle className="font-headline text-destructive flex items-center gap-2"><ShieldHelp/>Emergency Support</CardTitle>
+          <CardTitle className="font-headline text-destructive flex items-center gap-2"><LifeBuoy/>Emergency Support</CardTitle>
           <CardDescription className="text-destructive/80">
             If you are in crisis or need immediate help, please use the resources below. This app is not a substitute for professional emergency services.
           </CardDescription>
