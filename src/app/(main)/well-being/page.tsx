@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BrainCircuit, CalendarPlus, Ear, HeartPulse, Users, Scale, ShieldCheck } from "lucide-react";
+import { BrainCircuit, CalendarPlus, Ear, HeartPulse, Users, Scale, ShieldCheck, ShieldHelp, Baby, FileCheck, Phone } from "lucide-react";
 import Link from "next/link";
 
 const resources = [
@@ -32,13 +32,13 @@ const resources = [
     bg: "bg-amber-500/10"
   },
   {
-    icon: Users,
-    title: "Find a Support Group",
-    description: "Join a community of people who understand what you're going through.",
+    icon: ShieldCheck,
+    title: "Addiction & Recovery",
+    description: "Find resources and support for overcoming addictions in a faith-based context.",
     link: "#",
-    cta: "Browse Groups",
-    color: "text-violet-500",
-    bg: "bg-violet-500/10"
+    cta: "Find Help",
+    color: "text-teal-500",
+    bg: "bg-teal-500/10"
   },
    {
     icon: Scale,
@@ -49,14 +49,32 @@ const resources = [
     color: "text-orange-500",
     bg: "bg-orange-500/10"
   },
-  {
-    icon: ShieldCheck,
-    title: "Addiction & Recovery",
-    description: "Find resources and support for overcoming substance abuse and other addictions.",
+   {
+    icon: Baby,
+    title: "Marriage & Family Counseling",
+    description: "Resources for building strong, Christ-centered families and relationships.",
     link: "#",
-    cta: "Find Help",
-    color: "text-teal-500",
-    bg: "bg-teal-500/10"
+    cta: "Strengthen Family",
+    color: "text-rose-500",
+    bg: "bg-rose-500/10"
+  },
+    {
+    icon: FileCheck,
+    title: "Legal & Financial Guidance",
+    description: "Connect with Christian professionals for assistance with legal or financial matters.",
+    link: "#",
+    cta: "Seek Counsel",
+    color: "text-indigo-500",
+    bg: "bg-indigo-500/10"
+  },
+  {
+    icon: Users,
+    title: "Find a Support Group",
+    description: "Join a community of people who understand what you're going through.",
+    link: "#",
+    cta: "Browse Groups",
+    color: "text-violet-500",
+    bg: "bg-violet-500/10"
   },
 ]
 
@@ -73,19 +91,20 @@ export default function WellBeingPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {resources.map(res => (
           <Card key={res.title} className="flex flex-col">
-            <CardHeader className="flex-row items-start gap-4">
-              <div className={`p-3 rounded-lg ${res.bg}`}>
-                <res.icon className={`w-6 h-6 ${res.color}`} />
-              </div>
-              <div>
-                <CardTitle className="font-headline text-lg">{res.title}</CardTitle>
-                <CardDescription className="mt-1">{res.description}</CardDescription>
+            <CardHeader className="flex-grow">
+              <div className="flex items-start gap-4">
+                <div className={`p-3 rounded-lg ${res.bg}`}>
+                  <res.icon className={`w-6 h-6 ${res.color}`} />
+                </div>
+                <div>
+                  <CardTitle className="font-headline text-lg">{res.title}</CardTitle>
+                  <CardDescription className="mt-1">{res.description}</CardDescription>
+                </div>
               </div>
             </CardHeader>
-            <CardContent className="flex-grow"></CardContent>
             <CardContent>
               <Button asChild className="w-full">
                 <Link href={res.link}>{res.cta}</Link>
@@ -96,13 +115,22 @@ export default function WellBeingPage() {
       </div>
        <Card className="border-destructive/50 bg-destructive/5">
         <CardHeader>
-          <CardTitle className="font-headline text-destructive flex items-center gap-2">Emergency Support</CardTitle>
+          <CardTitle className="font-headline text-destructive flex items-center gap-2"><ShieldHelp/>Emergency Support</CardTitle>
           <CardDescription className="text-destructive/80">
-            If you are in crisis or need immediate help, please do not use this app. Contact a professional crisis line.
+            If you are in crisis or need immediate help, please use the resources below. This app is not a substitute for professional emergency services.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-            <p className="font-semibold">National Suicide & Crisis Lifeline: Call or text 988</p>
+        <CardContent className="space-y-4">
+            <div>
+                <h4 className="font-semibold">Connect Hub Care Team (Placeholders)</h4>
+                <p className="text-sm text-muted-foreground">Email: <a href="mailto:care@connecthub.app" className="text-primary hover:underline">care@connecthub.app</a></p>
+                <p className="text-sm text-muted-foreground">Phone / WhatsApp: <a href="tel:+15551234567" className="text-primary hover:underline">+1 (555) 123-4567</a></p>
+            </div>
+             <div>
+                <h4 className="font-semibold">Global Crisis Hotlines</h4>
+                <p className="text-sm text-muted-foreground">National Suicide & Crisis Lifeline: <span className="font-bold">Call or text 988</span> (US)</p>
+                <p className="text-sm text-muted-foreground">Crisis Text Line: <span className="font-bold">Text HOME to 741741</span> (US, Canada, UK, Ireland)</p>
+            </div>
         </CardContent>
       </Card>
     </div>

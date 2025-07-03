@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Gift, Landmark, Globe, CreditCard } from "lucide-react";
+import { Gift, Landmark, Globe, CreditCard, Bitcoin, PiggyBank, University, HeartHandshake, ShieldQuestion } from "lucide-react";
 
 
 const givingHistory = [
@@ -16,8 +16,8 @@ const givingHistory = [
 
 export default function GivingPage() {
   return (
-    <div className="grid lg:grid-cols-3 gap-8">
-      <div className="lg:col-span-2">
+    <div className="grid lg:grid-cols-3 gap-8 items-start">
+      <div className="lg:col-span-2 space-y-8">
         <Card>
           <CardHeader>
             <CardTitle className="font-headline text-2xl">Secure Online Giving</CardTitle>
@@ -37,6 +37,9 @@ export default function GivingPage() {
                             <SelectItem value="GBP">GBP</SelectItem>
                             <SelectItem value="KES">KES</SelectItem>
                             <SelectItem value="NGN">NGN</SelectItem>
+                            <SelectItem value="ZAR">ZAR</SelectItem>
+                            <SelectItem value="CAD">CAD</SelectItem>
+                            <SelectItem value="AUD">AUD</SelectItem>
                         </SelectContent>
                     </Select>
                     <div className="relative flex-grow">
@@ -53,26 +56,33 @@ export default function GivingPage() {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="tithe">Tithe & Offerings</SelectItem>
+                        <SelectItem value="thanksgiving">Thanksgiving</SelectItem>
+                        <SelectItem value="pledge">Pledge</SelectItem>
                         <SelectItem value="building">Building Fund</SelectItem>
                         <SelectItem value="missions">Missions</SelectItem>
                         <SelectItem value="outreach">Community Outreach</SelectItem>
+                        <SelectItem value="flood-relief">Flood / Disaster Relief</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
             <div className="space-y-2">
                 <Label>Frequency</Label>
-                 <RadioGroup defaultValue="one-time" className="flex gap-4">
-                    <Label htmlFor="r1" className="flex items-center space-x-2 border p-3 rounded-md flex-1 cursor-pointer hover:bg-accent has-[[data-state=checked]]:bg-accent has-[[data-state=checked]]:border-primary">
+                 <RadioGroup defaultValue="one-time" className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <Label htmlFor="r1" className="flex items-center justify-center space-x-2 border p-3 rounded-md cursor-pointer hover:bg-accent has-[[data-state=checked]]:bg-accent has-[[data-state=checked]]:border-primary">
                         <RadioGroupItem value="one-time" id="r1" />
                         <span>One Time</span>
                     </Label>
-                    <Label htmlFor="r2" className="flex items-center space-x-2 border p-3 rounded-md flex-1 cursor-pointer hover:bg-accent has-[[data-state=checked]]:bg-accent has-[[data-state=checked]]:border-primary">
+                    <Label htmlFor="r2" className="flex items-center justify-center space-x-2 border p-3 rounded-md cursor-pointer hover:bg-accent has-[[data-state=checked]]:bg-accent has-[[data-state=checked]]:border-primary">
                         <RadioGroupItem value="weekly" id="r2" />
                         <span>Weekly</span>
                     </Label>
-                    <Label htmlFor="r3" className="flex items-center space-x-2 border p-3 rounded-md flex-1 cursor-pointer hover:bg-accent has-[[data-state=checked]]:bg-accent has-[[data-state=checked]]:border-primary">
+                    <Label htmlFor="r3" className="flex items-center justify-center space-x-2 border p-3 rounded-md cursor-pointer hover:bg-accent has-[[data-state=checked]]:bg-accent has-[[data-state=checked]]:border-primary">
                         <RadioGroupItem value="monthly" id="r3" />
                         <span>Monthly</span>
+                    </Label>
+                     <Label htmlFor="r4" className="flex items-center justify-center space-x-2 border p-3 rounded-md cursor-pointer hover:bg-accent has-[[data-state=checked]]:bg-accent has-[[data-state=checked]]:border-primary">
+                        <RadioGroupItem value="yearly" id="r4" />
+                        <span>Yearly</span>
                     </Label>
                 </RadioGroup>
             </div>
@@ -88,6 +98,8 @@ export default function GivingPage() {
                         <svg className="mr-2 h-4 w-4" viewBox="0 0 256 256" fill="none"><path fill="#41B649" d="M128 0C94.2 0 61.1 13.3 37.5 37.5C13.3 61.1 0 94.2 0 128c0 33.8 13.3 66.9 37.5 100.5c23.6 23.6 56.7 37.5 100.5 37.5c33.8 0 66.9-13.3 100.5-37.5C242.7 194.9 256 161.8 256 128c0-33.8-13.3-66.9-37.5-100.5C194.9 13.3 161.8 0 128 0Z"/><path fill="#fff" d="m180.7 151.7l-41.2-22.5c-1-2-1.6-4.2-1.8-6.5l-1.4-16.1c-.1-1-.9-1.7-1.9-1.7h-11.8c-1.1 0-1.9.9-1.9 1.9v8.6c0 1.1.9 1.9 1.9 1.9h4.3v13.6c0 6.6 2.4 12.9 6.8 17.6l23.1 25c1.4 1.5 3.9 1.5 5.3 0l11.2-10.9c1.4-1.5.1-3.9-1.4-3.9h-12.2zm-42.9-56.9c-2.2-2.1-2.9-5.1-1.8-7.9l7.7-20.1c1-2.6.1-5.6-2.3-6.9l-10-5.4c-2.4-1.3-5.4-.5-6.8 1.8l-15.6 25.5c-1.4 2.3-.5 5.3 1.8 6.8l20.4 12.5c2.9 1.8 6.6 1.1 8.6-1.3Z"/></svg>
                         M-Pesa
                     </Button>
+                    <Button variant="outline" className="h-12"><Landmark className="mr-2"/> Bank Transfer</Button>
+                    <Button variant="outline" className="h-12"><Bitcoin className="mr-2"/> Cryptocurrency</Button>
                     <Button variant="outline" className="h-12">Other</Button>
                 </div>
             </div>
@@ -96,34 +108,47 @@ export default function GivingPage() {
             <Button size="lg" className="w-full">Proceed to Give</Button>
           </CardFooter>
         </Card>
-      </div>
-
-      <div className="space-y-6">
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline text-lg">Ways to Give</CardTitle>
+                <CardTitle className="font-headline text-lg flex items-center gap-2"><ShieldQuestion/> Where Your Gift Goes</CardTitle>
+                <CardDescription>We believe in transparency and good stewardship. Here are some of the areas your giving supports:</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-md">
-                        <Gift className="w-5 h-5 text-primary"/>
-                    </div>
-                    <span>Online / App</span>
-                </div>
+            <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="flex items-center gap-3">
                      <div className="p-2 bg-primary/10 rounded-md">
-                        <Landmark className="w-5 h-5 text-primary"/>
+                        <HeartHandshake className="w-5 h-5 text-primary"/>
                     </div>
-                    <span>In Person</span>
+                    <span>Widows & Orphans</span>
                 </div>
                  <div className="flex items-center gap-3">
                      <div className="p-2 bg-primary/10 rounded-md">
                         <Globe className="w-5 h-5 text-primary"/>
                     </div>
-                    <span>Other (Stocks, etc.)</span>
+                    <span>Global Missions</span>
+                </div>
+                 <div className="flex items-center gap-3">
+                     <div className="p-2 bg-primary/10 rounded-md">
+                        <University className="w-5 h-5 text-primary"/>
+                    </div>
+                    <span>Building Fund</span>
+                </div>
+                 <div className="flex items-center gap-3">
+                     <div className="p-2 bg-primary/10 rounded-md">
+                        <Gift className="w-5 h-5 text-primary"/>
+                    </div>
+                    <span>Disaster Relief</span>
+                </div>
+                 <div className="flex items-center gap-3">
+                     <div className="p-2 bg-primary/10 rounded-md">
+                        <PiggyBank className="w-5 h-5 text-primary"/>
+                    </div>
+                    <span>Community Outreach</span>
                 </div>
             </CardContent>
         </Card>
+      </div>
+
+      <div className="space-y-6 lg:sticky top-8">
         <Card>
             <CardHeader>
                 <CardTitle className="font-headline text-lg">Giving History</CardTitle>

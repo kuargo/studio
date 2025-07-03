@@ -4,18 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, UserCheck, MessageSquare, BookOpen, Globe } from "lucide-react";
+import { Search, UserCheck, MessageSquare, BookOpen, Briefcase, Heart, Building2 } from "lucide-react";
 
 const mentors = [
-  { name: "Pastor John", avatar: "https://placehold.co/100x100/a5b4fc/1e3a8a.png", aiHint: "man smiling", role: "Senior Pastor", specialties: ["Theology", "Leadership", "Marriage"] },
+  { name: "Pastor John", avatar: "https://placehold.co/100x100/a5b4fc/1e3a8a.png", aiHint: "man smiling", role: "Senior Pastor", specialties: ["Theology", "Leadership", "Marriage Counseling"] },
   { name: "Maria Garcia", avatar: "https://placehold.co/100x100/f9a8d4/4c1d95.png", aiHint: "woman portrait", role: "Worship Leader", specialties: ["Worship", "Songwriting", "Prayer"] },
   { name: "David Chen", avatar: "https://placehold.co/100x100/a7f3d0/065f46.png", aiHint: "man outdoors", role: "Youth Leader", specialties: ["Youth Ministry", "Discipleship", "Evangelism"] },
-  { name: "Sarah Kim", avatar: "https://placehold.co/100x100/fed7aa/9a3412.png", aiHint: "woman professional", role: "Small Group Leader", specialties: ["Community", "Biblical Studies", "Pastoral Care"] },
+  { name: "Sarah Kim", avatar: "https://placehold.co/100x100/fed7aa/9a3412.png", aiHint: "woman professional", role: "Marketplace Leader", specialties: ["Business", "Finance", "Career"] },
+  { name: "The Jacksons", avatar: "https://placehold.co/100x100/d8b4fe/581c87.png", aiHint: "happy couple", role: "Pre-marital Counselors", specialties: ["Marriage Counseling", "Family", "Relationships"] },
+  { name: "Dr. Evans", avatar: "https://placehold.co/100x100/a5f3fc/0e7490.png", aiHint: "professional man", role: "Certified Counselor", specialties: ["Mental Health", "Pastoral Care", "Theology"] },
 ]
 
 const recentPosts = [
   { user: "Pastor John", title: "On the importance of Sabbath", snippet: "In our fast-paced world, resting is a revolutionary act of faith..." },
   { user: "Maria Garcia", title: "Discerning God's voice in worship", snippet: "Sometimes worship isn't about the big moments, but the quiet whispers..." },
+  { user: "Sarah Kim", title: "Bringing your faith into your workplace", snippet: "How can we be a light in the marketplace? It starts with excellence..." },
 ]
 
 export default function MentorshipPage() {
@@ -31,20 +34,19 @@ export default function MentorshipPage() {
             <CardHeader>
               <h2 className="text-2xl font-headline font-bold">Find a Mentor</h2>
             </CardHeader>
-            <CardContent className="flex flex-col md:flex-row gap-4">
-                <div className="relative flex-1">
+            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="relative md:col-span-2">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input placeholder="Search by name, specialty (e.g., 'Prayer')" className="pl-10 h-11" />
+                    <Input placeholder="Search by name..." className="pl-10 h-11" />
                 </div>
-                <Select>
-                  <SelectTrigger className="md:w-48 h-11"><SelectValue placeholder="Filter by Region" /></SelectTrigger>
+                 <Select>
+                  <SelectTrigger className="h-11"><SelectValue placeholder="Filter by Specialty" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="global">Global / Online</SelectItem>
-                    <SelectItem value="africa">Africa</SelectItem>
-                    <SelectItem value="asia">Asia</SelectItem>
-                    <SelectItem value="europe">Europe</SelectItem>
-                    <SelectItem value="north-america">North America</SelectItem>
-                    <SelectItem value="south-america">South America</SelectItem>
+                    <SelectItem value="theology"><BookOpen className="mr-2"/>Theology & Doctrine</SelectItem>
+                    <SelectItem value="leadership"><Building2 className="mr-2"/>Leadership</SelectItem>
+                    <SelectItem value="marriage"><Heart className="mr-2"/>Marriage & Family</SelectItem>
+                    <SelectItem value="business"><Briefcase className="mr-2"/>Business & Career</SelectItem>
+                    <SelectItem value="mental-health">Mental Health</SelectItem>
                   </SelectContent>
                 </Select>
             </CardContent>
@@ -56,7 +58,7 @@ export default function MentorshipPage() {
                       <CardContent className="p-6 text-center flex flex-col items-center">
                           <Avatar className="h-24 w-24 mb-4">
                               <AvatarImage src={mentor.avatar} data-ai-hint={mentor.aiHint} />
-                              <AvatarFallback>{mentor.name.charAt(0)}</AvatarFallback>
+                              <AvatarFallback>{mentor.name.slice(0,2)}</AvatarFallback>
                           </Avatar>
                           <h3 className="font-headline font-semibold text-lg">{mentor.name}</h3>
                           <p className="text-muted-foreground text-sm">{mentor.role}</p>
@@ -73,11 +75,24 @@ export default function MentorshipPage() {
       </div>
       <div className="lg:col-span-1 space-y-6 lg:sticky top-8">
           <Card className="bg-primary/5">
-            <CardContent className="p-6">
-                <h3 className="font-headline text-lg font-semibold">Want to guide others?</h3>
-                <p className="text-muted-foreground text-sm mt-1">Become a mentor and invest in the next generation of believers. Your experience is valuable.</p>
-                <Button className="w-full mt-4">
-                    <UserCheck className="mr-2"/>
+            <CardHeader>
+                <CardTitle className="font-headline text-lg font-semibold flex items-center gap-2"><UserCheck />Become a Mentor</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p className="text-muted-foreground text-sm mt-1">Invest in the next generation by sharing your wisdom and experience. Your story is valuable.</p>
+                <Select>
+                    <SelectTrigger className="w-full mt-4">
+                        <SelectValue placeholder="I can mentor in..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="spiritual">Spiritual Guidance</SelectItem>
+                        <SelectItem value="financial">Financial Wisdom</SelectItem>
+                        <SelectItem value="marital">Marital Advice</SelectItem>
+                        <SelectItem value="business">Business & Career</SelectItem>
+                        <SelectItem value="parenting">Parenting</SelectItem>
+                    </SelectContent>
+                </Select>
+                <Button className="w-full mt-2">
                     Apply to be a Mentor
                 </Button>
             </CardContent>

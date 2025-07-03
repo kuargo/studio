@@ -1,35 +1,34 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { PrayButton } from "@/components/app/pray-button";
 import {
+    ArrowRight,
     CalendarCheck,
     Clapperboard,
     Flame,
     HandHelping,
-    PlusCircle,
-    Search,
+    HeartHandshake,
+    Newspaper,
+    Sparkles,
     Users,
     Video,
-    Globe,
-    School,
-    Church
+    BookOpen
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-const quickActions = [
-    { label: "New Reel", icon: Clapperboard, color: "bg-rose-500" },
-    { label: "Add Prayer", icon: HandHelping, color: "bg-blue-500" },
-    { label: "Find Event", icon: CalendarCheck, color: "bg-amber-500" },
-    { label: "Start Group", icon: Users, color: "bg-green-500" },
+const featuredItems = [
+    { title: "Youth Worship Night", description: "Join us this Friday for a powerful night of worship.", image: "https://placehold.co/600x400.png", aiHint: "youth group concert", link: "/events", type: "Event" },
+    { title: "How to Read the Bible", description: "New sermon series by Pastor John is now available.", image: "https://placehold.co/600x400.png", aiHint: "pastor preaching", link: "/sermon-remix", type: "Sermon" },
+    { title: "Serve the City", description: "Volunteer for our community food drive this Saturday.", image: "https://placehold.co/600x400.png", aiHint: "volunteers packing food", link: "/volunteering", type: "Volunteer" },
 ];
 
-const upcomingEvents = [
-    { title: "Youth Worship Night", time: "Fri, 7:00 PM", location: "Main Sanctuary" },
-    { title: "Community Outreach", time: "Sat, 9:00 AM", location: "City Park" },
-    { title: "Prophetic Workshop", time: "Sat, 2:00 PM", location: "Fellowship Hall" },
+const quickLinks = [
+    { label: "Share a Testimony", icon: Newspaper, href: "/social-feed", color: "text-blue-500" },
+    { label: "Create a Reel", icon: Clapperboard, href: "/faith-reels", color: "text-rose-500" },
+    { label: "Log a Dream", icon: BookOpen, href: "/journal", color: "text-purple-500" },
+    { label: "Find a Mentor", icon: Users, href: "/mentorship", color: "text-green-500" },
 ];
 
 const prayerRequests = [
@@ -40,92 +39,78 @@ const prayerRequests = [
 export default function DashboardPage() {
     return (
         <div className="space-y-8">
-            <div>
-                <h1 className="text-3xl font-headline font-bold">Welcome Back, Believer!</h1>
-                <p className="text-muted-foreground">Here&apos;s what&apos;s happening in your community today.</p>
-            </div>
+             <Card className="bg-gradient-to-br from-primary via-fuchsia-500 to-rose-500 text-primary-foreground border-0 shadow-lg">
+                <CardHeader>
+                    <h1 className="text-3xl font-headline font-bold">Welcome Back, Believer!</h1>
+                    <p className="opacity-80">The community is active! Here’s your personalized look at what’s happening.</p>
+                </CardHeader>
+             </Card>
             
-            <section>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {quickActions.map(action => (
-                         <Card key={action.label} className="flex flex-col items-center justify-center p-4 hover:shadow-lg transition-shadow cursor-pointer">
-                            <div className={`p-3 rounded-full ${action.color} mb-2`}>
-                                <action.icon className="h-6 w-6 text-white" />
-                            </div>
-                            <p className="text-sm font-semibold">{action.label}</p>
-                         </Card>
-                    ))}
-                </div>
-            </section>
-            
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <Card className="flex flex-col lg:col-span-2">
-                    <CardHeader>
-                        <CardTitle className="font-headline">Find Your Community</CardTitle>
-                        <CardDescription>Search for churches, groups, and events globally, or add your own listing.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex gap-2">
-                            <div className="relative flex-grow">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                <Input placeholder="Search globally..." className="pl-10 h-11" />
-                            </div>
-                            <Button size="lg">Search</Button>
-                        </div>
-                        <div className="mt-4 flex flex-wrap gap-2">
-                            <Button variant="outline"><Church className="mr-2"/>Churches</Button>
-                            <Button variant="outline"><Users className="mr-2"/>Youth Groups</Button>
-                            <Button variant="outline"><CalendarCheck className="mr-2"/>Events</Button>
-                            <Button variant="outline"><School className="mr-2"/>Campus Groups</Button>
-                            <Button variant="outline"><PlusCircle className="mr-2"/>Add Listing</Button>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="flex flex-col justify-between">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 font-headline">
-                            <Flame className="text-amber-500" />
-                            Quiet Time Streak
-                        </CardTitle>
-                        <CardDescription>Consistency is key to spiritual growth.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="text-center">
-                        <div className="text-6xl font-bold font-headline text-primary">12</div>
-                        <p className="text-muted-foreground">Days in a row!</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="lg:col-span-2">
-                    <CardHeader>
-                        <CardTitle className="font-headline">Upcoming Events</CardTitle>
-                        <CardDescription>Get involved and connect with others.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ul className="space-y-4">
-                            {upcomingEvents.map(event => (
-                                <li key={event.title} className="flex items-center gap-4">
-                                    <div className="p-3 bg-accent rounded-lg">
-                                        <CalendarCheck className="w-5 h-5 text-accent-foreground" />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <div className="lg:col-span-2 space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline text-xl">Community Spotlight</CardTitle>
+                            <CardDescription>Featured events, sermons, and opportunities.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {featuredItems.map(item => (
+                                <Link href={item.link} key={item.title} className="group block">
+                                    <div className="overflow-hidden rounded-lg">
+                                        <Image src={item.image} alt={item.title} width={400} height={250} className="aspect-video object-cover group-hover:scale-105 transition-transform" data-ai-hint={item.aiHint} />
                                     </div>
-                                    <div className="flex-grow">
-                                        <p className="font-semibold">{event.title}</p>
-                                        <p className="text-sm text-muted-foreground">{event.time} &bull; {event.location}</p>
-                                    </div>
-                                    <Button variant="ghost" size="sm">Details</Button>
-                                </li>
+                                    <p className="text-xs uppercase font-semibold text-primary mt-2">{item.type}</p>
+                                    <h3 className="font-semibold">{item.title}</h3>
+                                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                                </Link>
                             ))}
-                        </ul>
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline text-xl">Quick Links</CardTitle>
+                             <CardDescription>Provoking your engagement. What will you do next?</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                             {quickLinks.map(link => (
+                                <Link href={link.href} key={link.label} className="group">
+                                    <div className="flex flex-col items-center justify-center p-4 h-full rounded-lg border bg-card hover:bg-accent hover:shadow-md transition-all">
+                                        <div className={`p-3 rounded-full bg-muted group-hover:bg-background mb-2`}>
+                                            <link.icon className={`h-6 w-6 ${link.color}`} />
+                                        </div>
+                                        <p className="text-sm font-semibold text-center">{link.label}</p>
+                                    </div>
+                                </Link>
+                            ))}
+                        </CardContent>
+                    </Card>
+                </div>
+                
+                <div className="space-y-6">
+                    <Card className="flex flex-col justify-between">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 font-headline">
+                                <Flame className="text-amber-500" />
+                                Quiet Time Streak
+                            </CardTitle>
+                            <CardDescription>Keep the fire burning!</CardDescription>
+                        </CardHeader>
+                        <CardContent className="text-center">
+                            <div className="text-7xl font-bold font-headline text-primary">12</div>
+                            <p className="text-muted-foreground">Days in a row!</p>
+                        </CardContent>
+                        <CardContent>
+                            <Button className="w-full">Start Today's Devotion</Button>
+                        </CardContent>
+                    </Card>
 
-                <Card className="lg:col-span-2">
-                    <CardHeader>
-                         <CardTitle className="font-headline">Prayer Wall</CardTitle>
-                         <CardDescription>Lift up your community in prayer.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline text-xl">Prayer Wall</CardTitle>
+                            <CardDescription>Lift up your community.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
                             {prayerRequests.map((prayer, index) => (
                                 <div key={index} className="flex items-start gap-4">
                                     <Avatar>
@@ -134,32 +119,21 @@ export default function DashboardPage() {
                                     </Avatar>
                                     <div className="flex-grow">
                                         <p className="font-semibold text-sm">{prayer.name}</p>
-                                        <p className="text-sm text-muted-foreground">{prayer.request}</p>
+                                        <p className="text-sm text-muted-foreground line-clamp-2">{prayer.request}</p>
                                     </div>
                                     <PrayButton count={prayer.initialPrayers} />
                                 </div>
                             ))}
-                        </div>
-                        <Button variant="outline" className="w-full mt-4">View More Prayers</Button>
-                    </CardContent>
-                </Card>
-                
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="font-headline">Faith Reels</CardTitle>
-                        <CardDescription>Trending short videos from the community.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-2">
-                            <Link href="/faith-reels" className="block relative rounded-lg overflow-hidden aspect-[9/16] group">
-                                <Image src="https://placehold.co/300x533/ff00ff/ffffff.png" alt="Faith Reel thumbnail" fill style={{ objectFit: 'cover' }} data-ai-hint="worship concert" />
-                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Video className="w-12 h-12 text-white" />
-                                </div>
+                        </CardContent>
+                         <CardContent>
+                             <Link href="/prayer-wall" passHref>
+                                <Button variant="outline" className="w-full">
+                                    View Prayer Wall <ArrowRight className="ml-2 h-4 w-4"/>
+                                </Button>
                             </Link>
-                        </div>
-                    </CardContent>
-                </Card>
+                         </CardContent>
+                    </Card>
+                </div>
             </div>
         </div>
     );

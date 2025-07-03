@@ -1,15 +1,23 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
-import { Scissors, Music, Type, Clapperboard, Download, Share2, Eye, MessageCircle, Heart } from "lucide-react";
+import { Scissors, Music, Type, Clapperboard, Download, Share2, Eye, MessageCircle, Heart, PlusCircle } from "lucide-react";
 import Image from "next/image";
 import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const recentSermons = [
   { title: "The Good Shepherd", pastor: "Pastor John", date: "Aug 11, 2024", thumbnail: "https://placehold.co/150x84.png", aiHint: "pastor preaching"},
   { title: "Love Your Neighbor", pastor: "Pastor Dave", date: "Aug 4, 2024", thumbnail: "https://placehold.co/150x84.png", aiHint: "church stage" },
   { title: "Faith That Moves Mountains", pastor: "Pastor John", date: "Jul 28, 2024", thumbnail: "https://placehold.co/150x84.png", aiHint: "open bible" },
 ];
+
+const featuredPreachers = [
+    { name: "TD Jakes", avatar: "https://placehold.co/100x100.png", aiHint: "TD Jakes" },
+    { name: "Joyce Meyer", avatar: "https://placehold.co/100x100.png", aiHint: "Joyce Meyer" },
+    { name: "Steven Furtick", avatar: "https://placehold.co/100x100.png", aiHint: "Steven Furtick" },
+    { name: "VOUS Church", avatar: "https://placehold.co/100x100.png", aiHint: "church logo" },
+]
 
 export default function SermonRemixPage() {
   return (
@@ -47,10 +55,10 @@ export default function SermonRemixPage() {
         </Card>
       </div>
       
-      <div className="space-y-4">
+      <div className="space-y-4 lg:sticky top-8">
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline">Recent Sermons</CardTitle>
+                <CardTitle className="font-headline">Select a Sermon</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
                 {recentSermons.map(sermon => (
@@ -67,26 +75,22 @@ export default function SermonRemixPage() {
         </Card>
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline">Shared Remix</CardTitle>
-                <CardDescription>This is how your remixed sermon will appear to others.</CardDescription>
+                <CardTitle className="font-headline flex items-center justify-between">
+                    <span>Featured Channels</span>
+                    <Button variant="ghost" size="icon" className="h-8 w-8"><PlusCircle/></Button>
+                </CardTitle>
+                <CardDescription>Easily access content from popular ministries.</CardDescription>
             </CardHeader>
-            <CardContent>
-                 <div className="border rounded-lg p-4 space-y-3">
-                     <div className="aspect-video bg-zinc-800 rounded-md flex items-center justify-center text-zinc-500">
-                         <Clapperboard className="w-12 h-12"/>
-                     </div>
-                     <p className="text-sm">Here's the most powerful 60 seconds from Sunday's message! So good. <span className="text-primary">#faith</span> <span className="text-primary">#hope</span> <span className="text-primary">@PastorJohn</span></p>
-                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1.5"><Heart className="w-4 h-4"/> 1.2k</div>
-                        <div className="flex items-center gap-1.5"><MessageCircle className="w-4 h-4"/> 88</div>
-                        <div className="flex items-center gap-1.5"><Eye className="w-4 h-4"/> 15.7k</div>
-                     </div>
-                     <div className="flex gap-2 pt-2 border-t">
-                        <Button variant="secondary" size="sm" className="flex-1">Like</Button>
-                        <Button variant="secondary" size="sm" className="flex-1">Comment</Button>
-                        <Button variant="secondary" size="sm" className="flex-1">Share</Button>
-                     </div>
-                 </div>
+            <CardContent className="grid grid-cols-2 gap-4">
+                {featuredPreachers.map(preacher => (
+                    <div key={preacher.name} className="flex flex-col items-center text-center gap-2 cursor-pointer group">
+                        <Avatar className="h-16 w-16">
+                            <AvatarImage src={preacher.avatar} data-ai-hint={preacher.aiHint} />
+                            <AvatarFallback>{preacher.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <p className="text-sm font-semibold group-hover:text-primary">{preacher.name}</p>
+                    </div>
+                ))}
             </CardContent>
         </Card>
       </div>

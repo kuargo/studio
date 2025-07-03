@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Heart, MessageCircle, Share2, Image as ImageIcon, Video, Filter, MoreHorizontal } from "lucide-react";
+import { Heart, MessageCircle, Share2, Image as ImageIcon, Video, Filter, MoreHorizontal, Trophy, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { PrayButton } from "@/components/app/pray-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -57,11 +57,21 @@ export default function SocialFeedPage() {
                 <Button>Post</Button>
             </CardFooter>
         </Card>
+        
+        <Card className="bg-gradient-to-r from-amber-400 to-yellow-500 text-white">
+            <CardHeader className="flex flex-row items-center gap-4">
+                <Trophy className="w-10 h-10"/>
+                <div>
+                    <h3 className="font-headline font-bold text-lg">Weekly Spotlight Contest</h3>
+                    <p className="text-sm opacity-90">The most liked & shared post of the week wins a special badge!</p>
+                </div>
+            </CardHeader>
+        </Card>
       
         <Tabs defaultValue="foryou" className="w-full">
             <div className="flex justify-between items-center mb-4">
                 <TabsList>
-                    <TabsTrigger value="foryou">For You</TabsTrigger>
+                    <TabsTrigger value="foryou"><Sparkles className="mr-2 h-4 w-4"/>For You</TabsTrigger>
                     <TabsTrigger value="following">Following</TabsTrigger>
                     <TabsTrigger value="live">Live</TabsTrigger>
                 </TabsList>

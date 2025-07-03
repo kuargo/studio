@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, Send, Music, Search, Plus, Upload, Link2, Download, Coins } from "lucide-react";
+import { Heart, MessageCircle, Send, Music, Search, Plus, Upload, Link2, Download, Coins, Wand2, Palette } from "lucide-react";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
@@ -114,6 +114,18 @@ function Reel({ user, videoUrl, aiHint, caption, audio, likes, comments }: typeo
             <div className="bg-white/20 p-3 rounded-full">
               <Send className="w-6 h-6" />
             </div>
+          </button>
+          <button className="flex flex-col items-center gap-1">
+            <div className="bg-white/20 p-3 rounded-full">
+              <Palette className="w-6 h-6" />
+            </div>
+             <span className="text-xs font-semibold">Filters</span>
+          </button>
+          <button className="flex flex-col items-center gap-1">
+            <div className="bg-white/20 p-3 rounded-full">
+              <Wand2 className="w-6 h-6" />
+            </div>
+             <span className="text-xs font-semibold">Edit</span>
           </button>
           <button className="flex flex-col items-center gap-1">
             <div className="bg-white/20 p-3 rounded-full">

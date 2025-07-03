@@ -3,9 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { HandHelping, Music, Search, Video, UtensilsCrossed, HeartHandshake, Construction, Code } from "lucide-react";
+import { HandHelping, Music, Search, Video, UtensilsCrossed, HeartHandshake, Construction, Code, Church, Building, User } from "lucide-react";
 
-const opportunityIcons = {
+const opportunityIcons: { [key: string]: React.ElementType } = {
     "Hospitality": HandHelping,
     "Worship": Music,
     "Outreach": UtensilsCrossed,
@@ -23,6 +23,7 @@ const opportunities = [
     commitment: "2 hours/week",
     description: "Be the first friendly face visitors see! Help greet, hand out bulletins, and answer questions.",
     skills: ["Friendly", "Welcoming"],
+    postedBy: { type: 'Church', name: 'Connect Hub Church' }
   },
   {
     title: "Youth Worship Guitarist",
@@ -31,6 +32,7 @@ const opportunities = [
     commitment: "3 hours/week (incl. practice)",
     description: "Use your musical gifts to lead our youth in worship on Wednesday nights.",
     skills: ["Guitar", "Worship Leading"],
+    postedBy: { type: 'Church', name: 'Connect Hub Church' }
   },
   {
     title: "Food Pantry Server",
@@ -39,6 +41,7 @@ const opportunities = [
     commitment: "4 hours/month",
     description: "Help organize, pack, and distribute food to families in need in our community.",
     skills: ["Organized", "Service-oriented"],
+    postedBy: { type: 'NGO', name: 'City Serve Foundation' }
   },
   {
     title: "Online Community Moderator",
@@ -47,6 +50,7 @@ const opportunities = [
     commitment: "5 hours/week (Flexible)",
     description: "Help keep our online community safe and welcoming by moderating posts and comments.",
     skills: ["Communication", "Discernment"],
+    postedBy: { type: 'User', name: 'Admin Team' }
   },
   {
     title: "Church Website Videographer",
@@ -55,6 +59,7 @@ const opportunities = [
     commitment: "Flexible",
     description: "Help capture testimonies, event recaps, and other video content for our online presence.",
     skills: ["Videography", "Editing"],
+    postedBy: { type: 'Church', name: 'Grace Fellowship' }
   },
    {
     title: "Mission Trip Support (Admin)",
@@ -63,6 +68,7 @@ const opportunities = [
     commitment: "Flexible",
     description: "Assist with administrative tasks for our upcoming global mission trips.",
     skills: ["Admin", "Planning"],
+     postedBy: { type: 'NGO', name: 'Hope International' }
   },
 ];
 
@@ -98,8 +104,10 @@ export default function VolunteeringPage() {
                     <SelectItem value="hospitality">Hospitality</SelectItem>
                     <SelectItem value="worship">Worship</SelectItem>
                     <SelectItem value="outreach">Outreach</SelectItem>
-                    <SelectItem value="media">Media & Tech</SelectItem>
+                    <SelectItem value="media">Media</SelectItem>
+                    <SelectItem value="tech">Tech</SelectItem>
                     <SelectItem value="kids">Kids Ministry</SelectItem>
+                    <SelectItem value="facilities">Facilities</SelectItem>
                 </SelectContent>
             </Select>
         </CardContent>
@@ -108,26 +116,40 @@ export default function VolunteeringPage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {opportunities.map(opp => {
             const Icon = opportunityIcons[opp.ministry as keyof typeof opportunityIcons] || opportunityIcons.Default;
+            const PostedByIcon = {
+                'Church': Church,
+                'NGO': Building,
+                'User': User
+            }[opp.postedBy.type] || Building;
+
             return (
-                <Card key={opp.title}>
-                    <CardHeader className="flex flex-row items-start gap-4 space-y-0">
-                        <div className="p-3 bg-primary/10 rounded-lg">
-                            <Icon className="h-6 w-6 text-primary" />
+                <Card key={opp.title} className="flex flex-col">
+                    <CardHeader className="flex-grow">
+                        <div className="flex items-start gap-4">
+                            <div className="p-3 bg-primary/10 rounded-lg">
+                                <Icon className="h-6 w-6 text-primary" />
+                            </div>
+                            <div>
+                                <CardTitle className="font-headline text-lg">{opp.title}</CardTitle>
+                                <CardDescription>{opp.ministry} &bull; {opp.location}</CardDescription>
+                            </div>
                         </div>
-                        <div>
-                            <CardTitle className="font-headline text-lg">{opp.title}</CardTitle>
-                            <CardDescription>{opp.ministry} &bull; {opp.location}</CardDescription>
+                        <div className="pt-4">
+                            <p className="text-sm text-muted-foreground mb-4">{opp.description}</p>
+                            <p className="text-sm font-semibold text-muted-foreground mb-2">Commitment: {opp.commitment}</p>
+                            <div className="flex flex-wrap gap-2">
+                                {opp.skills.map(skill => <Badge key={skill} variant="outline">{skill}</Badge>)}
+                            </div>
                         </div>
                     </CardHeader>
-                    <CardContent>
-                        <p className="text-sm text-muted-foreground mb-4">{opp.description}</p>
-                        <p className="text-sm font-semibold text-muted-foreground mb-2">Commitment: {opp.commitment}</p>
-                        <div className="flex flex-wrap gap-2">
-                            {opp.skills.map(skill => <Badge key={skill} variant="outline">{skill}</Badge>)}
-                        </div>
-                    </CardContent>
-                    <CardContent className="p-4 border-t">
-                        <Button className="w-full">Express Interest</Button>
+                    <CardContent className="border-t pt-4">
+                         <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <PostedByIcon className="h-4 w-4" />
+                                <span>{opp.postedBy.name}</span>
+                            </div>
+                            <Button size="sm">Express Interest</Button>
+                         </div>
                     </CardContent>
                 </Card>
             )
