@@ -1,3 +1,6 @@
+"use client";
+
+import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,11 +40,13 @@ const prayerRequests = [
 ];
 
 export default function DashboardPage() {
+    const { user } = useAuth();
+    
     return (
         <div className="space-y-8">
              <Card className="bg-gradient-to-br from-primary via-fuchsia-500 to-rose-500 text-primary-foreground border-0 shadow-lg">
                 <CardHeader>
-                    <h1 className="text-3xl font-headline font-bold">Welcome Back, Believer!</h1>
+                    <h1 className="text-3xl font-headline font-bold">Welcome Back, {user?.email?.split('@')[0] || "Believer"}!</h1>
                     <p className="opacity-80">The community is active! Here’s your personalized look at what’s happening.</p>
                 </CardHeader>
              </Card>

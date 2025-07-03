@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
+import { signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { useToast } from "@/hooks/use-toast";
 import {
   BookOpen,
   Calendar,
@@ -49,6 +53,25 @@ const secondaryMenuItems = [
 
 export function SidebarNav() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push("/login");
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Logout Failed",
+        description: "Something went wrong. Please try again.",
+      });
+    }
+  };
 
   const renderMenuItems = (items: typeof menuItems) => (
     <SidebarMenu>
@@ -90,7 +113,7 @@ export function SidebarNav() {
               </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Log Out">
+              <SidebarMenuButton tooltip="Log Out" onClick={handleLogout}>
                   <LogOut />
                   <span>Log Out</span>
               </SidebarMenuButton>

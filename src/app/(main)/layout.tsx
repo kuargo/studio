@@ -1,12 +1,27 @@
+"use client";
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar";
 import { Header } from "@/components/app/header";
 import { SidebarNav } from "@/components/app/sidebar-nav";
+import { useAuth } from "@/hooks/use-auth";
+import { AuthLoader } from "@/components/app/auth-provider";
 
-export default function MainLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
+    return <AuthLoader />;
+  }
+
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon" variant="sidebar">
@@ -21,5 +36,16 @@ export default function MainLayout({
         </div>
       </SidebarInset>
     </SidebarProvider>
+  );
+}
+
+
+export default function MainLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+      <ProtectedLayout>{children}</ProtectedLayout>
   );
 }
