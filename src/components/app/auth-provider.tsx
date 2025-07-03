@@ -2,23 +2,65 @@
 
 import React, { useState, useEffect } from "react";
 import type { User } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, firebaseConfigured } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { Sparkles } from "lucide-react";
+import { Sparkles, AlertTriangle } from "lucide-react";
 import { AuthContext } from "@/hooks/use-auth";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+const FirebaseNotConfigured = () => {
+    return (
+        <div className="flex h-screen w-full flex-col items-center justify-center bg-secondary/50 p-4">
+             <Card className="w-full max-w-lg border-destructive bg-destructive/5">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-3 text-destructive">
+                        <AlertTriangle className="h-6 w-6" /> Action Required: Configure Firebase
+                    </CardTitle>
+                    <CardDescription className="text-destructive/90">
+                        This application cannot run until you connect it to your Firebase project.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 text-sm">
+                    <p className="font-semibold">Please follow these steps:</p>
+                    <ol className="list-decimal space-y-2 pl-6 text-foreground/90">
+                        <li>Go to the <a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer" className="font-bold underline text-primary">Firebase Console</a> and create a new project.</li>
+                        <li>In your project, go to Project Settings and add a <strong>Web</strong> application.</li>
+                        <li>Firebase will provide a `firebaseConfig` object. You will need these keys.</li>
+                        <li>In this code editor, create a new file in the root directory named <strong><code>.env.local</code></strong>.</li>
+                        <li>Find the <strong><code>.env.example</code></strong> file and copy its contents into your new <strong><code>.env.local</code></strong> file.</li>
+                        <li>Replace the placeholder values in `.env.local` with your actual credentials from Firebase.</li>
+                    </ol>
+                    <p className="pt-2 font-semibold">After saving the <code>.env.local</code> file, the app will automatically restart and work correctly.</p>
+                </CardContent>
+             </Card>
+        </div>
+    );
+};
+
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    if (!firebaseConfigured) {
+      setLoading(false);
+      // We don't need to do anything else, the component will render the error message.
+      return;
+    }
+    
+    // This check is now safe because firebaseConfigured is true.
+    const unsubscribe = onAuthStateChanged(auth!, (user) => {
       setUser(user);
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
+
+  if (!firebaseConfigured) {
+    return <FirebaseNotConfigured />;
+  }
 
   return (
     <AuthContext.Provider value={{ user, loading }}>
