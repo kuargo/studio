@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, ThumbsUp, MessageCircle, Smile, CheckCheck, Sparkles, Trophy } from "lucide-react";
+import { Send, ThumbsUp, MessageCircle, Smile, CheckCheck, Sparkles, Trophy, BookOpen } from "lucide-react";
 import { PrayButton } from "@/components/app/pray-button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
@@ -85,6 +85,13 @@ export default function PrayerWallPage() {
                         <p className="text-lg italic">&quot;For where two or three gather in my name, there am I with them.&quot;</p>
                         <p className="text-right font-semibold mt-2">- Matthew 18:20</p>
                     </CardContent>
+                    <CardFooter>
+                        <Button asChild variant="secondary" className="w-full">
+                            <a href="https://www.biblegateway.com/" target="_blank" rel="noopener noreferrer">
+                                <BookOpen className="mr-2 h-4 w-4" /> Read the Bible
+                            </a>
+                        </Button>
+                    </CardFooter>
                 </Card>
             </div>
         </div>

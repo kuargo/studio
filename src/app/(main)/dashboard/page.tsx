@@ -7,15 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PrayButton } from "@/components/app/pray-button";
 import {
     ArrowRight,
-    CalendarCheck,
     Clapperboard,
     Flame,
-    HandHelping,
-    HeartHandshake,
     Newspaper,
-    Sparkles,
     Users,
-    Video,
     BookOpen
 } from "lucide-react";
 import Image from "next/image";
@@ -30,7 +25,7 @@ const featuredItems = [
 const quickLinks = [
     { label: "Share a Testimony", icon: Newspaper, href: "/social-feed", color: "text-blue-500" },
     { label: "Create a Reel", icon: Clapperboard, href: "/faith-reels", color: "text-rose-500" },
-    { label: "Log a Dream", icon: BookOpen, href: "/journal", color: "text-purple-500" },
+    { label: "Read the Bible", icon: BookOpen, href: "https://www.biblegateway.com/", color: "text-amber-500", target: "_blank" },
     { label: "Find a Mentor", icon: Users, href: "/mentorship", color: "text-green-500" },
 ];
 
@@ -45,9 +40,15 @@ export default function DashboardPage() {
     return (
         <div className="space-y-8">
              <Card className="bg-gradient-to-br from-primary via-fuchsia-500 to-rose-500 text-primary-foreground border-0 shadow-lg">
-                <CardHeader>
-                    <h1 className="text-3xl font-bold">Welcome Back, {user?.email?.split('@')[0] || "Believer"}!</h1>
-                    <p className="opacity-80">The community is active! Here’s your personalized look at what’s happening.</p>
+                <CardHeader className="flex flex-row items-center gap-4">
+                    <Avatar className="h-16 w-16 border-2 border-primary-foreground/50">
+                        <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || ''} data-ai-hint="person portrait" />
+                        <AvatarFallback>{user?.displayName?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <h1 className="text-3xl font-bold">Welcome, {user?.displayName || "Believer"}!</h1>
+                        <p className="opacity-80">The community is active! Here’s your personalized look at what’s happening.</p>
+                    </div>
                 </CardHeader>
              </Card>
             
@@ -79,7 +80,7 @@ export default function DashboardPage() {
                         </CardHeader>
                         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
                              {quickLinks.map(link => (
-                                <Link href={link.href} key={link.label} className="group">
+                                <Link href={link.href} key={link.label} className="group" target={link.target} rel={link.target === '_blank' ? 'noopener noreferrer' : undefined}>
                                     <div className="flex flex-col items-center justify-center p-4 h-full rounded-lg border bg-card hover:bg-accent hover:shadow-md transition-all">
                                         <div className={`p-3 rounded-full bg-muted group-hover:bg-background mb-2`}>
                                             <link.icon className={`h-6 w-6 ${link.color}`} />

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,9 +31,17 @@ export default function SignupPage() {
     setLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await createUserProfile(userCredential.user, {
-        displayName: email.split('@')[0],
+      const displayName = email.split('@')[0];
+
+      await updateProfile(userCredential.user, {
+        displayName,
+        photoURL: `https://placehold.co/100x100.png`
       });
+
+      await createUserProfile(userCredential.user, {
+        displayName,
+      });
+
       toast({
         title: "Account Created",
         description: "Welcome! You are now logged in.",
