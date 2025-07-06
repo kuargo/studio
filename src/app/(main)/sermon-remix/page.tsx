@@ -25,7 +25,7 @@ export default function SermonRemixPage() {
       <div className="lg:col-span-2 space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline text-2xl">Sermon Remix Studio</CardTitle>
+            <CardTitle>Sermon Remix Studio</CardTitle>
             <CardDescription>Select a sermon, clip your favorite moment, and create a shareable reel for the community.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -58,7 +58,7 @@ export default function SermonRemixPage() {
       <div className="space-y-4 lg:sticky top-8">
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline">Select a Sermon</CardTitle>
+                <CardTitle>Select a Sermon</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
                 {recentSermons.map(sermon => (
@@ -75,7 +75,7 @@ export default function SermonRemixPage() {
         </Card>
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline flex items-center justify-between">
+                <CardTitle className="flex items-center justify-between">
                     <span>Featured Channels</span>
                     <Button variant="ghost" size="icon" className="h-8 w-8"><PlusCircle/></Button>
                 </CardTitle>

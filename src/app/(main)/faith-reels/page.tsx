@@ -47,7 +47,7 @@ export default function FaithReelsPage() {
         </div>
         
         <div className="absolute top-0 left-0 right-0 p-4 text-white font-bold text-lg flex justify-between items-center z-10 bg-gradient-to-b from-black/50 to-transparent">
-          <h1 className="font-headline">Faith Reels</h1>
+          <h1>Faith Reels</h1>
           <div className="flex gap-4">
             <Search className="cursor-pointer"/>
             <Dialog>

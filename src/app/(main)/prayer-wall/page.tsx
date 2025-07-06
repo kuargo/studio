@@ -26,7 +26,7 @@ export default function PrayerWallPage() {
             <div className="lg:col-span-2 space-y-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle className="font-headline">Share a Request or Testimony</CardTitle>
+                        <CardTitle>Share a Request or Testimony</CardTitle>
                         <CardDescription>Let your community stand with you or celebrate with you. Your post will be public.</CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -79,7 +79,7 @@ export default function PrayerWallPage() {
             <div className="lg:col-span-1 space-y-6 lg:sticky top-8">
                 <Card className="bg-gradient-to-br from-primary to-fuchsia-600 text-primary-foreground">
                     <CardHeader>
-                        <CardTitle className="font-headline">Verse of the Day</CardTitle>
+                        <CardTitle>Verse of the Day</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <p className="text-lg italic">&quot;For where two or three gather in my name, there am I with them.&quot;</p>

@@ -46,7 +46,7 @@ export default function DashboardPage() {
         <div className="space-y-8">
              <Card className="bg-gradient-to-br from-primary via-fuchsia-500 to-rose-500 text-primary-foreground border-0 shadow-lg">
                 <CardHeader>
-                    <h1 className="text-3xl font-headline font-bold">Welcome Back, {user?.email?.split('@')[0] || "Believer"}!</h1>
+                    <h1 className="text-3xl font-bold">Welcome Back, {user?.email?.split('@')[0] || "Believer"}!</h1>
                     <p className="opacity-80">The community is active! Here’s your personalized look at what’s happening.</p>
                 </CardHeader>
              </Card>
@@ -56,7 +56,7 @@ export default function DashboardPage() {
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="font-headline text-xl">Community Spotlight</CardTitle>
+                            <CardTitle className="text-xl">Community Spotlight</CardTitle>
                             <CardDescription>Featured events, sermons, and opportunities.</CardDescription>
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -74,7 +74,7 @@ export default function DashboardPage() {
                     </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle className="font-headline text-xl">Quick Links</CardTitle>
+                            <CardTitle className="text-xl">Quick Links</CardTitle>
                              <CardDescription>Provoking your engagement. What will you do next?</CardDescription>
                         </CardHeader>
                         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -95,14 +95,14 @@ export default function DashboardPage() {
                 <div className="space-y-6">
                     <Card className="flex flex-col justify-between">
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2 font-headline">
+                            <CardTitle className="flex items-center gap-2">
                                 <Flame className="text-amber-500" />
                                 Quiet Time Streak
                             </CardTitle>
                             <CardDescription>Keep the fire burning!</CardDescription>
                         </CardHeader>
                         <CardContent className="text-center">
-                            <div className="text-7xl font-bold font-headline text-primary">12</div>
+                            <div className="text-7xl font-bold">12</div>
                             <p className="text-muted-foreground">Days in a row!</p>
                         </CardContent>
                         <CardContent>
@@ -112,7 +112,7 @@ export default function DashboardPage() {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle className="font-headline text-xl">Prayer Wall</CardTitle>
+                            <CardTitle className="text-xl">Prayer Wall</CardTitle>
                             <CardDescription>Lift up your community.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">

@@ -85,7 +85,7 @@ export default function WellBeingPage() {
         <div className="inline-block p-3 bg-primary/10 rounded-full mb-4">
             <HeartPulse className="h-10 w-10 text-primary" />
         </div>
-        <h1 className="text-4xl font-headline font-bold">Mental & Spiritual Well-being Hub</h1>
+        <h1 className="text-4xl font-bold">Mental & Spiritual Well-being Hub</h1>
         <p className="text-muted-foreground mt-2 text-lg">
           Caring for your soul and mind is vital. Here are some resources to support your journey towards wholeness in Christ.
         </p>
@@ -100,7 +100,7 @@ export default function WellBeingPage() {
                   <res.icon className={`w-6 h-6 ${res.color}`} />
                 </div>
                 <div>
-                  <CardTitle className="font-headline text-lg">{res.title}</CardTitle>
+                  <CardTitle className="text-lg">{res.title}</CardTitle>
                   <CardDescription className="mt-1">{res.description}</CardDescription>
                 </div>
               </div>
@@ -115,7 +115,7 @@ export default function WellBeingPage() {
       </div>
        <Card className="border-destructive/50 bg-destructive/5">
         <CardHeader>
-          <CardTitle className="font-headline text-destructive flex items-center gap-2"><LifeBuoy/>Emergency Support</CardTitle>
+          <CardTitle className="text-destructive flex items-center gap-2"><LifeBuoy/>Emergency Support</CardTitle>
           <CardDescription className="text-destructive/80">
             If you are in crisis or need immediate help, please use the resources below. This app is not a substitute for professional emergency services.
           </CardDescription>

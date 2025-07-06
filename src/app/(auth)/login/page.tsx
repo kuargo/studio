@@ -44,7 +44,7 @@ export default function LoginPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl font-headline">Welcome Back</CardTitle>
+        <CardTitle>Welcome Back</CardTitle>
         <CardDescription>
           Enter your credentials to access your account.
         </CardDescription>

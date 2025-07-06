@@ -22,7 +22,7 @@ export default function JournalPage() {
         <div className="lg:col-span-2 space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline text-2xl flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2">
                         <PlusCircle className="text-primary"/> New Journal Entry
                     </CardTitle>
                     <CardDescription>Log your dreams, visions, and prophetic impressions. Your entries are private by default.</CardDescription>
@@ -59,7 +59,7 @@ export default function JournalPage() {
         <div className="space-y-4">
             <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline text-lg">Past Entries</CardTitle>
+                    <CardTitle className="text-lg">Past Entries</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                     {journalEntries.map(entry => (

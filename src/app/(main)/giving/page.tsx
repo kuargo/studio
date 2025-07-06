@@ -20,7 +20,7 @@ export default function GivingPage() {
       <div className="lg:col-span-2 space-y-8">
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline text-2xl">Secure Online Giving</CardTitle>
+            <CardTitle>Secure Online Giving</CardTitle>
             <CardDescription>Your generosity fuels our mission. Thank you for your faithful giving.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -110,7 +110,7 @@ export default function GivingPage() {
         </Card>
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline text-lg flex items-center gap-2"><ShieldQuestion/> Where Your Gift Goes</CardTitle>
+                <CardTitle className="text-lg flex items-center gap-2"><ShieldQuestion/> Where Your Gift Goes</CardTitle>
                 <CardDescription>We believe in transparency and good stewardship. Here are some of the areas your giving supports:</CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -151,7 +151,7 @@ export default function GivingPage() {
       <div className="space-y-6 lg:sticky top-8">
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline text-lg">Giving History</CardTitle>
+                <CardTitle className="text-lg">Giving History</CardTitle>
             </CardHeader>
             <CardContent>
                 <Table>

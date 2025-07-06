@@ -62,7 +62,7 @@ export default function SocialFeedPage() {
             <CardHeader className="flex flex-row items-center gap-4">
                 <Trophy className="w-10 h-10"/>
                 <div>
-                    <h3 className="font-headline font-bold text-lg">Weekly Spotlight Contest</h3>
+                    <h3 className="font-bold text-lg">Weekly Spotlight Contest</h3>
                     <p className="text-sm opacity-90">The most liked & shared post of the week wins a special badge!</p>
                 </div>
             </CardHeader>

@@ -26,13 +26,13 @@ export default function MentorshipPage() {
     <div className="grid lg:grid-cols-3 gap-8 items-start">
       <div className="lg:col-span-2 space-y-8">
           <div className="text-center">
-            <h1 className="text-4xl font-headline font-bold">Spiritual Mentorship</h1>
+            <h1 className="text-4xl font-bold">Spiritual Mentorship</h1>
             <p className="text-muted-foreground mt-2 text-lg max-w-2xl mx-auto">Connect with experienced leaders who can guide you on your faith journey.</p>
           </div>
 
           <Card>
             <CardHeader>
-              <h2 className="text-2xl font-headline font-bold">Find a Mentor</h2>
+              <h2 className="text-2xl font-bold">Find a Mentor</h2>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="relative md:col-span-2">
@@ -60,7 +60,7 @@ export default function MentorshipPage() {
                               <AvatarImage src={mentor.avatar} data-ai-hint={mentor.aiHint} />
                               <AvatarFallback>{mentor.name.slice(0,2)}</AvatarFallback>
                           </Avatar>
-                          <h3 className="font-headline font-semibold text-lg">{mentor.name}</h3>
+                          <h3 className="font-semibold text-lg">{mentor.name}</h3>
                           <p className="text-muted-foreground text-sm">{mentor.role}</p>
                           <div className="flex flex-wrap gap-2 justify-center mt-4">
                               {mentor.specialties.map(spec => <Badge key={spec} variant="secondary">{spec}</Badge>)}
@@ -76,7 +76,7 @@ export default function MentorshipPage() {
       <div className="lg:col-span-1 space-y-6 lg:sticky top-8">
           <Card className="bg-primary/5">
             <CardHeader>
-                <CardTitle className="font-headline text-lg font-semibold flex items-center gap-2"><UserCheck />Become a Mentor</CardTitle>
+                <CardTitle className="text-lg font-semibold flex items-center gap-2"><UserCheck />Become a Mentor</CardTitle>
             </CardHeader>
             <CardContent>
                 <p className="text-muted-foreground text-sm mt-1">Invest in the next generation by sharing your wisdom and experience. Your story is valuable.</p>
@@ -99,7 +99,7 @@ export default function MentorshipPage() {
           </Card>
           <Card>
               <CardHeader>
-                  <CardTitle className="font-headline text-lg flex items-center gap-2"><BookOpen/>Wisdom Posts</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2"><BookOpen/>Wisdom Posts</CardTitle>
                   <CardDescription>Recent insights from our mentors.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -114,7 +114,7 @@ export default function MentorshipPage() {
           </Card>
            <Card>
               <CardHeader>
-                  <CardTitle className="font-headline text-lg flex items-center gap-2"><MessageSquare/>Discussion Panel</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2"><MessageSquare/>Discussion Panel</CardTitle>
                   <CardDescription>Ask questions and discuss topics with the community.</CardDescription>
               </CardHeader>
               <CardContent>

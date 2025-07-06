@@ -76,7 +76,7 @@ export default function VolunteeringPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-headline font-bold">Volunteer Board</h1>
+        <h1 className="text-3xl font-bold">Volunteer Board</h1>
         <p className="text-muted-foreground mt-1">Find a place to serve and use your gifts for the kingdom.</p>
       </div>
 
@@ -130,7 +130,7 @@ export default function VolunteeringPage() {
                                 <Icon className="h-6 w-6 text-primary" />
                             </div>
                             <div>
-                                <CardTitle className="font-headline text-lg">{opp.title}</CardTitle>
+                                <CardTitle className="text-lg">{opp.title}</CardTitle>
                                 <CardDescription>{opp.ministry} &bull; {opp.location}</CardDescription>
                             </div>
                         </div>

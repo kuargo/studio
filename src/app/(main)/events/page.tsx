@@ -55,7 +55,7 @@ export default function EventsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-headline font-bold">Events Hub</h1>
+          <h1 className="text-3xl font-bold">Events Hub</h1>
           <p className="text-muted-foreground">Discover what's happening and get involved.</p>
         </div>
         <Button>
@@ -68,7 +68,7 @@ export default function EventsPage() {
         <div className="lg:col-span-1 space-y-4 lg:sticky top-4">
             <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline text-lg flex items-center gap-2"><Map className="text-primary"/> Map View</CardTitle>
+                    <CardTitle className="text-lg flex items-center gap-2"><Map className="text-primary"/> Map View</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="aspect-square bg-muted rounded-lg overflow-hidden">
@@ -78,7 +78,7 @@ export default function EventsPage() {
             </Card>
              <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline text-lg">Filters</CardTitle>
+                    <CardTitle className="text-lg">Filters</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                      <div className="relative">
@@ -145,7 +145,7 @@ function EventCard({ title, date, time, location, description, rsvps, likes }: t
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline text-xl">{title}</CardTitle>
+        <CardTitle className="text-xl">{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
