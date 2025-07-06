@@ -17,9 +17,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 export function UserNav() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -63,7 +64,10 @@ export function UserNav() {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none font-headline">{user.displayName || "Welcome"}</p>
+            <div className="flex items-center gap-2">
+                <p className="text-sm font-medium leading-none">{user.displayName || "Welcome"}</p>
+                {isAdmin && <Badge variant="destructive">Admin</Badge>}
+            </div>
             <p className="text-xs leading-none text-muted-foreground">
               {user.email}
             </p>

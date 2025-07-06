@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import {
   BookOpen,
   Calendar,
@@ -19,6 +20,7 @@ import {
   Wallpaper,
   HeartHandshake,
   Sparkles,
+  Shield,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -28,9 +30,9 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarFooter
+  SidebarFooter,
+  SidebarSeparator
 } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "../ui/button";
 import { LogOut, Settings } from "lucide-react";
 
@@ -55,6 +57,7 @@ export function SidebarNav() {
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -100,12 +103,22 @@ export function SidebarNav() {
       </SidebarHeader>
       <SidebarContent>
         {renderMenuItems(menuItems)}
-        <Separator className="my-4" />
+        <SidebarSeparator className="my-4" />
         {renderMenuItems(secondaryMenuItems)}
       </SidebarContent>
       <SidebarFooter>
-        <Separator className="mb-4" />
+        <SidebarSeparator className="mb-4" />
         <SidebarMenu>
+          {isAdmin && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname.startsWith('/admin')} tooltip="Admin Panel">
+                <Link href="/admin">
+                  <Shield />
+                  <span>Admin Panel</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           <SidebarMenuItem>
               <SidebarMenuButton tooltip="Settings">
                   <Settings />

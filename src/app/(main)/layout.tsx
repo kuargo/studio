@@ -1,24 +1,42 @@
 "use client";
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar";
 import { Header } from "@/components/app/header";
 import { SidebarNav } from "@/components/app/sidebar-nav";
 import { useAuth } from "@/hooks/use-auth";
 import { AuthLoader } from "@/components/app/auth-provider";
+import { useToast } from '@/hooks/use-toast';
 
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, isAdmin } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
     }
   }, [user, loading, router]);
+  
+  useEffect(() => {
+    if (!loading && user && pathname.startsWith('/admin') && !isAdmin) {
+        toast({
+            variant: "destructive",
+            title: "Access Denied",
+            description: "You do not have permission to view this page.",
+        });
+        router.push('/dashboard');
+    }
+  }, [user, loading, isAdmin, pathname, router, toast]);
 
   if (loading || !user) {
+    return <AuthLoader />;
+  }
+  
+  if (pathname.startsWith('/admin') && !isAdmin) {
     return <AuthLoader />;
   }
 

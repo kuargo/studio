@@ -19,6 +19,7 @@ const titles: { [key: string]: string } = {
   "/mentorship": "Mentorship",
   "/volunteering": "Volunteering",
   "/well-being": "Well-being",
+  "/admin": "Admin Dashboard",
 };
 
 export function Header() {

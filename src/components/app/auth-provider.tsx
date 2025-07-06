@@ -41,17 +41,23 @@ const FirebaseNotConfigured = () => {
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (!firebaseConfigured) {
       setLoading(false);
-      // We don't need to do anything else, the component will render the error message.
       return;
     }
     
-    // This check is now safe because firebaseConfigured is true.
-    const unsubscribe = onAuthStateChanged(auth!, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth!, async (user) => {
+      if (user) {
+        setUser(user);
+        const tokenResult = await user.getIdTokenResult();
+        setIsAdmin(!!tokenResult.claims.admin);
+      } else {
+        setUser(null);
+        setIsAdmin(false);
+      }
       setLoading(false);
     });
 
@@ -63,7 +69,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );
