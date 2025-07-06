@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
+import { createUserProfile } from "@/lib/firestore";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -29,7 +30,10 @@ export default function SignupPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await createUserProfile(userCredential.user, {
+        displayName: email.split('@')[0],
+      });
       toast({
         title: "Account Created",
         description: "Welcome! You are now logged in.",
