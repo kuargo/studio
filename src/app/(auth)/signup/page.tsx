@@ -36,10 +36,27 @@ export default function SignupPage() {
       });
       router.push("/dashboard");
     } catch (error: any) {
+      let description = "An unexpected error occurred. Please try again.";
+      switch (error.code) {
+        case 'auth/email-already-in-use':
+          description = "This email address is already in use by another account.";
+          break;
+        case 'auth/invalid-email':
+          description = "The email address is not valid. Please check and try again.";
+          break;
+        case 'auth/operation-not-allowed':
+          description = "Email/password sign up is not enabled. Please contact support.";
+          break;
+        case 'auth/weak-password':
+          description = "The password is too weak. Please use a stronger password (at least 6 characters).";
+          break;
+        default:
+          description = error.message;
+      }
       toast({
         variant: "destructive",
         title: "Signup Failed",
-        description: error.message,
+        description: description,
       });
       setLoading(false);
     }

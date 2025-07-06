@@ -13,7 +13,7 @@ export default function AuthLayout({
                 <div className="bg-primary p-3 rounded-xl">
                     <Sparkles className="w-8 h-8 text-primary-foreground" />
                 </div>
-                <div className="font-headline text-3xl font-bold text-primary">Connect Hub</div>
+                <h1 className="text-3xl font-bold text-primary">Connect Hub</h1>
             </div>
         </div>
         {children}

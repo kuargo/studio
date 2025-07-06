@@ -32,10 +32,26 @@ export default function LoginPage() {
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/dashboard");
     } catch (error: any) {
+      let description = "An unexpected error occurred. Please try again.";
+      switch (error.code) {
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+        case 'auth/invalid-credential':
+          description = "Invalid email or password. Please check your credentials and try again.";
+          break;
+        case 'auth/invalid-email':
+          description = "The email address is not valid. Please check and try again.";
+          break;
+        case 'auth/user-disabled':
+          description = "This user account has been disabled.";
+          break;
+        default:
+          description = error.message;
+      }
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: error.message,
+        description: description,
       });
       setLoading(false);
     }
