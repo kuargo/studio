@@ -11,13 +11,13 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 
 const prayerRequests = [
-    { id: 1, name: "Maria S.", avatar: "https://placehold.co/100x100/c4b5fd/4338ca.png", aiHint: "woman smiling", request: "Pray for my job interview this Wednesday. That I may have favor and clarity.", category: "Personal", initialPrayers: 42, timestamp: "2h ago", comments: [], type: 'request' },
-    { id: 2, name: "John F.", avatar: "https://placehold.co/100x100/a7f3d0/065f46.png", aiHint: "man outdoors", request: "Urgent prayer for my father who is undergoing surgery right now.", category: "Family", initialPrayers: 112, timestamp: "5h ago", comments: [{name: "Pastor Rob", text: "Standing with you in prayer, John. Believing for a successful surgery and quick recovery."}], type: 'request' },
-    { id: 3, name: "Youth Group", avatar: "https://placehold.co/100x100/fecaca/991b1b.png", aiHint: "group people", request: "For our upcoming youth camp, that the teens would have a powerful encounter with God.", category: "Church", initialPrayers: 78, timestamp: "1d ago", comments: [], type: 'request' },
-    { id: 4, name: "Anonymous", avatar: "", aiHint: "", request: "Struggling with depression and loneliness. Please pray for a breakthrough and for divine friendships.", category: "Personal", initialPrayers: 95, timestamp: "2d ago", comments: [], type: 'request' },
-    { id: 5, name: "Sarah K.", avatar: "https://placehold.co/100x100/fed7aa/9a3412.png", aiHint: "woman laughing", request: "Praise report! I was healed from chronic back pain. Thank you all for your prayers!", category: "Praise", initialPrayers: 201, timestamp: "3d ago", comments: [{name: "Anonymous", text: "Amen! So happy for you!"}, {name: "Jessica L.", text: "This is amazing! Our God is a healer."}], type: 'testimony' },
-    { id: 6, name: "James T.", avatar: "https://placehold.co/100x100/99f6e4/0f766e.png", aiHint: "smiling man", request: "God's verdict is in! After months of prayer, our adoption has been finalized! Welcome home, little one.", category: "Family", initialPrayers: 350, timestamp: "4d ago", comments: [], type: 'verdict' },
-    { id: 7, name: "Maria S.", avatar: "https://placehold.co/100x100/c4b5fd/4338ca.png", aiHint: "woman smiling", request: "Update on my interview: I got the job! It's more than I could have asked for. Thank you, prayer warriors!", category: "Personal", initialPrayers: 150, timestamp: "1d ago", comments: [], type: 'answered' },
+    { id: 'job-interview-maria', name: "Maria S.", avatar: "https://placehold.co/100x100/c4b5fd/4338ca.png", aiHint: "woman smiling", request: "Pray for my job interview this Wednesday. That I may have favor and clarity.", category: "Personal", initialPrayers: 42, timestamp: "2h ago", comments: [], type: 'request' },
+    { id: 'surgery-john-father', name: "John F.", avatar: "https://placehold.co/100x100/a7f3d0/065f46.png", aiHint: "man outdoors", request: "Urgent prayer for my father who is undergoing surgery right now.", category: "Family", initialPrayers: 112, timestamp: "5h ago", comments: [{name: "Pastor Rob", text: "Standing with you in prayer, John. Believing for a successful surgery and quick recovery."}], type: 'request' },
+    { id: 'youth-camp-retreat', name: "Youth Group", avatar: "https://placehold.co/100x100/fecaca/991b1b.png", aiHint: "group people", request: "For our upcoming youth camp, that the teens would have a powerful encounter with God.", category: "Church", initialPrayers: 78, timestamp: "1d ago", comments: [], type: 'request' },
+    { id: 'anonymous-loneliness', name: "Anonymous", avatar: "", aiHint: "", request: "Struggling with depression and loneliness. Please pray for a breakthrough and for divine friendships.", category: "Personal", initialPrayers: 95, timestamp: "2d ago", comments: [], type: 'request' },
+    { id: 'healing-sarah-k', name: "Sarah K.", avatar: "https://placehold.co/100x100/fed7aa/9a3412.png", aiHint: "woman laughing", request: "Praise report! I was healed from chronic back pain. Thank you all for your prayers!", category: "Praise", initialPrayers: 201, timestamp: "3d ago", comments: [{name: "Anonymous", text: "Amen! So happy for you!"}, {name: "Jessica L.", text: "This is amazing! Our God is a healer."}], type: 'testimony' },
+    { id: 'adoption-james-t', name: "James T.", avatar: "https://placehold.co/100x100/99f6e4/0f766e.png", aiHint: "smiling man", request: "God's verdict is in! After months of prayer, our adoption has been finalized! Welcome home, little one.", category: "Family", initialPrayers: 350, timestamp: "4d ago", comments: [], type: 'verdict' },
+    { id: 'job-update-maria', name: "Maria S.", avatar: "https://placehold.co/100x100/c4b5fd/4338ca.png", aiHint: "woman smiling", request: "Update on my interview: I got the job! It's more than I could have asked for. Thank you, prayer warriors!", category: "Personal", initialPrayers: 150, timestamp: "1d ago", comments: [], type: 'answered' },
 ];
 
 export default function PrayerWallPage() {
@@ -98,7 +98,7 @@ export default function PrayerWallPage() {
     )
 }
 
-function PrayerCard({ name, avatar, aiHint, request, initialPrayers, timestamp, comments, type }: typeof prayerRequests[0]) {
+function PrayerCard({ id, name, avatar, aiHint, request, initialPrayers, timestamp, comments, type }: typeof prayerRequests[0]) {
     const typeMeta = {
         'answered': { color: 'border-green-500', icon: <CheckCheck className="h-4 w-4 text-green-500"/>, label: 'Answered' },
         'testimony': { color: 'border-yellow-500', icon: <Sparkles className="h-4 w-4 text-yellow-500"/>, label: 'Testimony' },
@@ -128,7 +128,7 @@ function PrayerCard({ name, avatar, aiHint, request, initialPrayers, timestamp, 
                 <Collapsible className="w-full">
                      <Separator />
                     <div className="p-4 flex items-center gap-2">
-                        <PrayButton count={initialPrayers} />
+                        <PrayButton prayerId={id} count={initialPrayers} />
                         <div className="flex items-center gap-1 ml-auto">
                             <Button variant="ghost" size="sm" className="flex items-center gap-1.5"><ThumbsUp className="w-4 h-4" /> Agree</Button>
                             <Button variant="ghost" size="sm" className="flex items-center gap-1.5"><Smile className="w-4 h-4" /> Encourage</Button>

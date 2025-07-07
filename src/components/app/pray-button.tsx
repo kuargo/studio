@@ -4,21 +4,24 @@ import React, { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { updatePrayerCount } from "@/lib/firestore";
 
-export function PrayButton({ count }: { count: number }) {
+export function PrayButton({ prayerId, count }: { prayerId: string, count: number }) {
   const [isPrayed, setIsPrayed] = useState(false);
   const [prayCount, setPrayCount] = useState(count);
   const [isPending, startTransition] = useTransition();
 
   const handleClick = () => {
     startTransition(() => {
-      if (!isPrayed) {
-        setIsPrayed(true);
+      const newPrayedState = !isPrayed;
+      setIsPrayed(newPrayedState);
+
+      if (newPrayedState) {
         setPrayCount(prevCount => prevCount + 1);
-        // In a real app, you would also make an API call here.
+        updatePrayerCount(prayerId, 1);
       } else {
-        setIsPrayed(false);
         setPrayCount(prevCount => prevCount - 1);
+        updatePrayerCount(prayerId, -1);
       }
     });
   };
