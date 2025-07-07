@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAuth } from "@/hooks/use-auth";
@@ -29,7 +30,7 @@ const featuredItems = [
 const quickLinks = [
     { label: "Share a Testimony", icon: Newspaper, href: "/social-feed", color: "text-blue-500", bgColor: "bg-blue-500/10" },
     { label: "Create a Reel", icon: Clapperboard, href: "/faith-reels", color: "text-rose-500", bgColor: "bg-rose-500/10" },
-    { label: "Read the Bible", icon: BookOpen, href: "https://www.biblegateway.com/", color: "text-amber-500", bgColor: "bg-amber-500/10", target: "_blank" },
+    { label: "Read the Bible", icon: BookOpen, href: "/bible", color: "text-amber-500", bgColor: "bg-amber-500/10" },
     { label: "Find a Mentor", icon: Users, href: "/mentorship", color: "text-green-500", bgColor: "bg-green-500/10" },
 ];
 

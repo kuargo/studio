@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -9,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import {
   BookOpen,
+  BookText,
   Calendar,
   Clapperboard,
   Gift,
@@ -36,21 +38,30 @@ import {
 import { Button } from "../ui/button";
 import { LogOut, Settings } from "lucide-react";
 
-const menuItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, tooltip: "Dashboard" },
-  { href: "/social-feed", label: "Social Feed", icon: Newspaper, tooltip: "Social Feed" },
-  { href: "/faith-reels", label: "Faith Reels", icon: Clapperboard, tooltip: "Faith Reels" },
-  { href: "/prayer-wall", label: "Prayer Wall", icon: Wallpaper, tooltip: "Prayer Wall" },
-  { href: "/sermon-remix", label: "Sermon Remix", icon: Scissors, tooltip: "Sermon Remix" },
+type MenuItem = {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+  tooltip: string;
+  color?: string;
+};
+
+const menuItems: MenuItem[] = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, tooltip: "Dashboard", color: "text-sky-500" },
+  { href: "/social-feed", label: "Social Feed", icon: Newspaper, tooltip: "Social Feed", color: "text-blue-500" },
+  { href: "/faith-reels", label: "Faith Reels", icon: Clapperboard, tooltip: "Faith Reels", color: "text-rose-500" },
+  { href: "/prayer-wall", label: "Prayer Wall", icon: Wallpaper, tooltip: "Prayer Wall", color: "text-fuchsia-500" },
+  { href: "/sermon-remix", label: "Sermon Remix", icon: Scissors, tooltip: "Sermon Remix", color: "text-violet-500" },
 ];
 
-const secondaryMenuItems = [
-  { href: "/events", label: "Events Hub", icon: Calendar, tooltip: "Events" },
-  { href: "/giving", label: "Giving", icon: Gift, tooltip: "Giving" },
-  { href: "/journal", label: "Journal", icon: BookOpen, tooltip: "Journal" },
-  { href: "/mentorship", label: "Mentorship", icon: Users, tooltip: "Mentorship" },
-  { href: "/volunteering", label: "Volunteering", icon: HeartHandshake, tooltip: "Volunteering" },
-  { href: "/well-being", label: "Well-being", icon: HeartPulse, tooltip: "Well-being" },
+const secondaryMenuItems: MenuItem[] = [
+  { href: "/events", label: "Events Hub", icon: Calendar, tooltip: "Events", color: "text-purple-500" },
+  { href: "/giving", label: "Giving", icon: Gift, tooltip: "Giving", color: "text-red-500" },
+  { href: "/journal", label: "Journal", icon: BookOpen, tooltip: "Journal", color: "text-orange-500" },
+  { href: "/bible", label: "Bible", icon: BookText, tooltip: "Bible", color: "text-amber-500" },
+  { href: "/mentorship", label: "Mentorship", icon: Users, tooltip: "Mentorship", color: "text-green-500" },
+  { href: "/volunteering", label: "Volunteering", icon: HeartHandshake, tooltip: "Volunteering", color: "text-teal-500" },
+  { href: "/well-being", label: "Well-being", icon: HeartPulse, tooltip: "Well-being", color: "text-cyan-500" },
 ];
 
 export function SidebarNav() {
@@ -82,7 +93,13 @@ export function SidebarNav() {
         <SidebarMenuItem key={item.href}>
             <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.tooltip}>
               <Link href={item.href}>
-                <item.icon />
+                <div className={cn("p-1.5 rounded-md", 
+                    pathname.startsWith(item.href) 
+                    ? 'bg-primary/10' 
+                    : 'bg-muted group-hover:bg-primary/10'
+                  )}>
+                    <item.icon className={cn("h-4 w-4 transition-colors", item.color, !pathname.startsWith(item.href) && "group-hover:text-primary")} />
+                </div>
                 <span>{item.label}</span>
               </Link>
             </SidebarMenuButton>
@@ -113,7 +130,7 @@ export function SidebarNav() {
             <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={pathname.startsWith('/admin')} tooltip="Admin Panel">
                 <Link href="/admin">
-                  <Shield />
+                  <div className="p-1.5 bg-muted rounded-md"><Shield className="h-4 w-4 text-destructive" /></div>
                   <span>Admin Panel</span>
                 </Link>
               </SidebarMenuButton>
@@ -122,14 +139,14 @@ export function SidebarNav() {
           <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={pathname.startsWith('/settings')} tooltip="Settings">
                 <Link href="/settings">
-                  <Settings />
+                  <div className="p-1.5 bg-muted rounded-md"><Settings className="h-4 w-4 text-muted-foreground" /></div>
                   <span>Settings</span>
                 </Link>
               </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
               <SidebarMenuButton tooltip="Log Out" onClick={handleLogout}>
-                  <LogOut />
+                  <div className="p-1.5 bg-muted rounded-md"><LogOut className="h-4 w-4 text-muted-foreground" /></div>
                   <span>Log Out</span>
               </SidebarMenuButton>
           </SidebarMenuItem>

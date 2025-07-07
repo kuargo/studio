@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -60,6 +61,14 @@ const PostSkeleton = () => (
         ))}
     </div>
 );
+
+const EmptyFeed = () => (
+    <div className="text-center py-12 text-muted-foreground">
+        <Sparkles className="mx-auto h-12 w-12" />
+        <h3 className="mt-2 text-lg font-medium">The feed is quiet... for now.</h3>
+        <p className="text-sm">Be the first to share a testimony or encouraging word!</p>
+    </div>
+)
 
 
 export default function SocialFeedPage() {
@@ -185,14 +194,22 @@ export default function SocialFeedPage() {
                 {loading ? <PostSkeleton /> : (
                     <>
                         <TabsContent value="foryou">
-                            <div className="space-y-6">
-                                {posts.map((post) => <PostCard key={post.id} post={post} timeAgo={timeAgo} />)}
-                            </div>
+                            {posts.length > 0 ? (
+                                <div className="space-y-6">
+                                    {posts.map((post) => <PostCard key={post.id} post={post} timeAgo={timeAgo} />)}
+                                </div>
+                            ) : (
+                                <EmptyFeed />
+                            )}
                         </TabsContent>
                         <TabsContent value="following">
-                            <div className="space-y-6">
-                                {posts.slice().reverse().map((post, i) => <PostCard key={i} post={post} timeAgo={timeAgo} />)}
-                            </div>
+                            {posts.length > 0 ? (
+                                <div className="space-y-6">
+                                    {posts.slice().reverse().map((post, i) => <PostCard key={i} post={post} timeAgo={timeAgo} />)}
+                                </div>
+                            ) : (
+                                 <EmptyFeed />
+                            )}
                         </TabsContent>
                         <TabsContent value="live">
                             <div className="text-center py-12 text-muted-foreground">
