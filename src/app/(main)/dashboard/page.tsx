@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 const featuredItems = [
     { title: "Youth Worship Night", description: "Join us this Friday for a powerful night of worship.", image: "https://placehold.co/600x400.png", aiHint: "youth group concert", link: "/events", type: "Event" },
@@ -26,10 +27,10 @@ const featuredItems = [
 ];
 
 const quickLinks = [
-    { label: "Share a Testimony", icon: Newspaper, href: "/social-feed", color: "text-blue-500" },
-    { label: "Create a Reel", icon: Clapperboard, href: "/faith-reels", color: "text-rose-500" },
-    { label: "Read the Bible", icon: BookOpen, href: "https://www.biblegateway.com/", color: "text-amber-500", target: "_blank" },
-    { label: "Find a Mentor", icon: Users, href: "/mentorship", color: "text-green-500" },
+    { label: "Share a Testimony", icon: Newspaper, href: "/social-feed", color: "text-blue-500", bgColor: "bg-blue-500/10" },
+    { label: "Create a Reel", icon: Clapperboard, href: "/faith-reels", color: "text-rose-500", bgColor: "bg-rose-500/10" },
+    { label: "Read the Bible", icon: BookOpen, href: "https://www.biblegateway.com/", color: "text-amber-500", bgColor: "bg-amber-500/10", target: "_blank" },
+    { label: "Find a Mentor", icon: Users, href: "/mentorship", color: "text-green-500", bgColor: "bg-green-500/10" },
 ];
 
 const prayerRequests = [
@@ -38,12 +39,12 @@ const prayerRequests = [
 ];
 
 const userStats = [
-  { label: 'Friends', value: 125, icon: Users, href: '#' },
-  { label: 'Following', value: 72, icon: UserCheck, href: '#' },
-  { label: 'Prayers', value: 48, icon: Heart, href: '/prayer-wall' },
-  { label: 'Streak', value: 12, icon: Flame, href: '/journal', unit: 'days' },
-  { label: 'Groups', value: 5, icon: Users, href: '#' },
-  { label: 'Events', value: 3, icon: Calendar, href: '/events' },
+  { label: 'Friends', value: 125, icon: Users, href: '#', color: 'text-blue-500', bgColor: 'bg-blue-500/10' },
+  { label: 'Following', value: 72, icon: UserCheck, href: '#', color: 'text-teal-500', bgColor: 'bg-teal-500/10' },
+  { label: 'Prayers', value: 48, icon: Heart, href: '/prayer-wall', color: 'text-rose-500', bgColor: 'bg-rose-500/10' },
+  { label: 'Streak', value: 12, icon: Flame, href: '/journal', unit: 'days', color: 'text-orange-500', bgColor: 'bg-orange-500/10' },
+  { label: 'Groups', value: 5, icon: Users, href: '#', color: 'text-indigo-500', bgColor: 'bg-indigo-500/10' },
+  { label: 'Events', value: 3, icon: Calendar, href: '/events', color: 'text-purple-500', bgColor: 'bg-purple-500/10' },
 ];
 
 
@@ -66,13 +67,16 @@ export default function DashboardPage() {
                     </div>
                 </div>
                 <CardFooter className="bg-card p-4">
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-center w-full">
+                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2 text-center w-full">
                         {userStats.map(stat => (
-                             <Link href={stat.href} key={stat.label} className="group rounded-lg p-2 hover:bg-accent">
-                                 <div className="p-2 bg-muted rounded-full w-fit mx-auto mb-1 group-hover:bg-background transition-colors">
-                                    <stat.icon className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors"/>
+                             <Link href={stat.href} key={stat.label} className="group rounded-lg p-2 hover:bg-accent/50 transition-colors duration-200">
+                                 <div className={cn(
+                                     "p-2 rounded-full w-fit mx-auto mb-2 transition-all duration-200 group-hover:scale-110", 
+                                     stat.bgColor
+                                 )}>
+                                    <stat.icon className={cn("h-5 w-5", stat.color)}/>
                                  </div>
-                                <p className="font-bold text-lg">{stat.value}</p>
+                                <p className="font-semibold text-base">{stat.value}</p>
                                 <p className="text-xs text-muted-foreground">{stat.label} {stat.unit}</p>
                             </Link>
                         ))}
@@ -110,8 +114,8 @@ export default function DashboardPage() {
                              {quickLinks.map(link => (
                                 <Link href={link.href} key={link.label} className="group" target={link.target} rel={link.target === '_blank' ? 'noopener noreferrer' : undefined}>
                                     <div className="flex flex-col items-center justify-center p-4 h-full rounded-lg border bg-card hover:bg-accent hover:shadow-md transition-all">
-                                        <div className={`p-3 rounded-full bg-muted group-hover:bg-background mb-2`}>
-                                            <link.icon className={`h-6 w-6 ${link.color}`} />
+                                        <div className={cn("p-3 rounded-full group-hover:bg-background mb-2 transition-colors", link.bgColor)}>
+                                            <link.icon className={cn("h-6 w-6", link.color)} />
                                         </div>
                                         <p className="text-sm font-semibold text-center">{link.label}</p>
                                     </div>
