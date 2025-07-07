@@ -1,14 +1,15 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { BrainCircuit, CalendarPlus, Ear, HeartPulse, Users, Scale, ShieldCheck, LifeBuoy, Baby, FileCheck, Phone, Handshake, UserCheck } from "lucide-react";
-import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ProviderRegistrationForm } from "@/components/app/provider-registration-form";
-import { useToast } from "@/hooks/use-toast";
 import { BookSessionForm } from "@/components/app/book-session-form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 
 const resources = [
   {
@@ -18,7 +19,6 @@ const resources = [
     cta: "Listen Now",
     color: "text-blue-500",
     bg: "bg-blue-500/10",
-    actionType: 'toast'
   },
   {
     icon: BrainCircuit,
@@ -27,7 +27,6 @@ const resources = [
     cta: "Find Techniques",
     color: "text-green-500",
     bg: "bg-green-500/10",
-    actionType: 'toast'
   },
   {
     icon: ShieldCheck,
@@ -36,7 +35,6 @@ const resources = [
     cta: "Find Help",
     color: "text-teal-500",
     bg: "bg-teal-500/10",
-    actionType: 'toast'
   },
    {
     icon: Scale,
@@ -45,7 +43,6 @@ const resources = [
     cta: "Get Assistance",
     color: "text-orange-500",
     bg: "bg-orange-500/10",
-    actionType: 'toast'
   },
    {
     icon: Baby,
@@ -54,7 +51,6 @@ const resources = [
     cta: "Strengthen Family",
     color: "text-rose-500",
     bg: "bg-rose-500/10",
-    actionType: 'toast'
   },
     {
     icon: FileCheck,
@@ -63,7 +59,6 @@ const resources = [
     cta: "Seek Counsel",
     color: "text-indigo-500",
     bg: "bg-indigo-500/10",
-    actionType: 'toast'
   },
   {
     icon: Users,
@@ -72,7 +67,6 @@ const resources = [
     cta: "Browse Groups",
     color: "text-violet-500",
     bg: "bg-violet-500/10",
-    actionType: 'toast'
   },
 ];
 
@@ -83,17 +77,91 @@ const providers = [
      { name: "David Chen", avatar: "https://placehold.co/100x100/a7f3d0/065f46.png", aiHint: "man outdoors", specialties: ["Conflict Resolution", "Mediation"], verified: true },
 ]
 
+function getDialogContent(title: string) {
+    switch (title) {
+        case "Guided Prayer & Meditation":
+            return (
+                <div className="space-y-3">
+                    <p>Here are some resources to guide you in prayer and meditation:</p>
+                    <ul className="list-disc pl-5 space-y-2">
+                        <li><a href="#" className="underline text-primary hover:text-primary/80">10-Minute Guided Christian Meditation</a></li>
+                        <li><a href="#" className="underline text-primary hover:text-primary/80">Lectio Divina: Hearing God through Scripture</a></li>
+                        <li><a href="#" className="underline text-primary hover:text-primary/80">Soaking Worship & Instrumental Prayer Playlist</a></li>
+                    </ul>
+                </div>
+            );
+        case "Stress Management Hub":
+            return (
+                 <div className="space-y-3">
+                    <p className="font-semibold">Biblical Breathing Exercise:</p>
+                    <p>Inhale for 4 seconds meditating on "The Lord is my Shepherd", hold for 4 seconds, and exhale for 6 seconds meditating on "I shall not want." This practice grounds you in scripture and calms your nervous system.</p>
+                     <p className="font-semibold">The 5-4-3-2-1 Grounding Technique:</p>
+                     <p>Acknowledge 5 things you can see, 4 things you can touch, 3 things you can hear, 2 things you can smell, and 1 thing you can taste. This helps you connect with the present moment.</p>
+                     <a href="#" className="underline text-primary hover:text-primary/80 block pt-2">Read More: A Christian Perspective on Managing Anxiety</a>
+                </div>
+            );
+        case "Addiction & Recovery":
+             return (
+                 <div className="space-y-3">
+                    <p>You are not alone in this fight. God offers freedom and healing. Here are some starting points for help:</p>
+                    <ul className="list-disc pl-5 space-y-2">
+                        <li><a href="#" className="underline text-primary hover:text-primary/80">Celebrate Recovery - Find a Local Group</a></li>
+                        <li><a href="#" className="underline text-primary hover:text-primary/80">Focus on the Family: Help for Addiction</a></li>
+                        <li><a href="#" className="underline text-primary hover:text-primary/80">Testimony: A Story of Freedom in Christ (Video)</a></li>
+                    </ul>
+                </div>
+            );
+        case "Mediation & Conflict Resolution":
+             return (
+                 <div className="space-y-3">
+                    <p className="font-semibold">The 4 G's of Peacemaking:</p>
+                    <ul className="list-disc pl-5 space-y-2">
+                        <li><strong>Glorify God:</strong> How can I honor God in this situation?</li>
+                        <li><strong>Get the Log Out of Your Eye:</strong> How have I contributed to this conflict?</li>
+                        <li><strong>Gently Restore:</strong> How can I help others own their part?</li>
+                        <li><strong>Go and Be Reconciled:</strong> How can I show I'm committed to making things right?</li>
+                    </ul>
+                </div>
+            );
+        case "Marriage & Family Counseling":
+             return (
+                 <div className="space-y-3">
+                    <p>Resources to build a stronger, Christ-centered family:</p>
+                     <ul className="list-disc pl-5 space-y-2">
+                        <li><a href="#" className="underline text-primary hover:text-primary/80">Focus on the Family: Marriage Resources</a></li>
+                        <li><a href="#" className="underline text-primary hover:text-primary/80">Article: The 5 Love Languages Explained</a></li>
+                        <li><a href="#" className="underline text-primary hover:text-primary/80">Sermon: A Christ-Centered Home</a></li>
+                    </ul>
+                    <p className="pt-2">For personalized guidance, please consider booking a session with one of our verified counselors.</p>
+                </div>
+            );
+        case "Legal & Financial Guidance":
+             return (
+                 <div className="space-y-3">
+                    <p className="font-semibold text-destructive">Disclaimer: The information provided here is for informational purposes only and not a substitute for professional legal or financial advice.</p>
+                    <p>We encourage you to connect with Christian professionals who integrate faith and practice. Browse our provider directory for verified legal and financial experts in our community or check out these resources:</p>
+                     <ul className="list-disc pl-5 space-y-2">
+                        <li><a href="#" className="underline text-primary hover:text-primary/80">Christian Legal Society</a></li>
+                        <li><a href="#" className="underline text-primary hover:text-primary/80">Kingdom Advisors</a></li>
+                    </ul>
+                </div>
+            );
+        case "Find a Support Group":
+             return (
+                <div className="space-y-4 text-center">
+                   <p>Our Social Feed and Prayer Wall are great places to find and form support groups. Engage with posts, comment, and connect with others on similar journeys.</p>
+                    <Button asChild>
+                        <Link href="/social-feed">Visit the Social Feed</Link>
+                    </Button>
+                </div>
+            );
+        default:
+            return <p>More information coming soon.</p>;
+    }
+}
+
 
 export default function WellBeingPage() {
-  const { toast } = useToast();
-  
-  const showComingSoonToast = (title: string) => {
-    toast({
-      title: "Feature Coming Soon",
-      description: `The "${title}" section is under construction.`,
-    });
-  };
-
   return (
     <div className="space-y-8">
       <div className="text-center max-w-3xl mx-auto">
@@ -160,21 +228,34 @@ export default function WellBeingPage() {
                 </CardHeader>
                  <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {resources.map(res => (
-                    <Card key={res.title} className="flex flex-col">
-                        <CardHeader className="flex-grow">
-                        <div className="flex flex-col items-center text-center">
-                            <div className={`p-3 rounded-full mb-3 ${res.bg}`}>
-                                <res.icon className={`w-6 h-6 ${res.color}`} />
-                            </div>
-                            <h3 className="font-semibold text-base">{res.title}</h3>
-                        </div>
-                        </CardHeader>
-                        <CardFooter>
-                            <Button className="w-full" variant="secondary" onClick={() => showComingSoonToast(res.title)}>
-                                {res.cta}
-                            </Button>
-                        </CardFooter>
-                    </Card>
+                        <Dialog key={res.title}>
+                            <Card className="flex flex-col">
+                                <CardHeader className="flex-grow">
+                                <div className="flex flex-col items-center text-center">
+                                    <div className={`p-3 rounded-full mb-3 ${res.bg}`}>
+                                        <res.icon className={`w-6 h-6 ${res.color}`} />
+                                    </div>
+                                    <h3 className="font-semibold text-base">{res.title}</h3>
+                                </div>
+                                </CardHeader>
+                                <CardFooter>
+                                    <DialogTrigger asChild>
+                                        <Button className="w-full" variant="secondary">
+                                            {res.cta}
+                                        </Button>
+                                    </DialogTrigger>
+                                </CardFooter>
+                            </Card>
+                             <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>{res.title}</DialogTitle>
+                                    <DialogDescription>{res.description}</DialogDescription>
+                                </DialogHeader>
+                                <div className="pt-4 space-y-4 text-sm text-muted-foreground">
+                                    {getDialogContent(res.title)}
+                                </div>
+                            </DialogContent>
+                        </Dialog>
                     ))}
                 </CardContent>
             </Card>
@@ -224,3 +305,4 @@ export default function WellBeingPage() {
     </div>
   );
 }
+
