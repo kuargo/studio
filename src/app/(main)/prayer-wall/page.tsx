@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -93,6 +94,7 @@ export default function PrayerWallPage() {
                 userId: user.uid,
                 name: user.displayName || "Anonymous",
                 avatar: user.photoURL || "",
+                aiHint: "person portrait",
                 request: newRequest,
                 timestamp: serverTimestamp(),
                 prayCount: 0,
@@ -196,7 +198,7 @@ export default function PrayerWallPage() {
                     </CardContent>
                     <CardFooter>
                         <Button asChild variant="secondary" className="w-full">
-                            <a href="https://www.biblegateway.com/" target="_blank" rel="noopener noreferrer">
+                            <a href="/bible">
                                 <BookOpen className="mr-2 h-4 w-4" /> Read the Bible
                             </a>
                         </Button>

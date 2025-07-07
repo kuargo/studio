@@ -30,7 +30,7 @@ type Post = {
     type: 'testimony' | 'image' | 'prayer_request' | 'text';
     imageUrl?: string;
     aiHint?: string;
-    initialPrayers?: number;
+    prayCount?: number;
 };
 
 const PostSkeleton = () => (
@@ -264,7 +264,7 @@ function PostCard({ post, timeAgo }: { post: Post, timeAgo: (date: Timestamp | n
             <CardFooter className="p-2 border-t">
                 {post.type === 'prayer_request' ? (
                     <div className="flex-1 px-2">
-                        <PrayButton prayerId={post.id!} count={post.initialPrayers!} />
+                        <PrayButton prayerId={post.id!} count={post.prayCount!} />
                     </div>
                 ) : (
                     <div className="flex justify-around text-muted-foreground w-full">
