@@ -1,72 +1,33 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Function to check if a user is authenticated
-    function isSignedIn() {
-      return request.auth != null;
-    }
 
-    // =============================================
-    //  Users Collection
-    // =============================================
+    // Users can only read/write their own profile
     match /users/{userId} {
-      // A user can create their own profile upon signup
-      allow create: if isSignedIn() && request.auth.uid == userId;
-      
-      // A user can read their own profile
-      allow read: if isSignedIn() && request.auth.uid == userId;
-      
-      // A user can update their own profile
-      allow update: if isSignedIn() && request.auth.uid == userId;
-      
-      // Nobody can delete user profiles for now
-      allow delete: if false;
+      allow read, update: if request.auth.uid == userId;
+      allow create: if request.auth.uid == userId;
     }
 
-    // =============================================
-    //  Prayer Requests Collection
-    // =============================================
+    // Prayer requests can be created by any authenticated user
     match /prayerRequests/{requestId} {
-      // Any signed-in user can view all prayer requests
-      allow list, read: if isSignedIn();
-      
-      // Any signed-in user can create a prayer request
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      
-      // Only the author can update or delete their request
-      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      // TEMPORARY DEBUGGING RULE: Allow anyone to read prayer requests.
+      allow read: if true;
+      allow create: if request.auth != null;
+
+      // Allow the distributed counter extension to update the count
+      match /counter_shards/{shardId} {
+        allow write: if true;
+      }
     }
 
-    // =============================================
-    //  Distributed Counter for Prayer Requests
-    // =============================================
-    // This rule allows the Firebase Extension "Distributed Counter" to work.
-    // Any signed-in user can write to the counter shards subcollection.
-    match /prayerRequests/{requestId}/counter_shards/{shardId} {
-      allow create, update: if isSignedIn();
-    }
-
-    // =============================================
-    //  Posts Collection (Social Feed)
-    // =============================================
+    // Posts can only be created/updated/deleted by their owner
     match /posts/{postId} {
-      // Any signed-in user can view all posts
-      allow list, read: if isSignedIn();
-      
-      // A user can only create a post for themselves
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      
-      // --- Update Rules ---
-      // The author can update their own post content
-      // Any signed-in user can update the 'likes' and 'likedBy' fields
-      allow update: if isSignedIn() && 
-                    (resource.data.userId == request.auth.uid || 
-                     request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']));
-
-      // Only the author can delete their post
-      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+        // TEMPORARY DEBUGGING RULE: Allow anyone to read posts.
+        allow read: if true;
+        allow create: if request.auth.uid == request.resource.data.userId;
+        allow update, delete: if request.auth.uid == resource.data.userId;
     }
   }
 }
