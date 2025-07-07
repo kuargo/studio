@@ -18,6 +18,7 @@ import {
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 
 export function UserNav() {
   const { user, isAdmin } = useAuth();
@@ -45,18 +46,14 @@ export function UserNav() {
     return null;
   }
   
-  const userInitial = user.email ? user.email.charAt(0).toUpperCase() : "U";
+  const userInitial = user.displayName ? user.displayName.charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : "U");
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10">
-            {user.photoURL ? (
-                <AvatarImage src={user.photoURL} alt={user.displayName || "User"} />
-            ) : (
-                <AvatarImage src="https://placehold.co/100x100.png" alt="@username" data-ai-hint="person portrait" />
-            )}
+            <AvatarImage src={user.photoURL || ''} alt={user.displayName || "User"} data-ai-hint="person portrait" />
             <AvatarFallback>{userInitial}</AvatarFallback>
           </Avatar>
         </Button>
@@ -75,13 +72,17 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <UserIcon className="mr-2 h-4 w-4" />
-            <span>Profile</span>
+          <DropdownMenuItem asChild>
+            <Link href="/settings">
+              <UserIcon className="mr-2 h-4 w-4" />
+              <span>Profile</span>
+            </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
+          <DropdownMenuItem asChild>
+            <Link href="/settings">
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

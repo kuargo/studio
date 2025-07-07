@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp, FirebaseOptions } from "firebase/app";
-import { getAuth, Auth } from "firebase/auth";
+import { getAuth, Auth, GoogleAuthProvider, FacebookAuthProvider } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
 
 // =================================================================
@@ -23,8 +23,8 @@ import { getFirestore, Firestore } from "firebase/firestore";
 // =================================================================
 
 let app;
-let auth: Auth | null = null;
-let db: Firestore | null = null;
+let auth: Auth;
+let db: Firestore;
 let firebaseConfigured = false;
 
 const firebaseConfig: FirebaseOptions = {
@@ -50,6 +50,11 @@ if (
   } catch (error) {
     console.error("Firebase initialization failed. Check your .env.local credentials.", error);
   }
+} else {
+    // This is a client-side check, so we don't throw an error,
+    // as that would crash the app. The AuthProvider will handle showing a UI message.
+    console.warn("Firebase configuration is incomplete. The app will not function correctly.");
 }
 
-export { app, auth, db, firebaseConfigured };
+
+export { app, auth, db, firebaseConfigured, GoogleAuthProvider, FacebookAuthProvider };

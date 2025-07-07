@@ -120,9 +120,11 @@ export function SidebarNav() {
             </SidebarMenuItem>
           )}
           <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Settings">
+              <SidebarMenuButton asChild isActive={pathname.startsWith('/settings')} tooltip="Settings">
+                <Link href="/settings">
                   <Settings />
                   <span>Settings</span>
+                </Link>
               </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
