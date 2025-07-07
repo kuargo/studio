@@ -62,6 +62,7 @@ export default function GivingPage() {
                         <SelectItem value="missions">Missions</SelectItem>
                         <SelectItem value="outreach">Community Outreach</SelectItem>
                         <SelectItem value="flood-relief">Flood / Disaster Relief</SelectItem>
+                        <SelectItem value="app-maintenance">App & Website Maintenance</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -110,7 +111,7 @@ export default function GivingPage() {
         </Card>
         <Card>
             <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2"><ShieldQuestion/> Where Your Gift Goes</CardTitle>
+                <CardTitle><ShieldQuestion className="inline-block mr-2 text-primary"/>Where Your Gift Goes</CardTitle>
                 <CardDescription>We believe in transparency and good stewardship. Here are some of the areas your giving supports:</CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -151,7 +152,7 @@ export default function GivingPage() {
       <div className="space-y-6 lg:sticky top-8">
         <Card>
             <CardHeader>
-                <CardTitle className="text-lg">Giving History</CardTitle>
+                <CardTitle>Giving History</CardTitle>
             </CardHeader>
             <CardContent>
                 <Table>

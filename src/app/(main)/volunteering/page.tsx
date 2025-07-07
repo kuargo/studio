@@ -1,9 +1,13 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { HandHelping, Music, Search, Video, UtensilsCrossed, HeartHandshake, Construction, Code, Church, Building, User } from "lucide-react";
+import { HandHelping, Music, Search, Video, UtensilsCrossed, HeartHandshake, Construction, Code, Church, Building, User, PlusCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { CreateOpportunityForm } from "@/components/app/create-opportunity-form";
 
 const opportunityIcons: { [key: string]: React.ElementType } = {
     "Hospitality": HandHelping,
@@ -75,9 +79,21 @@ const opportunities = [
 export default function VolunteeringPage() {
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Volunteer Board</h1>
-        <p className="text-muted-foreground mt-1">Find a place to serve and use your gifts for the kingdom.</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Volunteer Board</h1>
+          <p className="text-muted-foreground mt-1">Find or post opportunities to serve and use your gifts for the kingdom.</p>
+        </div>
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Post an Opportunity
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[625px]">
+                <CreateOpportunityForm />
+            </DialogContent>
+        </Dialog>
       </div>
 
       <Card>
@@ -130,7 +146,7 @@ export default function VolunteeringPage() {
                                 <Icon className="h-6 w-6 text-primary" />
                             </div>
                             <div>
-                                <CardTitle className="text-lg">{opp.title}</CardTitle>
+                                <CardTitle>{opp.title}</CardTitle>
                                 <CardDescription>{opp.ministry} &bull; {opp.location}</CardDescription>
                             </div>
                         </div>

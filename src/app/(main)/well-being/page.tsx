@@ -1,7 +1,11 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BrainCircuit, CalendarPlus, Ear, HeartPulse, Users, Scale, ShieldCheck, LifeBuoy, Baby, FileCheck, Phone } from "lucide-react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { BrainCircuit, CalendarPlus, Ear, HeartPulse, Users, Scale, ShieldCheck, LifeBuoy, Baby, FileCheck, Phone, Handshake } from "lucide-react";
 import Link from "next/link";
+import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
+import { ProviderRegistrationForm } from "@/components/app/provider-registration-form";
 
 const resources = [
   {
@@ -91,6 +95,23 @@ export default function WellBeingPage() {
         </p>
       </div>
 
+       <Card>
+        <CardHeader className="flex-row items-center justify-between">
+            <div>
+              <CardTitle>Are you a professional?</CardTitle>
+              <CardDescription>Register as a well-being provider to offer your services to the community.</CardDescription>
+            </div>
+             <Dialog>
+                <DialogTrigger asChild>
+                    <Button><Handshake className="mr-2"/> Register as a Provider</Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[625px]">
+                    <ProviderRegistrationForm/>
+                </DialogContent>
+            </Dialog>
+        </CardHeader>
+      </Card>
+
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {resources.map(res => (
           <Card key={res.title} className="flex flex-col">
@@ -100,7 +121,7 @@ export default function WellBeingPage() {
                   <res.icon className={`w-6 h-6 ${res.color}`} />
                 </div>
                 <div>
-                  <CardTitle className="text-lg">{res.title}</CardTitle>
+                  <CardTitle>{res.title}</CardTitle>
                   <CardDescription className="mt-1">{res.description}</CardDescription>
                 </div>
               </div>

@@ -1,3 +1,5 @@
+"use client"
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -5,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, UserCheck, MessageSquare, BookOpen, Briefcase, Heart, Building2 } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { MentorApplicationForm } from "@/components/app/mentor-application-form";
 
 const mentors = [
   { name: "Pastor John", avatar: "https://placehold.co/100x100/a5b4fc/1e3a8a.png", aiHint: "man smiling", role: "Senior Pastor", specialties: ["Theology", "Leadership", "Marriage Counseling"] },
@@ -80,26 +84,21 @@ export default function MentorshipPage() {
             </CardHeader>
             <CardContent>
                 <p className="text-muted-foreground text-sm mt-1">Invest in the next generation by sharing your wisdom and experience. Your story is valuable.</p>
-                <Select>
-                    <SelectTrigger className="w-full mt-4">
-                        <SelectValue placeholder="I can mentor in..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="spiritual">Spiritual Guidance</SelectItem>
-                        <SelectItem value="financial">Financial Wisdom</SelectItem>
-                        <SelectItem value="marital">Marital Advice</SelectItem>
-                        <SelectItem value="business">Business & Career</SelectItem>
-                        <SelectItem value="parenting">Parenting</SelectItem>
-                    </SelectContent>
-                </Select>
-                <Button className="w-full mt-2">
-                    Apply to be a Mentor
-                </Button>
+                <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="w-full mt-4">
+                          Apply to be a Mentor
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[625px]">
+                        <MentorApplicationForm />
+                    </DialogContent>
+                </Dialog>
             </CardContent>
           </Card>
           <Card>
               <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2"><BookOpen/>Wisdom Posts</CardTitle>
+                  <CardTitle><BookOpen className="inline-block mr-2"/>Wisdom Posts</CardTitle>
                   <CardDescription>Recent insights from our mentors.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -114,7 +113,7 @@ export default function MentorshipPage() {
           </Card>
            <Card>
               <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2"><MessageSquare/>Discussion Panel</CardTitle>
+                  <CardTitle><MessageSquare className="inline-block mr-2"/>Discussion Panel</CardTitle>
                   <CardDescription>Ask questions and discuss topics with the community.</CardDescription>
               </CardHeader>
               <CardContent>

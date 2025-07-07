@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -7,6 +9,8 @@ import Image from "next/image";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
+import { CreateEventForm } from "@/components/app/create-event-form";
 
 const events = [
   {
@@ -59,10 +63,17 @@ export default function EventsPage() {
           <h1 className="text-3xl font-bold">Events Hub</h1>
           <p className="text-muted-foreground">Discover what's happening and get involved.</p>
         </div>
-        <Button>
-          <PlusCircle className="mr-2" />
-          Create Event
-        </Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button>
+              <PlusCircle className="mr-2" />
+              Create Event
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[625px]">
+            <CreateEventForm />
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8 items-start">
@@ -146,7 +157,7 @@ function EventCard({ title, date, time, location, description, rsvps, likes }: t
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl">{title}</CardTitle>
+        <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
