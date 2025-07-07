@@ -11,7 +11,10 @@ import {
     Flame,
     Newspaper,
     Users,
-    BookOpen
+    BookOpen,
+    UserCheck,
+    Heart,
+    Calendar,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -34,6 +37,16 @@ const prayerRequests = [
     { id: "dashboard-david-r", name: "David R.", request: "Please pray for my family's health and protection.", avatar: "https://placehold.co/100x100/a5b4fc/1e3a8a.png", aiHint: "man portrait", initialPrayers: 28 },
 ];
 
+const userStats = [
+  { label: 'Friends', value: 125, icon: Users, href: '#' },
+  { label: 'Following', value: 72, icon: UserCheck, href: '#' },
+  { label: 'Prayers', value: 48, icon: Heart, href: '/prayer-wall' },
+  { label: 'Streak', value: 12, icon: Flame, href: '/journal', unit: 'days' },
+  { label: 'Groups', value: 5, icon: Users, href: '#' },
+  { label: 'Events', value: 3, icon: Calendar, href: '/events' },
+];
+
+
 export default function DashboardPage() {
     const { user } = useAuth();
     
@@ -52,18 +65,17 @@ export default function DashboardPage() {
                         </div>
                     </div>
                 </div>
-                <CardFooter className="bg-card p-4 grid grid-cols-3 gap-2 text-center">
-                    <div>
-                        <p className="font-bold text-lg">125</p>
-                        <p className="text-xs text-muted-foreground">Friends</p>
-                    </div>
-                    <div>
-                        <p className="font-bold text-lg">72</p>
-                        <p className="text-xs text-muted-foreground">Following</p>
-                    </div>
-                    <div>
-                        <p className="font-bold text-lg">48</p>
-                        <p className="text-xs text-muted-foreground">Prayers Offered</p>
+                <CardFooter className="bg-card p-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-center w-full">
+                        {userStats.map(stat => (
+                             <Link href={stat.href} key={stat.label} className="group rounded-lg p-2 hover:bg-accent">
+                                 <div className="p-2 bg-muted rounded-full w-fit mx-auto mb-1 group-hover:bg-background transition-colors">
+                                    <stat.icon className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors"/>
+                                 </div>
+                                <p className="font-bold text-lg">{stat.value}</p>
+                                <p className="text-xs text-muted-foreground">{stat.label} {stat.unit}</p>
+                            </Link>
+                        ))}
                     </div>
                 </CardFooter>
             </Card>
@@ -110,25 +122,6 @@ export default function DashboardPage() {
                 </div>
                 
                 <div className="space-y-6">
-                    <Card className="flex flex-col justify-between">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Flame className="text-amber-500" />
-                                Quiet Time Streak
-                            </CardTitle>
-                            <CardDescription>Keep the fire burning!</CardDescription>
-                        </CardHeader>
-                        <CardContent className="text-center">
-                            <div className="text-7xl font-bold">12</div>
-                            <p className="text-muted-foreground">Days in a row!</p>
-                        </CardContent>
-                        <CardFooter>
-                            <Button className="w-full" asChild>
-                               <Link href="/journal">Start Today's Devotion</Link>
-                            </Button>
-                        </CardFooter>
-                    </Card>
-
                     <Card>
                         <CardHeader>
                             <CardTitle>Prayer Wall</CardTitle>
@@ -150,11 +143,11 @@ export default function DashboardPage() {
                             ))}
                         </CardContent>
                          <CardFooter>
-                             <Link href="/prayer-wall" passHref legacyBehavior>
-                                <Button variant="outline" className="w-full">
+                            <Button variant="outline" className="w-full" asChild>
+                                <Link href="/prayer-wall">
                                     View Prayer Wall <ArrowRight className="ml-2 h-4 w-4"/>
-                                </Button>
-                            </Link>
+                                </Link>
+                            </Button>
                          </CardFooter>
                     </Card>
                 </div>
