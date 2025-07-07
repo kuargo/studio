@@ -1,3 +1,9 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, where } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,18 +15,112 @@ import { PrayButton } from "@/components/app/pray-button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const prayerRequests = [
-    { id: 'job-interview-maria', name: "Maria S.", avatar: "https://placehold.co/100x100/c4b5fd/4338ca.png", aiHint: "woman smiling", request: "Pray for my job interview this Wednesday. That I may have favor and clarity.", category: "Personal", initialPrayers: 42, timestamp: "2h ago", comments: [], type: 'request' },
-    { id: 'surgery-john-father', name: "John F.", avatar: "https://placehold.co/100x100/a7f3d0/065f46.png", aiHint: "man outdoors", request: "Urgent prayer for my father who is undergoing surgery right now.", category: "Family", initialPrayers: 112, timestamp: "5h ago", comments: [{name: "Pastor Rob", text: "Standing with you in prayer, John. Believing for a successful surgery and quick recovery."}], type: 'request' },
-    { id: 'youth-camp-retreat', name: "Youth Group", avatar: "https://placehold.co/100x100/fecaca/991b1b.png", aiHint: "group people", request: "For our upcoming youth camp, that the teens would have a powerful encounter with God.", category: "Church", initialPrayers: 78, timestamp: "1d ago", comments: [], type: 'request' },
-    { id: 'anonymous-loneliness', name: "Anonymous", avatar: "", aiHint: "", request: "Struggling with depression and loneliness. Please pray for a breakthrough and for divine friendships.", category: "Personal", initialPrayers: 95, timestamp: "2d ago", comments: [], type: 'request' },
-    { id: 'healing-sarah-k', name: "Sarah K.", avatar: "https://placehold.co/100x100/fed7aa/9a3412.png", aiHint: "woman laughing", request: "Praise report! I was healed from chronic back pain. Thank you all for your prayers!", category: "Praise", initialPrayers: 201, timestamp: "3d ago", comments: [{name: "Anonymous", text: "Amen! So happy for you!"}, {name: "Jessica L.", text: "This is amazing! Our God is a healer."}], type: 'testimony' },
-    { id: 'adoption-james-t', name: "James T.", avatar: "https://placehold.co/100x100/99f6e4/0f766e.png", aiHint: "smiling man", request: "God's verdict is in! After months of prayer, our adoption has been finalized! Welcome home, little one.", category: "Family", initialPrayers: 350, timestamp: "4d ago", comments: [], type: 'verdict' },
-    { id: 'job-update-maria', name: "Maria S.", avatar: "https://placehold.co/100x100/c4b5fd/4338ca.png", aiHint: "woman smiling", request: "Update on my interview: I got the job! It's more than I could have asked for. Thank you, prayer warriors!", category: "Personal", initialPrayers: 150, timestamp: "1d ago", comments: [], type: 'answered' },
-];
+type PrayerRequest = {
+    id: string;
+    userId: string;
+    name: string;
+    avatar: string;
+    aiHint: string;
+    request: string;
+    category: 'Personal' | 'Family' | 'Church' | 'Praise' | 'Answered' | 'Testimony' | 'Verdict';
+    timestamp: any;
+    prayCount: number;
+    comments: { name: string; text: string; }[];
+    type: 'request' | 'testimony' | 'verdict' | 'answered';
+};
+
+const PrayerWallSkeleton = () => (
+    <div className="space-y-4">
+        {[...Array(3)].map((_, i) => (
+            <Card key={i}>
+                <CardContent className="p-4 flex gap-4">
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <div className="flex-grow space-y-2">
+                        <Skeleton className="h-4 w-1/4" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-3/4" />
+                    </div>
+                </CardContent>
+                <CardFooter className="p-4 border-t">
+                     <Skeleton className="h-8 w-24" />
+                </CardFooter>
+            </Card>
+        ))}
+    </div>
+);
+
 
 export default function PrayerWallPage() {
+    const { user } = useAuth();
+    const { toast } = useToast();
+    const [newRequest, setNewRequest] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [prayerRequests, setPrayerRequests] = useState<PrayerRequest[]>([]);
+    const [initialLoading, setInitialLoading] = useState(true);
+
+    useEffect(() => {
+        if (!db) return;
+        const q = query(collection(db, "prayerRequests"), orderBy("timestamp", "desc"));
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const requests = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            } as PrayerRequest));
+            setPrayerRequests(requests);
+            setInitialLoading(false);
+        }, (error) => {
+            console.error("Error fetching prayer requests: ", error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Could not fetch prayer requests."
+            });
+            setInitialLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [toast]);
+
+
+    const handlePostRequest = async () => {
+        if (!user || !newRequest.trim()) return;
+        setLoading(true);
+        try {
+            await addDoc(collection(db, "prayerRequests"), {
+                userId: user.uid,
+                name: user.displayName || "Anonymous",
+                avatar: user.photoURL || "",
+                request: newRequest,
+                timestamp: serverTimestamp(),
+                prayCount: 0,
+                comments: [],
+                type: 'request',
+                category: 'Personal' // Default category
+            });
+            setNewRequest("");
+            toast({
+                title: "Success!",
+                description: "Your prayer request has been posted.",
+            });
+        } catch (error) {
+            console.error("Error posting request: ", error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Could not post your request. Please try again."
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const filterPosts = (type: PrayerRequest['type']) => {
+        return prayerRequests.filter(p => p.type === type);
+    }
+    
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-2 space-y-6">
@@ -30,13 +130,18 @@ export default function PrayerWallPage() {
                         <CardDescription>Let your community stand with you or celebrate with you. Your post will be public.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Textarea placeholder="What's on your heart?" className="min-h-[100px]" />
+                        <Textarea 
+                            placeholder="What's on your heart?" 
+                            className="min-h-[100px]"
+                            value={newRequest}
+                            onChange={(e) => setNewRequest(e.target.value)}
+                            disabled={!user} 
+                        />
                     </CardContent>
                     <CardFooter className="flex justify-between items-center">
-                        <p className="text-xs text-muted-foreground">You can post anonymously.</p>
-                        <Button className="bg-primary hover:bg-primary/90">
-                            <Send className="mr-2 h-4 w-4" />
-                            Post to Wall
+                        <p className="text-xs text-muted-foreground">You can post anonymously in settings.</p>
+                        <Button onClick={handlePostRequest} disabled={loading || !newRequest.trim() || !user}>
+                            {loading ? "Posting..." : <><Send className="mr-2 h-4 w-4" /> Post to Wall</>}
                         </Button>
                     </CardFooter>
                 </Card>
@@ -49,31 +154,35 @@ export default function PrayerWallPage() {
                         <TabsTrigger value="testimonies"><Sparkles className="mr-2"/>Testimonies</TabsTrigger>
                         <TabsTrigger value="verdicts"><Trophy className="mr-2"/>Verdicts</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="all" className="mt-4">
-                        <div className="space-y-4">
-                            {prayerRequests.map(p => <PrayerCard key={p.id} {...p} />)}
-                        </div>
-                    </TabsContent>
-                    <TabsContent value="requests" className="mt-4">
-                        <div className="space-y-4">
-                            {prayerRequests.filter(p => p.type === 'request').map(p => <PrayerCard key={p.id} {...p} />)}
-                        </div>
-                    </TabsContent>
-                    <TabsContent value="answered" className="mt-4">
-                        <div className="space-y-4">
-                            {prayerRequests.filter(p => p.type === 'answered').map(p => <PrayerCard key={p.id} {...p} />)}
-                        </div>
-                    </TabsContent>
-                    <TabsContent value="testimonies" className="mt-4">
-                         <div className="space-y-4">
-                            {prayerRequests.filter(p => p.type === 'testimony').map(p => <PrayerCard key={p.id} {...p} />)}
-                        </div>
-                    </TabsContent>
-                    <TabsContent value="verdicts" className="mt-4">
-                         <div className="space-y-4">
-                            {prayerRequests.filter(p => p.type === 'verdict').map(p => <PrayerCard key={p.id} {...p} />)}
-                        </div>
-                    </TabsContent>
+                     {initialLoading ? <PrayerWallSkeleton /> : (
+                        <>
+                            <TabsContent value="all" className="mt-4">
+                                <div className="space-y-4">
+                                    {prayerRequests.map(p => <PrayerCard key={p.id} {...p} />)}
+                                </div>
+                            </TabsContent>
+                            <TabsContent value="requests" className="mt-4">
+                                <div className="space-y-4">
+                                    {filterPosts('request').map(p => <PrayerCard key={p.id} {...p} />)}
+                                </div>
+                            </TabsContent>
+                            <TabsContent value="answered" className="mt-4">
+                                <div className="space-y-4">
+                                    {filterPosts('answered').map(p => <PrayerCard key={p.id} {...p} />)}
+                                </div>
+                            </TabsContent>
+                            <TabsContent value="testimonies" className="mt-4">
+                                 <div className="space-y-4">
+                                    {filterPosts('testimony').map(p => <PrayerCard key={p.id} {...p} />)}
+                                </div>
+                            </TabsContent>
+                            <TabsContent value="verdicts" className="mt-4">
+                                 <div className="space-y-4">
+                                    {filterPosts('verdict').map(p => <PrayerCard key={p.id} {...p} />)}
+                                </div>
+                            </TabsContent>
+                        </>
+                     )}
                 </Tabs>
             </div>
             <div className="lg:col-span-1 space-y-6 lg:sticky top-8">
@@ -98,7 +207,7 @@ export default function PrayerWallPage() {
     )
 }
 
-function PrayerCard({ id, name, avatar, aiHint, request, initialPrayers, timestamp, comments, type }: typeof prayerRequests[0]) {
+function PrayerCard({ id, name, avatar, aiHint, request, prayCount, timestamp, comments, type }: PrayerRequest) {
     const typeMeta = {
         'answered': { color: 'border-green-500', icon: <CheckCheck className="h-4 w-4 text-green-500"/>, label: 'Answered' },
         'testimony': { color: 'border-yellow-500', icon: <Sparkles className="h-4 w-4 text-yellow-500"/>, label: 'Testimony' },
@@ -106,18 +215,34 @@ function PrayerCard({ id, name, avatar, aiHint, request, initialPrayers, timesta
         'request': { color: 'border-transparent', icon: null, label: '' },
     }[type];
 
+    const timeAgo = (date: any) => {
+        if (!date) return 'Just now';
+        const seconds = Math.floor((new Date().getTime() - date.toDate().getTime()) / 1000);
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + " years ago";
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + " months ago";
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + " days ago";
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + " hours ago";
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + " minutes ago";
+        return Math.floor(seconds) + " seconds ago";
+    };
+
     return (
         <Card className={`border-l-4 ${typeMeta.color}`}>
             <CardContent className="p-4 flex gap-4">
                 <Avatar className="h-12 w-12">
                     <AvatarImage src={avatar} data-ai-hint={aiHint} />
-                    <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+                    <AvatarFallback>{name?.charAt(0) || 'A'}</AvatarFallback>
                 </Avatar>
                 <div className="flex-grow">
                     <div className="flex justify-between items-start">
                         <div>
                             <p className="font-semibold">{name}</p>
-                            <p className="text-xs text-muted-foreground">{timestamp}</p>
+                            <p className="text-xs text-muted-foreground">{timeAgo(timestamp)}</p>
                         </div>
                         {typeMeta.icon && <Badge variant="outline" className="flex items-center gap-1.5">{typeMeta.icon}{typeMeta.label}</Badge>}
                     </div>
@@ -128,7 +253,7 @@ function PrayerCard({ id, name, avatar, aiHint, request, initialPrayers, timesta
                 <Collapsible className="w-full">
                      <Separator />
                     <div className="p-4 flex items-center gap-2">
-                        <PrayButton prayerId={id} count={initialPrayers} />
+                        <PrayButton prayerId={id} count={prayCount} />
                         <div className="flex items-center gap-1 ml-auto">
                             <Button variant="ghost" size="sm" className="flex items-center gap-1.5"><ThumbsUp className="w-4 h-4" /> Agree</Button>
                             <Button variant="ghost" size="sm" className="flex items-center gap-1.5"><Smile className="w-4 h-4" /> Encourage</Button>

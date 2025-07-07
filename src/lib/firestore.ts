@@ -59,7 +59,11 @@ export const updateUserProfile = async (uid: string, data: Partial<UserProfileDa
     if (!db) return;
     const userRef = doc(db, `users/${uid}`);
     try {
-        await updateDoc(userRef, data);
+        await updateDoc(userRef, {
+          ...data,
+          // We don't want to overwrite the creation timestamp
+          createdAt: data.createdAt || serverTimestamp() 
+        });
     } catch (error) {
         console.error("Error updating user profile:", error);
         throw new Error("Could not update user profile.");
@@ -70,6 +74,7 @@ export const updateUserProfile = async (uid: string, data: Partial<UserProfileDa
 /**
  * Triggers the "Distributed Counter" extension to increment/decrement a prayer count.
  * Assumes the extension is configured to watch the "prayerRequests/{prayerId}/counter_shards" collection.
+ * The extension then updates a `prayCount` field on the parent `prayerRequests/{prayerId}` document.
  * @param prayerId The ID of the prayer request document.
  * @param incrementValue Either 1 to increment or -1 to decrement.
  */
@@ -80,7 +85,7 @@ export const updatePrayerCount = async (prayerId: string, incrementValue: 1 | -1
     }
     
     // The "Distributed Counter" extension works by creating documents in a subcollection.
-    // The subcollection name is defined when you install the extension. We'll assume 'counter_shards'.
+    // The subcollection name is defined when you install the extension. The default is `{collection}_shards`.
     const shardsRef = collection(db, `prayerRequests/${prayerId}/counter_shards`);
 
     try {
