@@ -1,33 +1,40 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users can only read/write their own profile
+    // Users can read any profile, but only write to their own.
     match /users/{userId} {
-      allow read, update: if request.auth.uid == userId;
-      allow create: if request.auth.uid == userId;
+      allow get: if request.auth != null;
+      allow create, update: if request.auth.uid == userId;
     }
 
-    // Prayer requests can be created by any authenticated user
+    // Prayer requests can be read and created by any authenticated user.
+    // Updates are handled by extensions, so client-side updates are denied.
     match /prayerRequests/{requestId} {
-      // TEMPORARY DEBUGGING RULE: Allow anyone to read prayer requests.
-      allow read: if true;
-      allow create: if request.auth != null;
+      allow list, get: if request.auth != null;
+      allow create: if request.auth != null
+                    && request.resource.data.userId == request.auth.uid;
 
-      // Allow the distributed counter extension to update the count
+      // Allow client to trigger distributed counter extension
       match /counter_shards/{shardId} {
-        allow write: if true;
+        allow create: if request.auth != null;
       }
     }
 
-    // Posts can only be created/updated/deleted by their owner
+    // Posts can be read by anyone authenticated.
+    // They can be created by the authenticated user.
+    // They can be deleted ONLY by the owner.
+    // They can be updated by any authenticated user (for liking).
     match /posts/{postId} {
-        // TEMPORARY DEBUGGING RULE: Allow anyone to read posts.
-        allow read: if true;
-        allow create: if request.auth.uid == request.resource.data.userId;
-        allow update, delete: if request.auth.uid == resource.data.userId;
+      allow list, get: if request.auth != null;
+      allow create: if request.auth != null
+                    && request.resource.data.userId == request.auth.uid;
+      // This is the key fix: any logged-in user can update a post.
+      // This is required for the "like" functionality to work, as users
+      // need to update a post document they don't own.
+      allow update: if request.auth != null;
+      allow delete: if request.auth.uid == resource.data.userId;
     }
   }
 }
