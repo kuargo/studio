@@ -39,18 +39,34 @@ export default function DashboardPage() {
     
     return (
         <div className="space-y-8">
-             <Card className="bg-gradient-to-br from-primary via-fuchsia-500 to-rose-500 text-primary-foreground border-0 shadow-lg">
-                <CardHeader className="flex flex-row items-center gap-4">
-                    <Avatar className="h-16 w-16 border-2 border-primary-foreground/50">
-                        <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || ''} data-ai-hint="person portrait" />
-                        <AvatarFallback>{user?.displayName?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                        <h1 className="text-3xl font-bold">Welcome, {user?.displayName || "Believer"}!</h1>
-                        <p className="opacity-80">The community is active! Here’s your personalized look at what’s happening.</p>
+            <Card className="overflow-hidden border-0 shadow-lg">
+                <div className="bg-gradient-to-br from-primary via-fuchsia-500 to-rose-500 text-primary-foreground p-6">
+                    <div className="flex items-center gap-4">
+                        <Avatar className="h-16 w-16 border-2 border-primary-foreground/50">
+                            <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || ''} data-ai-hint="person portrait" />
+                            <AvatarFallback>{user?.displayName?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <h1 className="text-3xl font-bold">Welcome, {user?.displayName || "Believer"}!</h1>
+                            <p className="opacity-80">Your personalized hub is buzzing with activity.</p>
+                        </div>
                     </div>
-                </CardHeader>
-             </Card>
+                </div>
+                <CardFooter className="bg-card p-4 grid grid-cols-3 gap-2 text-center">
+                    <div>
+                        <p className="font-bold text-lg">125</p>
+                        <p className="text-xs text-muted-foreground">Friends</p>
+                    </div>
+                    <div>
+                        <p className="font-bold text-lg">72</p>
+                        <p className="text-xs text-muted-foreground">Following</p>
+                    </div>
+                    <div>
+                        <p className="font-bold text-lg">48</p>
+                        <p className="text-xs text-muted-foreground">Prayers Offered</p>
+                    </div>
+                </CardFooter>
+            </Card>
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
