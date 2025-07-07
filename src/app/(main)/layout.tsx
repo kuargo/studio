@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { AuthLoader } from "@/components/app/auth-provider";
 import { useToast } from '@/hooks/use-toast';
 
-function ProtectedLayout({ children }: { children: React.ReactNode }) {
+export default function MainLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, isAdmin } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -54,16 +54,5 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
         </div>
       </SidebarInset>
     </SidebarProvider>
-  );
-}
-
-
-export default function MainLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-      <ProtectedLayout>{children}</ProtectedLayout>
   );
 }
