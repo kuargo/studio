@@ -2,12 +2,13 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { HandHelping, Music, Search, Video, UtensilsCrossed, HeartHandshake, Construction, Code, Church, Building, User, PlusCircle } from "lucide-react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription, DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { CreateOpportunityForm } from "@/components/app/create-opportunity-form";
+import { useToast } from "@/hooks/use-toast";
 
 const opportunityIcons: { [key: string]: React.ElementType } = {
     "Hospitality": HandHelping,
@@ -77,6 +78,8 @@ const opportunities = [
 ];
 
 export default function VolunteeringPage() {
+  const { toast } = useToast();
+
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
@@ -158,15 +161,31 @@ export default function VolunteeringPage() {
                             </div>
                         </div>
                     </CardHeader>
-                    <CardContent className="border-t pt-4">
-                         <div className="flex justify-between items-center">
+                    <CardFooter className="border-t pt-4">
+                         <div className="flex justify-between items-center w-full">
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                 <PostedByIcon className="h-4 w-4" />
                                 <span>{opp.postedBy.name}</span>
                             </div>
-                            <Button size="sm">Express Interest</Button>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button size="sm">Express Interest</Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Express Interest in "{opp.title}"</DialogTitle>
+                                        <DialogDescription>
+                                            The opportunity organizer will be notified of your interest. They will receive your profile information and will be able to contact you.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <DialogFooter>
+                                        <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                                        <DialogClose asChild><Button onClick={() => toast({ title: "Interest Expressed!", description: "The organizer has been notified." })}>Confirm</Button></DialogClose>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
                          </div>
-                    </CardContent>
+                    </CardFooter>
                 </Card>
             )
         })}

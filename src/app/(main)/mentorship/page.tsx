@@ -3,12 +3,13 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, UserCheck, MessageSquare, BookOpen, Briefcase, Heart, Building2 } from "lucide-react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogDescription, DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { MentorApplicationForm } from "@/components/app/mentor-application-form";
+import { useToast } from "@/hooks/use-toast";
 
 const mentors = [
   { name: "Pastor John", avatar: "https://placehold.co/100x100/a5b4fc/1e3a8a.png", aiHint: "man smiling", role: "Senior Pastor", specialties: ["Theology", "Leadership", "Marriage Counseling"] },
@@ -26,6 +27,8 @@ const recentPosts = [
 ]
 
 export default function MentorshipPage() {
+  const { toast } = useToast();
+
   return (
     <div className="grid lg:grid-cols-3 gap-8 items-start">
       <div className="lg:col-span-2 space-y-8">
@@ -70,9 +73,29 @@ export default function MentorshipPage() {
                               {mentor.specialties.map(spec => <Badge key={spec} variant="secondary">{spec}</Badge>)}
                           </div>
                       </CardContent>
-                      <CardContent className="p-4 border-t">
-                          <Button className="w-full">Request Mentorship</Button>
-                      </CardContent>
+                      <CardFooter className="p-4 border-t">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button className="w-full">Request Mentorship</Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Request Mentorship from {mentor.name}</DialogTitle>
+                                <DialogDescription>
+                                    Your request will be sent to {mentor.name} for review. They will be notified and will be able to contact you through the app's messaging system once it's implemented.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <DialogFooter>
+                                <DialogClose asChild>
+                                    <Button variant="outline">Cancel</Button>
+                                </DialogClose>
+                                <DialogClose asChild>
+                                    <Button onClick={() => toast({ title: "Request Sent!", description: `Your mentorship request to ${mentor.name} has been sent.` })}>Confirm Request</Button>
+                                </DialogClose>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                      </CardFooter>
                   </Card>
               ))}
           </div>
@@ -117,7 +140,7 @@ export default function MentorshipPage() {
                   <CardDescription>Ask questions and discuss topics with the community.</CardDescription>
               </CardHeader>
               <CardContent>
-                  <Button className="w-full">Join the Discussion</Button>
+                  <Button className="w-full" onClick={() => toast({ title: "Feature Coming Soon!" })}>Join the Discussion</Button>
               </CardContent>
           </Card>
       </div>

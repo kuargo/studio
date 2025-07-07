@@ -1,9 +1,14 @@
+"use client";
+
+import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, Send, Music, Search, Plus, Upload, Link2, Download, Coins, Wand2, Palette, Share2 } from "lucide-react";
+import { Heart, MessageCircle, Music, Search, Plus, Upload, Link2, Download, Coins, Wand2, Palette, Share2 } from "lucide-react";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 
 const reels = [
@@ -14,7 +19,7 @@ const reels = [
     aiHint: "worship concert",
     caption: "Feeling the spirit during worship practice tonight! 🙌 #blessed",
     audio: "Original Audio by Grace Notes",
-    likes: "1.2K",
+    likes: 1200,
     comments: 48,
   },
   {
@@ -24,7 +29,7 @@ const reels = [
     aiHint: "abstract art",
     caption: "A time-lapse of my latest piece, 'Heaven's Gates'. What do you see?",
     audio: "Hillsong - Oceans",
-    likes: "5.8K",
+    likes: 5800,
     comments: 329,
   },
   {
@@ -34,7 +39,7 @@ const reels = [
     aiHint: "bible verse",
     caption: "Your daily reminder: You are loved. You are chosen. (1 Peter 2:9)",
     audio: "Soothing Piano Music",
-    likes: "12K",
+    likes: 12000,
     comments: 712,
   },
 ];
@@ -76,6 +81,25 @@ export default function FaithReelsPage() {
 
 
 function Reel({ user, videoUrl, aiHint, caption, audio, likes, comments }: typeof reels[0]) {
+  const { toast } = useToast();
+  const [isLiked, setIsLiked] = React.useState(false);
+  const [isFollowing, setIsFollowing] = React.useState(false);
+  
+  const formattedLikes = (baseLikes: number, isLiked: boolean) => {
+    const total = baseLikes + (isLiked ? 1 : 0);
+    if (total >= 1000) {
+      return (total / 1000).toFixed(1) + 'K';
+    }
+    return total;
+  }
+  
+  const showComingSoonToast = () => {
+    toast({
+      title: "Feature Coming Soon",
+      description: "This functionality is under development.",
+    });
+  };
+
   return (
     <div className="relative h-full w-full snap-start flex-shrink-0">
       <Image src={videoUrl} fill style={{ objectFit: 'cover' }} alt="Faith Reel" data-ai-hint={aiHint} />
@@ -89,7 +113,7 @@ function Reel({ user, videoUrl, aiHint, caption, audio, likes, comments }: typeo
               <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
             </Avatar>
             <p className="font-semibold">{user.name}</p>
-            <Button variant="outline" size="sm" className="bg-white/20 border-white text-white h-7">Follow</Button>
+            <Button variant="outline" size="sm" className="bg-white/20 border-white text-white h-7" onClick={() => setIsFollowing(p => !p)}>{isFollowing ? 'Following' : 'Follow'}</Button>
           </div>
           <p className="text-sm">{caption}</p>
           <div className="flex items-center gap-2 text-sm">
@@ -99,13 +123,13 @@ function Reel({ user, videoUrl, aiHint, caption, audio, likes, comments }: typeo
         </div>
 
         <div className="flex flex-col items-center space-y-4">
-          <button className="flex flex-col items-center gap-1">
+          <button className="flex flex-col items-center gap-1" onClick={() => setIsLiked(p => !p)}>
             <div className="bg-white/20 p-3 rounded-full">
-              <Heart className="w-6 h-6" />
+              <Heart className={cn("w-6 h-6", isLiked && "fill-white")} />
             </div>
-            <span className="text-xs font-semibold">{likes}</span>
+            <span className="text-xs font-semibold">{formattedLikes(likes, isLiked)}</span>
           </button>
-          <button className="flex flex-col items-center gap-1">
+          <button className="flex flex-col items-center gap-1" onClick={showComingSoonToast}>
             <div className="bg-white/20 p-3 rounded-full">
               <MessageCircle className="w-6 h-6" />
             </div>
@@ -126,25 +150,25 @@ function Reel({ user, videoUrl, aiHint, caption, audio, likes, comments }: typeo
                     <DropdownMenuItem>Copy Link</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
-          <button className="flex flex-col items-center gap-1">
+          <button className="flex flex-col items-center gap-1" onClick={showComingSoonToast}>
             <div className="bg-white/20 p-3 rounded-full">
               <Palette className="w-6 h-6" />
             </div>
              <span className="text-xs font-semibold">Filters</span>
           </button>
-          <button className="flex flex-col items-center gap-1">
+          <button className="flex flex-col items-center gap-1" onClick={showComingSoonToast}>
             <div className="bg-white/20 p-3 rounded-full">
               <Wand2 className="w-6 h-6" />
             </div>
              <span className="text-xs font-semibold">Edit</span>
           </button>
-          <button className="flex flex-col items-center gap-1">
+          <button className="flex flex-col items-center gap-1" onClick={showComingSoonToast}>
             <div className="bg-white/20 p-3 rounded-full">
               <Coins className="w-6 h-6" />
             </div>
              <span className="text-xs font-semibold">Gift</span>
           </button>
-          <button className="flex flex-col items-center gap-1">
+          <button className="flex flex-col items-center gap-1" onClick={showComingSoonToast}>
             <div className="bg-white/20 p-3 rounded-full">
               <Download className="w-6 h-6" />
             </div>

@@ -6,13 +6,13 @@ import { BrainCircuit, CalendarPlus, Ear, HeartPulse, Users, Scale, ShieldCheck,
 import Link from "next/link";
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 import { ProviderRegistrationForm } from "@/components/app/provider-registration-form";
+import { useToast } from "@/hooks/use-toast";
 
 const resources = [
   {
     icon: Ear,
     title: "Guided Prayer & Meditation",
     description: "Audio-led sessions to help you focus on God and find peace.",
-    link: "#",
     cta: "Listen Now",
     color: "text-blue-500",
     bg: "bg-blue-500/10"
@@ -21,7 +21,6 @@ const resources = [
     icon: BrainCircuit,
     title: "Stress Management Hub",
     description: "Practical exercises and biblical wisdom for navigating anxiety and stress.",
-    link: "#",
     cta: "Find Techniques",
     color: "text-green-500",
     bg: "bg-green-500/10"
@@ -30,7 +29,6 @@ const resources = [
     icon: CalendarPlus,
     title: "Book a Confidential Session",
     description: "Connect with a trained lay counselor or pastor for support.",
-    link: "#",
     cta: "Request Appointment",
     color: "text-amber-500",
     bg: "bg-amber-500/10"
@@ -39,7 +37,6 @@ const resources = [
     icon: ShieldCheck,
     title: "Addiction & Recovery",
     description: "Find resources and support for overcoming addictions in a faith-based context.",
-    link: "#",
     cta: "Find Help",
     color: "text-teal-500",
     bg: "bg-teal-500/10"
@@ -48,7 +45,6 @@ const resources = [
     icon: Scale,
     title: "Mediation & Conflict Resolution",
     description: "Request help resolving church, group, or personal conflicts with certified mediators.",
-    link: "#",
     cta: "Get Assistance",
     color: "text-orange-500",
     bg: "bg-orange-500/10"
@@ -57,7 +53,6 @@ const resources = [
     icon: Baby,
     title: "Marriage & Family Counseling",
     description: "Resources for building strong, Christ-centered families and relationships.",
-    link: "#",
     cta: "Strengthen Family",
     color: "text-rose-500",
     bg: "bg-rose-500/10"
@@ -66,7 +61,6 @@ const resources = [
     icon: FileCheck,
     title: "Legal & Financial Guidance",
     description: "Connect with Christian professionals for assistance with legal or financial matters.",
-    link: "#",
     cta: "Seek Counsel",
     color: "text-indigo-500",
     bg: "bg-indigo-500/10"
@@ -75,7 +69,6 @@ const resources = [
     icon: Users,
     title: "Find a Support Group",
     description: "Join a community of people who understand what you're going through.",
-    link: "#",
     cta: "Browse Groups",
     color: "text-violet-500",
     bg: "bg-violet-500/10"
@@ -83,6 +76,15 @@ const resources = [
 ]
 
 export default function WellBeingPage() {
+  const { toast } = useToast();
+  
+  const showComingSoonToast = (title: string) => {
+    toast({
+      title: "Feature Coming Soon",
+      description: `The "${title}" section is under construction.`,
+    });
+  };
+
   return (
     <div className="space-y-8">
       <div className="text-center max-w-3xl mx-auto">
@@ -126,11 +128,11 @@ export default function WellBeingPage() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <Button asChild className="w-full">
-                <Link href={res.link}>{res.cta}</Link>
+            <CardFooter>
+              <Button className="w-full" onClick={() => showComingSoonToast(res.title)}>
+                {res.cta}
               </Button>
-            </CardContent>
+            </CardFooter>
           </Card>
         ))}
       </div>

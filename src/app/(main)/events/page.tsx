@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -11,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 import { CreateEventForm } from "@/components/app/create-event-form";
+import { cn } from "@/lib/utils";
 
 const events = [
   {
@@ -90,7 +92,7 @@ export default function EventsPage() {
             </Card>
              <Card>
                 <CardHeader>
-                    <CardTitle className="text-lg">Filters</CardTitle>
+                    <CardTitle>Filters</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                      <div className="relative">
@@ -154,6 +156,9 @@ export default function EventsPage() {
 }
 
 function EventCard({ title, date, time, location, description, rsvps, likes }: typeof events[0]) {
+  const [isRsvpd, setIsRsvpd] = React.useState(false);
+  const [isLiked, setIsLiked] = React.useState(false);
+  
   return (
     <Card>
       <CardHeader>
@@ -170,35 +175,35 @@ function EventCard({ title, date, time, location, description, rsvps, likes }: t
           <MapPin className="w-4 h-4" />
           <span>{location}</span>
         </div>
-        <div className="flex items-center justify-between pt-2">
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                 <div className="flex items-center gap-1.5">
-                    <Users className="w-4 h-4" />
-                    <span className="font-semibold">{rsvps}</span> Going
-                 </div>
-                 <div className="flex items-center gap-1.5">
-                    <Heart className="w-4 h-4" />
-                    <span className="font-semibold">{likes}</span> Likes
-                 </div>
-            </div>
-            <div className="flex items-center gap-2">
-                <Button variant="ghost">
-                    <Heart className="w-4 h-4" />
-                </Button>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline"><Share2 className="w-4 h-4" /></Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                        <DropdownMenuItem>Share to WhatsApp</DropdownMenuItem>
-                        <DropdownMenuItem>Share to Facebook</DropdownMenuItem>
-                        <DropdownMenuItem>Copy Link</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-                <Button>RSVP</Button>
-            </div>
-        </div>
       </CardContent>
+      <CardFooter className="flex items-center justify-between pt-2">
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+               <div className="flex items-center gap-1.5">
+                  <Users className="w-4 h-4" />
+                  <span className="font-semibold">{rsvps + (isRsvpd ? 1 : 0)}</span> Going
+               </div>
+               <div className="flex items-center gap-1.5">
+                  <Heart className={cn("w-4 h-4", isLiked && "text-destructive")} />
+                  <span className="font-semibold">{likes + (isLiked ? 1 : 0)}</span> Likes
+               </div>
+          </div>
+          <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" onClick={() => setIsLiked(prev => !prev)}>
+                  <Heart className={cn("w-4 h-4", isLiked && "fill-destructive text-destructive")} />
+              </Button>
+              <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                      <Button variant="outline"><Share2 className="w-4 h-4" /></Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                      <DropdownMenuItem>Share to WhatsApp</DropdownMenuItem>
+                      <DropdownMenuItem>Share to Facebook</DropdownMenuItem>
+                      <DropdownMenuItem>Copy Link</DropdownMenuItem>
+                  </DropdownMenuContent>
+              </DropdownMenu>
+              <Button onClick={() => setIsRsvpd(prev => !prev)} variant={isRsvpd ? 'secondary' : 'default'}>{isRsvpd ? 'Going!' : 'RSVP'}</Button>
+          </div>
+      </CardFooter>
     </Card>
   )
 }

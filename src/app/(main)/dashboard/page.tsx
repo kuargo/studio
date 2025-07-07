@@ -3,7 +3,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { PrayButton } from "@/components/app/pray-button";
 import {
     ArrowRight,
@@ -30,8 +30,8 @@ const quickLinks = [
 ];
 
 const prayerRequests = [
-    { name: "Jessica L.", request: "Praying for strength and wisdom for my upcoming exams.", avatar: "https://placehold.co/100x100/f9a8d4/4c1d95.png", aiHint: "woman portrait", initialPrayers: 12 },
-    { name: "David R.", request: "Please pray for my family's health and protection.", avatar: "https://placehold.co/100x100/a5b4fc/1e3a8a.png", aiHint: "man portrait", initialPrayers: 28 },
+    { id: "dashboard-jessica-l", name: "Jessica L.", request: "Praying for strength and wisdom for my upcoming exams.", avatar: "https://placehold.co/100x100/f9a8d4/4c1d95.png", aiHint: "woman portrait", initialPrayers: 12 },
+    { id: "dashboard-david-r", name: "David R.", request: "Please pray for my family's health and protection.", avatar: "https://placehold.co/100x100/a5b4fc/1e3a8a.png", aiHint: "man portrait", initialPrayers: 28 },
 ];
 
 export default function DashboardPage() {
@@ -57,7 +57,7 @@ export default function DashboardPage() {
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-xl">Community Spotlight</CardTitle>
+                            <CardTitle>Community Spotlight</CardTitle>
                             <CardDescription>Featured events, sermons, and opportunities.</CardDescription>
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -75,7 +75,7 @@ export default function DashboardPage() {
                     </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-xl">Quick Links</CardTitle>
+                            <CardTitle>Quick Links</CardTitle>
                              <CardDescription>Provoking your engagement. What will you do next?</CardDescription>
                         </CardHeader>
                         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -106,14 +106,16 @@ export default function DashboardPage() {
                             <div className="text-7xl font-bold">12</div>
                             <p className="text-muted-foreground">Days in a row!</p>
                         </CardContent>
-                        <CardContent>
-                            <Button className="w-full">Start Today's Devotion</Button>
-                        </CardContent>
+                        <CardFooter>
+                            <Button className="w-full" asChild>
+                               <Link href="/journal">Start Today's Devotion</Link>
+                            </Button>
+                        </CardFooter>
                     </Card>
 
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-xl">Prayer Wall</CardTitle>
+                            <CardTitle>Prayer Wall</CardTitle>
                             <CardDescription>Lift up your community.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -127,17 +129,17 @@ export default function DashboardPage() {
                                         <p className="font-semibold text-sm">{prayer.name}</p>
                                         <p className="text-sm text-muted-foreground line-clamp-2">{prayer.request}</p>
                                     </div>
-                                    <PrayButton count={prayer.initialPrayers} />
+                                    <PrayButton prayerId={prayer.id} count={prayer.initialPrayers} />
                                 </div>
                             ))}
                         </CardContent>
-                         <CardContent>
-                             <Link href="/prayer-wall" passHref>
+                         <CardFooter>
+                             <Link href="/prayer-wall" passHref legacyBehavior>
                                 <Button variant="outline" className="w-full">
                                     View Prayer Wall <ArrowRight className="ml-2 h-4 w-4"/>
                                 </Button>
                             </Link>
-                         </CardContent>
+                         </CardFooter>
                     </Card>
                 </div>
             </div>
