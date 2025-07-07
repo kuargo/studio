@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,6 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Checkbox } from "../ui/checkbox";
 
 const formSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters." }),
@@ -38,6 +40,14 @@ const formSchema = z.object({
   location: z.string({ required_error: "Please select a location type." }),
   commitment: z.string().min(3, { message: "Please specify the time commitment." }),
   skills: z.string().optional(),
+  // New fields
+  fareAvailable: z.boolean().default(false).optional(),
+  fareRefund: z.string().optional(),
+  foodProvided: z.boolean().default(false).optional(),
+  certificateProvided: z.boolean().default(false).optional(),
+  stipend: z.string().optional(),
+  ageRestriction: z.string().optional(),
+  equipmentNeeded: z.string().optional(),
 });
 
 export function CreateOpportunityForm() {
@@ -50,6 +60,13 @@ export function CreateOpportunityForm() {
       description: "",
       commitment: "",
       skills: "",
+      fareAvailable: false,
+      foodProvided: false,
+      certificateProvided: false,
+      fareRefund: "",
+      stipend: "",
+      ageRestriction: "",
+      equipmentNeeded: "",
     },
   });
 
@@ -66,7 +83,7 @@ export function CreateOpportunityForm() {
       <DialogHeader>
         <DialogTitle>Post a Volunteer Opportunity</DialogTitle>
         <DialogDescription>
-          Fill out the form below to create a new opportunity for others to serve.
+          Fill out the form below to create a new opportunity for others to serve. Provide as much detail as possible.
         </DialogDescription>
       </DialogHeader>
       <Form {...form}>
@@ -93,9 +110,6 @@ export function CreateOpportunityForm() {
                 <FormControl>
                   <Textarea placeholder="Describe the role, responsibilities, and impact..." {...field} />
                 </FormControl>
-                <FormDescription>
-                    AI could help generate this based on the title in the future.
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -164,6 +178,19 @@ export function CreateOpportunityForm() {
               </FormItem>
             )}
           />
+           <FormField
+            control={form.control}
+            name="ageRestriction"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Age Restrictions (Optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g., 18 and over" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="skills"
@@ -180,6 +207,82 @@ export function CreateOpportunityForm() {
               </FormItem>
             )}
           />
+           <FormField
+            control={form.control}
+            name="equipmentNeeded"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Special Tools/Equipment Needed (Optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g., Laptop, Specific software" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="space-y-4 rounded-md border p-4">
+            <FormLabel>Logistics & Benefits</FormLabel>
+             <div className="grid grid-cols-2 gap-4">
+                 <FormField
+                    control={form.control}
+                    name="fareRefund"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel className="text-xs">Fare Refund (Optional)</FormLabel>
+                        <FormControl>
+                        <Input placeholder="e.g., Up to $10" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="stipend"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel className="text-xs">Stipend (Optional)</FormLabel>
+                        <FormControl>
+                        <Input placeholder="e.g., $50 per event" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+            </div>
+            <div className="flex items-center space-x-4">
+                 <FormField
+                    control={form.control}
+                    name="foodProvided"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                            <FormLabel>Food Provided</FormLabel>
+                        </div>
+                        </FormItem>
+                    )}
+                    />
+                <FormField
+                    control={form.control}
+                    name="certificateProvided"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                            <FormLabel>Certificate of Participation</FormLabel>
+                        </div>
+                        </FormItem>
+                    )}
+                    />
+            </div>
+          </div>
+          
           <DialogFooter className="pt-4">
              <DialogClose asChild>
                 <Button type="button" variant="outline">Cancel</Button>
