@@ -80,7 +80,11 @@ export default function SocialFeedPage() {
     const [posting, setPosting] = useState(false);
 
     useEffect(() => {
-        if (!db) return;
+        if (!user || !db) {
+            setLoading(false);
+            return;
+        }
+
         const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
             const fetchedPosts = querySnapshot.docs.map(doc => ({
@@ -94,13 +98,13 @@ export default function SocialFeedPage() {
             toast({
                 variant: "destructive",
                 title: "Error",
-                description: "Could not fetch social feed."
+                description: "Could not fetch social feed. Check security rules."
             });
             setLoading(false);
         });
 
         return () => unsubscribe();
-    }, [toast]);
+    }, [user, toast]);
 
 
     const handlePostSubmit = async () => {

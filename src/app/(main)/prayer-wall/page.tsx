@@ -34,7 +34,7 @@ type PrayerRequest = {
 };
 
 const PrayerWallSkeleton = () => (
-    <div className="space-y-4">
+    <div className="space-y-4 mt-4">
         {[...Array(3)].map((_, i) => (
             <Card key={i}>
                 <CardContent className="p-4 flex gap-4">
@@ -63,7 +63,11 @@ export default function PrayerWallPage() {
     const [initialLoading, setInitialLoading] = useState(true);
 
     useEffect(() => {
-        if (!db) return;
+        if (!user || !db) {
+            setInitialLoading(false);
+            return;
+        }
+        
         const q = query(collection(db, "prayerRequests"), orderBy("timestamp", "desc"));
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
             const requests = querySnapshot.docs.map(doc => ({
@@ -77,13 +81,13 @@ export default function PrayerWallPage() {
             toast({
                 variant: "destructive",
                 title: "Error",
-                description: "Could not fetch prayer requests."
+                description: "Could not fetch prayer requests. Check security rules."
             });
             setInitialLoading(false);
         });
 
         return () => unsubscribe();
-    }, [toast]);
+    }, [user, toast]);
 
 
     const handlePostRequest = async () => {
@@ -198,9 +202,9 @@ export default function PrayerWallPage() {
                     </CardContent>
                     <CardFooter>
                         <Button asChild variant="secondary" className="w-full">
-                            <a href="/bible">
+                            <Link href="/bible">
                                 <BookOpen className="mr-2 h-4 w-4" /> Read the Bible
-                            </a>
+                            </Link>
                         </Button>
                     </CardFooter>
                 </Card>
