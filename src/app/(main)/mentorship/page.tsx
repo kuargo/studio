@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, UserCheck, MessageSquare, BookOpen, Briefcase, Heart, Building2 } from "lucide-react";
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogDescription, DialogClose, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription, DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { MentorApplicationForm } from "@/components/app/mentor-application-form";
 import { useToast } from "@/hooks/use-toast";
 
