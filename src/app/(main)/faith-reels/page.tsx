@@ -1,8 +1,9 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, Send, Music, Search, Plus, Upload, Link2, Download, Coins, Wand2, Palette } from "lucide-react";
+import { Heart, MessageCircle, Send, Music, Search, Plus, Upload, Link2, Download, Coins, Wand2, Palette, Share2 } from "lucide-react";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 
 const reels = [
@@ -110,11 +111,21 @@ function Reel({ user, videoUrl, aiHint, caption, audio, likes, comments }: typeo
             </div>
             <span className="text-xs font-semibold">{comments}</span>
           </button>
-           <button className="flex flex-col items-center gap-1">
-            <div className="bg-white/20 p-3 rounded-full">
-              <Send className="w-6 h-6" />
-            </div>
-          </button>
+           <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <button className="flex flex-col items-center gap-1">
+                        <div className="bg-white/20 p-3 rounded-full">
+                            <Share2 className="w-6 h-6" />
+                        </div>
+                    </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="left" className="bg-zinc-800 border-zinc-700 text-white">
+                    <DropdownMenuItem>Share to WhatsApp</DropdownMenuItem>
+                    <DropdownMenuItem>Share to Facebook</DropdownMenuItem>
+                    <DropdownMenuItem>Share to TikTok</DropdownMenuItem>
+                    <DropdownMenuItem>Copy Link</DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
           <button className="flex flex-col items-center gap-1">
             <div className="bg-white/20 p-3 rounded-full">
               <Palette className="w-6 h-6" />

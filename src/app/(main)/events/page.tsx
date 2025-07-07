@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, MapPin, PlusCircle, Heart, Users, Search, Map } from "lucide-react";
+import { Calendar, MapPin, PlusCircle, Heart, Users, Search, Map, Share2 } from "lucide-react";
 import Image from "next/image";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const events = [
   {
@@ -173,6 +174,16 @@ function EventCard({ title, date, time, location, description, rsvps, likes }: t
                 <Button variant="ghost">
                     <Heart className="w-4 h-4" />
                 </Button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline"><Share2 className="w-4 h-4" /></Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem>Share to WhatsApp</DropdownMenuItem>
+                        <DropdownMenuItem>Share to Facebook</DropdownMenuItem>
+                        <DropdownMenuItem>Copy Link</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
                 <Button>RSVP</Button>
             </div>
         </div>

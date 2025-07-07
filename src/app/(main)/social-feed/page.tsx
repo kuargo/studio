@@ -33,6 +33,7 @@ const posts = [
     timestamp: "2d ago",
     content: "Please pray for my family's health and protection. We're going through a tough season.",
     initialPrayers: 89,
+    id: "social-david-r"
   },
 ];
 
@@ -139,7 +140,7 @@ function PostCard({ post }: { post: typeof posts[0] }) {
             <CardFooter className="p-2 border-t">
                 {post.type === 'prayer_request' ? (
                     <div className="flex-1 px-2">
-                        <PrayButton count={post.initialPrayers!} />
+                        <PrayButton prayerId={post.id!} count={post.initialPrayers!} />
                     </div>
                 ) : (
                      <div className="flex justify-around text-muted-foreground w-full">

@@ -119,7 +119,9 @@ export default function SettingsPage() {
                 <form onSubmit={handleSubmit}>
                     <CardHeader>
                         <CardTitle>Personal Information</CardTitle>
-                        <CardDescription>Update your public profile and personal details here.</CardDescription>
+                        <CardDescription>
+                            Update your public profile and personal details here. Birthday reminders are shared with friends, but the year is always kept private.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="flex items-center gap-6">
