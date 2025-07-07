@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useTransition, useEffect } from "react";
@@ -7,8 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { updatePrayerCount } from "@/lib/firestore";
+import { useAuth } from "@/hooks/use-auth";
 
 export function PrayButton({ prayerId, count }: { prayerId: string, count: number }) {
+  const { user } = useAuth();
   const [isPrayed, setIsPrayed] = useState(false);
   const [prayCount, setPrayCount] = useState(count || 0);
   const [isPending, startTransition] = useTransition();
@@ -22,25 +25,24 @@ export function PrayButton({ prayerId, count }: { prayerId: string, count: numbe
   }, [prayerId]);
 
   useEffect(() => {
-    if (!db || !prayerId) return;
+    // Do not attempt to listen for updates if the user is not logged in.
+    if (!db || !prayerId || !user) return;
 
     // Listen for real-time updates to the prayer count from Firestore
     const unsub = onSnapshot(doc(db, `prayerRequests/${prayerId}`), (doc) => {
         if (doc.exists()) {
             const data = doc.data();
-            // The Distributed Counter extension adds a field with the count.
-            // By default, it's the same as the collection name, but you can configure it.
-            // Let's assume the field is named "prayCount".
             setPrayCount(data.prayCount || 0);
         }
     });
 
     return () => unsub();
-  }, [prayerId]);
+  }, [prayerId, user]);
 
 
   const handleClick = () => {
-    if (isPending) return;
+    // A user must be logged in to pray.
+    if (isPending || !user) return;
 
     startTransition(() => {
       const newPrayedState = !isPrayed;
@@ -61,7 +63,7 @@ export function PrayButton({ prayerId, count }: { prayerId: string, count: numbe
         onClick={handleClick}
         className="rounded-full hover:bg-rose-100 dark:hover:bg-rose-900/50"
         aria-label="Pray for this"
-        disabled={isPending}
+        disabled={isPending || !user}
       >
         <Heart
           className={cn(
