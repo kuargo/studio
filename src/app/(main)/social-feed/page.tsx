@@ -1,3 +1,7 @@
+
+"use client";
+
+import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -7,106 +11,209 @@ import Image from "next/image";
 import { PrayButton } from "@/components/app/pray-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/use-auth";
+import { createSocialPost } from "@/lib/firestore";
+import { useToast } from "@/hooks/use-toast";
+import { db } from "@/lib/firebase";
+import { collection, query, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const posts = [
-  {
-    type: 'testimony',
-    user: { name: "Sarah K.", avatar: "https://placehold.co/100x100/fed7aa/9a3412.png", aiHint: "woman laughing" },
-    timestamp: "3h ago",
-    content: "Praise report! I was healed from chronic back pain after the prayer service on Sunday. God is so good! Thank you all for your prayers!",
-    likes: 128,
-    comments: 17,
-  },
-  {
-    type: 'image',
-    user: { name: "Youth Group", avatar: "https://placehold.co/100x100/fecaca/991b1b.png", aiHint: "group people" },
-    timestamp: "1d ago",
-    content: "Had an amazing time at our youth camp retreat this weekend! Lives were changed!",
-    imageUrl: "https://placehold.co/600x400.png",
-    aiHint: "youth group bonfire",
-    likes: 256,
-    comments: 32,
-  },
-   {
-    type: 'prayer_request',
-    user: { name: "David R.", avatar: "https://placehold.co/100x100/a5b4fc/1e3a8a.png", aiHint: "man portrait" },
-    timestamp: "2d ago",
-    content: "Please pray for my family's health and protection. We're going through a tough season.",
-    initialPrayers: 89,
-    id: "social-david-r"
-  },
-];
+type Post = {
+    id: string;
+    userId: string;
+    content: string;
+    user: { name: string; avatar: string; aiHint: string; };
+    timestamp: Timestamp;
+    likes: number;
+    comments: number;
+    type: 'testimony' | 'image' | 'prayer_request' | 'text';
+    imageUrl?: string;
+    aiHint?: string;
+    initialPrayers?: number;
+};
+
+const PostSkeleton = () => (
+    <div className="space-y-6">
+        {[...Array(3)].map((_, i) => (
+             <Card key={i}>
+                <CardHeader className="p-4">
+                     <div className="flex items-center gap-3">
+                        <Skeleton className="h-10 w-10 rounded-full" />
+                        <div className="space-y-1.5">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-3 w-16" />
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="px-4 pb-2 space-y-4">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6" />
+                </CardContent>
+                <CardFooter className="p-2 border-t">
+                    <div className="flex justify-around w-full">
+                        <Skeleton className="h-8 w-20" />
+                        <Skeleton className="h-8 w-20" />
+                        <Skeleton className="h-8 w-20" />
+                    </div>
+                </CardFooter>
+            </Card>
+        ))}
+    </div>
+);
+
 
 export default function SocialFeedPage() {
-  return (
-    <div className="max-w-2xl mx-auto space-y-6">
-        <Card>
-            <CardHeader className="p-4">
-                 <div className="flex gap-4">
-                    <Avatar>
-                        <AvatarImage src="https://placehold.co/100x100.png" data-ai-hint="person portrait" />
-                        <AvatarFallback>U</AvatarFallback>
-                    </Avatar>
-                    <Textarea placeholder="Share a testimony or encouraging word..." className="h-20"/>
-                 </div>
-            </CardHeader>
-            <CardFooter className="p-4 flex justify-between">
-                <div className="flex gap-2">
-                    <Button variant="ghost" size="icon"><ImageIcon className="text-green-500"/></Button>
-                    <Button variant="ghost" size="icon"><Video className="text-rose-500"/></Button>
-                </div>
-                <Button>Post</Button>
-            </CardFooter>
-        </Card>
+    const { user } = useAuth();
+    const { toast } = useToast();
+    const [newPost, setNewPost] = useState("");
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [posting, setPosting] = useState(false);
+
+    useEffect(() => {
+        if (!db) return;
+        const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const fetchedPosts = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            } as Post));
+            setPosts(fetchedPosts);
+            setLoading(false);
+        }, (error) => {
+            console.error("Error fetching posts:", error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Could not fetch social feed."
+            });
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [toast]);
+
+
+    const handlePostSubmit = async () => {
+        if (!user || !newPost.trim()) return;
+
+        setPosting(true);
+        try {
+            await createSocialPost(user, newPost);
+            setNewPost("");
+            toast({
+                title: "Posted!",
+                description: "Your post is now live on the feed.",
+            });
+        } catch (error) {
+            console.error("Error creating post:", error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Could not create your post. Please try again."
+            });
+        } finally {
+            setPosting(false);
+        }
+    };
+    
+    const timeAgo = (date: Timestamp | null) => {
+        if (!date) return 'Just now';
+        const seconds = Math.floor((new Date().getTime() - date.toDate().getTime()) / 1000);
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + "y ago";
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + "mo ago";
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + "d ago";
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + "h ago";
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + "m ago";
+        return Math.floor(seconds) + "s ago";
+    };
+
+    return (
+        <div className="max-w-2xl mx-auto space-y-6">
+            <Card>
+                <CardHeader className="p-4">
+                    <div className="flex gap-4">
+                        <Avatar>
+                            <AvatarImage src={user?.photoURL || ""} data-ai-hint="person portrait" />
+                            <AvatarFallback>{user?.displayName?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
+                        </Avatar>
+                        <Textarea 
+                            placeholder="Share a testimony or encouraging word..." 
+                            className="h-20"
+                            value={newPost}
+                            onChange={(e) => setNewPost(e.target.value)}
+                            disabled={!user || posting}
+                        />
+                    </div>
+                </CardHeader>
+                <CardFooter className="p-4 flex justify-between">
+                    <div className="flex gap-2">
+                        <Button variant="ghost" size="icon"><ImageIcon className="text-green-500"/></Button>
+                        <Button variant="ghost" size="icon"><Video className="text-rose-500"/></Button>
+                    </div>
+                    <Button onClick={handlePostSubmit} disabled={!user || posting || !newPost.trim()}>
+                        {posting ? "Posting..." : "Post"}
+                    </Button>
+                </CardFooter>
+            </Card>
+            
+            <Card className="bg-gradient-to-r from-amber-400 to-yellow-500 text-white">
+                <CardHeader className="flex flex-row items-center gap-4">
+                    <Trophy className="w-10 h-10"/>
+                    <div>
+                        <h3 className="font-bold text-lg">Weekly Spotlight Contest</h3>
+                        <p className="text-sm opacity-90">The most liked & shared post of the week wins a special badge!</p>
+                    </div>
+                </CardHeader>
+            </Card>
         
-        <Card className="bg-gradient-to-r from-amber-400 to-yellow-500 text-white">
-            <CardHeader className="flex flex-row items-center gap-4">
-                <Trophy className="w-10 h-10"/>
-                <div>
-                    <h3 className="font-bold text-lg">Weekly Spotlight Contest</h3>
-                    <p className="text-sm opacity-90">The most liked & shared post of the week wins a special badge!</p>
+            <Tabs defaultValue="foryou" className="w-full">
+                <div className="flex justify-between items-center mb-4">
+                    <TabsList>
+                        <TabsTrigger value="foryou"><Sparkles className="mr-2 h-4 w-4"/>For You</TabsTrigger>
+                        <TabsTrigger value="following">Following</TabsTrigger>
+                        <TabsTrigger value="live">Live</TabsTrigger>
+                    </TabsList>
+                    <Button variant="outline" size="sm"><Filter className="mr-2 h-4 w-4" /> Filter</Button>
                 </div>
-            </CardHeader>
-        </Card>
-      
-        <Tabs defaultValue="foryou" className="w-full">
-            <div className="flex justify-between items-center mb-4">
-                <TabsList>
-                    <TabsTrigger value="foryou"><Sparkles className="mr-2 h-4 w-4"/>For You</TabsTrigger>
-                    <TabsTrigger value="following">Following</TabsTrigger>
-                    <TabsTrigger value="live">Live</TabsTrigger>
-                </TabsList>
-                <Button variant="outline" size="sm"><Filter className="mr-2 h-4 w-4" /> Filter</Button>
-            </div>
-            <TabsContent value="foryou">
-                <p className="text-sm text-center text-muted-foreground mb-4">Your personalized feed, powered by AI.</p>
-                <div className="space-y-6">
-                    {posts.map((post, i) => <PostCard key={i} post={post} />)}
-                </div>
-            </TabsContent>
-            <TabsContent value="following">
-                 <div className="space-y-6">
-                    {posts.slice().reverse().map((post, i) => <PostCard key={i} post={post} />)}
-                </div>
-            </TabsContent>
-             <TabsContent value="live">
-                <div className="text-center py-12 text-muted-foreground">
-                    <Video className="mx-auto h-12 w-12" />
-                    <h3 className="mt-2 text-lg font-medium">No Live Feeds</h3>
-                    <p className="text-sm">There are no live videos at the moment. Check back later!</p>
-                </div>
-            </TabsContent>
-        </Tabs>
-    </div>
-  );
+                
+                {loading ? <PostSkeleton /> : (
+                    <>
+                        <TabsContent value="foryou">
+                            <div className="space-y-6">
+                                {posts.map((post) => <PostCard key={post.id} post={post} timeAgo={timeAgo} />)}
+                            </div>
+                        </TabsContent>
+                        <TabsContent value="following">
+                            <div className="space-y-6">
+                                {posts.slice().reverse().map((post, i) => <PostCard key={i} post={post} timeAgo={timeAgo} />)}
+                            </div>
+                        </TabsContent>
+                        <TabsContent value="live">
+                            <div className="text-center py-12 text-muted-foreground">
+                                <Video className="mx-auto h-12 w-12" />
+                                <h3 className="mt-2 text-lg font-medium">No Live Feeds</h3>
+                                <p className="text-sm">There are no live videos at the moment. Check back later!</p>
+                            </div>
+                        </TabsContent>
+                    </>
+                )}
+            </Tabs>
+        </div>
+    );
 }
 
 
-function PostCard({ post }: { post: typeof posts[0] }) {
+function PostCard({ post, timeAgo }: { post: Post, timeAgo: (date: Timestamp | null) => string }) {
     return (
         <Card>
             <CardHeader className="p-4">
-                 <div className="flex justify-between items-start">
+                <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
                         <Avatar>
                             <AvatarImage src={post.user.avatar} data-ai-hint={post.user.aiHint} />
@@ -114,7 +221,7 @@ function PostCard({ post }: { post: typeof posts[0] }) {
                         </Avatar>
                         <div>
                             <p className="font-semibold">{post.user.name}</p>
-                            <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                            <p className="text-xs text-muted-foreground">{timeAgo(post.timestamp)}</p>
                         </div>
                     </div>
                     <DropdownMenu>
@@ -133,7 +240,7 @@ function PostCard({ post }: { post: typeof posts[0] }) {
                 <p className="text-sm whitespace-pre-wrap">{post.content}</p>
                 {post.type === 'image' && post.imageUrl && (
                     <div className="rounded-lg overflow-hidden border">
-                         <Image src={post.imageUrl} width={600} height={400} alt="Post image" data-ai-hint={post.aiHint || ''} />
+                        <Image src={post.imageUrl} width={600} height={400} alt="Post image" data-ai-hint={post.aiHint || ''} />
                     </div>
                 )}
             </CardContent>
@@ -143,16 +250,16 @@ function PostCard({ post }: { post: typeof posts[0] }) {
                         <PrayButton prayerId={post.id!} count={post.initialPrayers!} />
                     </div>
                 ) : (
-                     <div className="flex justify-around text-muted-foreground w-full">
+                    <div className="flex justify-around text-muted-foreground w-full">
                         <Button variant="ghost" className="flex items-center gap-2">
                             <Heart className="w-5 h-5" /> {post.likes}
                         </Button>
                         <Button variant="ghost" className="flex items-center gap-2">
                             <MessageCircle className="w-5 h-5" /> {post.comments}
                         </Button>
-                         <DropdownMenu>
+                        <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                 <Button variant="ghost" className="flex items-center gap-2">
+                                <Button variant="ghost" className="flex items-center gap-2">
                                     <Share2 className="w-5 h-5" /> Share
                                 </Button>
                             </DropdownMenuTrigger>
@@ -162,7 +269,7 @@ function PostCard({ post }: { post: typeof posts[0] }) {
                                 <DropdownMenuItem>Share to TikTok</DropdownMenuItem>
                                 <DropdownMenuItem>Copy Link</DropdownMenuItem>
                             </DropdownMenuContent>
-                         </DropdownMenu>
+                        </DropdownMenu>
                     </div>
                 )}
             </CardFooter>

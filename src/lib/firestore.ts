@@ -59,11 +59,7 @@ export const updateUserProfile = async (uid: string, data: Partial<UserProfileDa
     if (!db) return;
     const userRef = doc(db, `users/${uid}`);
     try {
-        await updateDoc(userRef, {
-          ...data,
-          // We don't want to overwrite the creation timestamp
-          createdAt: data.createdAt || serverTimestamp() 
-        });
+        await updateDoc(userRef, data);
     } catch (error) {
         console.error("Error updating user profile:", error);
         throw new Error("Could not update user profile.");
@@ -94,5 +90,35 @@ export const updatePrayerCount = async (prayerId: string, incrementValue: 1 | -1
         await addDoc(shardsRef, { _increment: incrementValue });
     } catch (error) {
         console.error("Error updating prayer count:", error);
+    }
+};
+
+/**
+ * Creates a new post in the Social Feed.
+ * @param user The authenticated user object.
+ * @param content The text content of the post.
+ */
+export const createSocialPost = async (user: User, content: string) => {
+    if (!db || !user) {
+        throw new Error("User must be logged in to create a post.");
+    }
+
+    try {
+        await addDoc(collection(db, "posts"), {
+            userId: user.uid,
+            user: {
+                name: user.displayName || "Anonymous",
+                avatar: user.photoURL || "https://placehold.co/100x100.png",
+                aiHint: "person portrait",
+            },
+            content: content,
+            timestamp: serverTimestamp(),
+            type: "text", // Defaulting to text posts for now
+            likes: 0,
+            comments: 0,
+        });
+    } catch (error) {
+        console.error("Error creating social post:", error);
+        throw new Error("Could not create post.");
     }
 };
