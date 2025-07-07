@@ -1,33 +1,46 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users can read, create, and update their own profile.
+    // --- Users Collection ---
+    // A user can create their own document, and can only read or update their own.
     match /users/{userId} {
-      allow read, create, update: if request.auth != null && request.auth.uid == userId;
-      allow delete: if false; // Users should not be able to delete their own profiles.
+      allow create, read, update: if request.auth.uid == userId;
     }
 
-    // Prayer Requests can be read by any authenticated user.
+    // --- Prayer Requests Collection ---
+    // Rules for individual prayer request documents
     match /prayerRequests/{requestId} {
-      allow read, create: if request.auth != null;
-      // Only the user who created the request can update or delete it.
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-      
-      // Allow the Distributed Counter extension to write to its subcollection.
-      match /counter_shards/{shardId} {
-        allow create: if true;
-      }
+      // A logged-in user can create a prayer request.
+      // We should validate that the userId on the new document matches the person creating it.
+      allow create: if request.auth.uid == request.resource.data.userId;
+      // Any logged-in user can get a single prayer request.
+      allow get: if request.auth != null;
+    }
+    // Rule for querying the entire prayerRequests collection
+    match /prayerRequests {
+      allow list: if request.auth != null;
+    }
+    // Allow the Distributed Counter extension to write to its subcollection
+    match /prayerRequests/{requestId}/counter_shards/{shardId} {
+      allow write: if true;
     }
 
-    // Social Feed Posts can be read by any authenticated user.
+    // --- Posts Collection (Social Feed) ---
+    // Rules for individual post documents
     match /posts/{postId} {
-      allow read: if request.auth != null;
-      // Users can create posts, ensuring the userId matches their own.
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      // Only the user who created the post can update or delete it.
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      // A logged-in user can create a post, but only for themselves.
+      allow create: if request.auth.uid == request.resource.data.userId;
+      // Any logged-in user can get a single post.
+      allow get: if request.auth != null;
+      // A user can only update or delete their own posts.
+      allow update, delete: if request.auth.uid == resource.data.userId;
+    }
+    // Rule for querying the entire posts collection
+    match /posts {
+      allow list: if request.auth != null;
     }
   }
 }
