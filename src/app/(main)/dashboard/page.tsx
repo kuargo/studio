@@ -16,15 +16,67 @@ import {
     UserCheck,
     Heart,
     Calendar,
+    Film,
+    MessagesSquare,
+    Award,
+    GraduationCap,
+    Music2,
+    HeartHandshake,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
-const featuredItems = [
-    { title: "Youth Worship Night", description: "Join us this Friday for a powerful night of worship.", image: "https://placehold.co/600x400.png", aiHint: "youth group concert", link: "/events", type: "Event" },
-    { title: "How to Read the Bible", description: "New sermon series by Pastor John is now available.", image: "https://placehold.co/600x400.png", aiHint: "pastor preaching", link: "/sermon-remix", type: "Sermon" },
-    { title: "Serve the City", description: "Volunteer for our community food drive this Saturday.", image: "https://placehold.co/600x400.png", aiHint: "volunteers packing food", link: "/volunteering", type: "Volunteer" },
+const theVibeAndCoreItems = [
+    { 
+        pillar: "DayInTheLife", 
+        title: "Faith in the Fast Lane",
+        description: "A day in the life of a student, gamer, and believer.",
+        icon: Film,
+        image: "https://placehold.co/600x400.png",
+        aiHint: "student studying laptop"
+    },
+    { 
+        pillar: "HonestTalks",
+        title: "Q&A: Doubt & Faith",
+        description: "Clips from our latest live stream on navigating tough questions.",
+        icon: MessagesSquare,
+        image: "https://placehold.co/600x400.png",
+        aiHint: "podcast interview"
+    },
+    { 
+        pillar: "UGCShowcase",
+        title: "Sunday Showcase: #FaithInAction",
+        description: "Featuring a powerful testimony from @user.name this week.",
+        icon: Award,
+        image: "https://placehold.co/600x400.png",
+        aiHint: "person helping another"
+    },
+    { 
+        pillar: "BiteSizedTheology",
+        title: "Theology Thursday: What is Grace?",
+        description: "A 60-second deep dive into one of the biggest concepts in the Bible.",
+        icon: GraduationCap,
+        image: "https://placehold.co/600x400.png",
+        aiHint: "abstract shapes"
+    },
+    { 
+        pillar: "WorshipMoment",
+        title: "Acoustic Worship Session",
+        description: "A moment of peace with scrolling lyrics to guide your prayer.",
+        icon: Music2,
+        image: "https://placehold.co/600x400.png",
+        aiHint: "acoustic guitar"
+    },
+    { 
+        pillar: "SocialImpact",
+        title: "Serving the City",
+        description: "Highlighting a story of young Christians making a difference locally.",
+        icon: HeartHandshake,
+        image: "https://placehold.co/600x400.png",
+        aiHint: "volunteers community"
+    },
 ];
 
 const quickLinks = [
@@ -90,20 +142,39 @@ export default function DashboardPage() {
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Community Spotlight</CardTitle>
-                            <CardDescription>Featured events, sermons, and opportunities.</CardDescription>
+                            <CardTitle>The Vibe & Core</CardTitle>
+                            <CardDescription>Vibes & content curated for you. Here's what's resonating in the community right now.</CardDescription>
                         </CardHeader>
-                        <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {featuredItems.map(item => (
-                                <Link href={item.link} key={item.title} className="group block">
-                                    <div className="overflow-hidden rounded-lg">
-                                        <Image src={item.image} alt={item.title} width={400} height={250} className="aspect-video object-cover group-hover:scale-105 transition-transform" data-ai-hint={item.aiHint} />
-                                    </div>
-                                    <p className="text-xs uppercase font-semibold text-primary mt-2">{item.type}</p>
-                                    <h3 className="font-semibold">{item.title}</h3>
-                                    <p className="text-sm text-muted-foreground">{item.description}</p>
-                                </Link>
-                            ))}
+                        <CardContent>
+                           <Carousel opts={{ align: "start" }} className="w-full">
+                                <CarouselContent>
+                                    {theVibeAndCoreItems.map((item, index) => (
+                                    <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+                                        <div className="p-1">
+                                            <Link href="#" className="group block">
+                                                <Card className="overflow-hidden">
+                                                    <CardContent className="p-0">
+                                                        <div className="aspect-video relative">
+                                                            <Image src={item.image} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={item.aiHint} />
+                                                        </div>
+                                                        <div className="p-3">
+                                                            <div className="flex items-center gap-1.5 text-xs text-primary font-semibold mb-1">
+                                                                <item.icon className="w-3.5 h-3.5" />
+                                                                {item.pillar}
+                                                            </div>
+                                                            <h3 className="font-semibold text-sm leading-tight group-hover:underline">{item.title}</h3>
+                                                            {/* <p className="text-xs text-muted-foreground mt-1">{item.description}</p> */}
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+                                            </Link>
+                                        </div>
+                                    </CarouselItem>
+                                    ))}
+                                </CarouselContent>
+                                <CarouselPrevious className="hidden sm:flex" />
+                                <CarouselNext className="hidden sm:flex" />
+                            </Carousel>
                         </CardContent>
                     </Card>
                     <Card>
@@ -113,7 +184,7 @@ export default function DashboardPage() {
                         </CardHeader>
                         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
                              {quickLinks.map(link => (
-                                <Link href={link.href} key={link.label} className="group" target={link.target} rel={link.target === '_blank' ? 'noopener noreferrer' : undefined}>
+                                <Link href={link.href} key={link.label} className="group">
                                     <div className="flex flex-col items-center justify-center p-4 h-full rounded-lg border bg-card hover:bg-accent hover:shadow-md transition-all">
                                         <div className={cn("p-3 rounded-full group-hover:bg-background mb-2 transition-colors", link.bgColor)}>
                                             <link.icon className={cn("h-6 w-6", link.color)} />
@@ -160,3 +231,5 @@ export default function DashboardPage() {
         </div>
     );
 }
+
+    
