@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -13,11 +13,12 @@ import { PrayButton } from "@/components/app/pray-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
-import { createSocialPost } from "@/lib/firestore";
+import { createSocialPost, toggleLikePost } from "@/lib/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 type Post = {
     id: string;
@@ -26,6 +27,7 @@ type Post = {
     user: { name: string; avatar: string; aiHint: string; };
     timestamp: Timestamp;
     likes: number;
+    likedBy: string[];
     comments: number;
     type: 'testimony' | 'image' | 'prayer_request' | 'text';
     imageUrl?: string;
@@ -231,6 +233,47 @@ export default function SocialFeedPage() {
 
 
 function PostCard({ post, timeAgo }: { post: Post, timeAgo: (date: Timestamp | null) => string }) {
+    const { user } = useAuth();
+    const { toast } = useToast();
+    const [isPending, startTransition] = useTransition();
+
+    const [isLiked, setIsLiked] = useState(user && post.likedBy.includes(user.uid));
+    const [likeCount, setLikeCount] = useState(post.likes);
+
+    useEffect(() => {
+        setIsLiked(user && post.likedBy.includes(user.uid));
+        setLikeCount(post.likes);
+    }, [post.likes, post.likedBy, user]);
+
+    const handleLikeClick = () => {
+        if (!user || isPending) return;
+
+        startTransition(async () => {
+            // Optimistic UI update
+            setIsLiked(!isLiked);
+            setLikeCount(likeCount + (!isLiked ? 1 : -1));
+            
+            try {
+                await toggleLikePost(post.id, user.uid);
+            } catch (error) {
+                // Revert UI on error
+                setIsLiked(isLiked);
+                setLikeCount(likeCount);
+                toast({ variant: "destructive", title: "Error", description: "Could not update like." });
+            }
+        });
+    };
+
+    const handleShare = (platform: 'whatsapp' | 'facebook' | 'tiktok' | 'copy') => {
+        const link = `${window.location.origin}/post/${post.id}`;
+        if (platform === 'copy') {
+            navigator.clipboard.writeText(link);
+            toast({ title: "Link Copied!", description: "The link to the post has been copied to your clipboard." });
+        } else {
+            toast({ title: "Coming Soon!", description: `Sharing to ${platform} is not yet implemented.` });
+        }
+    };
+
     return (
         <Card>
             <CardHeader className="p-4">
@@ -272,8 +315,8 @@ function PostCard({ post, timeAgo }: { post: Post, timeAgo: (date: Timestamp | n
                     </div>
                 ) : (
                     <div className="flex justify-around text-muted-foreground w-full">
-                        <Button variant="ghost" className="flex items-center gap-2">
-                            <Heart className="w-5 h-5" /> {post.likes}
+                        <Button variant="ghost" className="flex items-center gap-2" onClick={handleLikeClick} disabled={!user || isPending}>
+                            <Heart className={cn("w-5 h-5", isLiked && "fill-destructive text-destructive")} /> {likeCount}
                         </Button>
                         <Button variant="ghost" className="flex items-center gap-2">
                             <MessageCircle className="w-5 h-5" /> {post.comments}
@@ -285,10 +328,10 @@ function PostCard({ post, timeAgo }: { post: Post, timeAgo: (date: Timestamp | n
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                                <DropdownMenuItem>Share to WhatsApp</DropdownMenuItem>
-                                <DropdownMenuItem>Share to Facebook</DropdownMenuItem>
-                                <DropdownMenuItem>Share to TikTok</DropdownMenuItem>
-                                <DropdownMenuItem>Copy Link</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleShare('whatsapp')}>Share to WhatsApp</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleShare('facebook')}>Share to Facebook</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleShare('tiktok')}>Share to TikTok</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleShare('copy')}>Copy Link</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>

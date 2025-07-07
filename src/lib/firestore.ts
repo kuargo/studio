@@ -1,4 +1,4 @@
-import { doc, setDoc, serverTimestamp, collection, addDoc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, collection, addDoc, getDoc, updateDoc, runTransaction, arrayUnion, arrayRemove, increment } from "firebase/firestore";
 import type { User } from "firebase/auth";
 import { db } from "./firebase";
 
@@ -115,10 +115,52 @@ export const createSocialPost = async (user: User, content: string) => {
             timestamp: serverTimestamp(),
             type: "text", // Defaulting to text posts for now
             likes: 0,
+            likedBy: [],
             comments: 0,
         });
     } catch (error) {
         console.error("Error creating social post:", error);
         throw new Error("Could not create post.");
+    }
+};
+
+/**
+ * Toggles a like on a post.
+ * Uses a transaction to ensure atomic updates.
+ * @param postId The ID of the post to like/unlike.
+ * @param userId The ID of the user performing the action.
+ */
+export const toggleLikePost = async (postId: string, userId: string) => {
+    if (!db) throw new Error("Firestore is not initialized.");
+    
+    const postRef = doc(db, "posts", postId);
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const postDoc = await transaction.get(postRef);
+            if (!postDoc.exists()) {
+                throw "Document does not exist!";
+            }
+
+            const postData = postDoc.data();
+            const hasLiked = postData.likedBy.includes(userId);
+
+            if (hasLiked) {
+                // Unlike the post
+                transaction.update(postRef, {
+                    likes: increment(-1),
+                    likedBy: arrayRemove(userId)
+                });
+            } else {
+                // Like the post
+                transaction.update(postRef, {
+                    likes: increment(1),
+                    likedBy: arrayUnion(userId)
+                });
+            }
+        });
+    } catch (e) {
+        console.error("Transaction failed: ", e);
+        throw new Error("Could not update like status.");
     }
 };
