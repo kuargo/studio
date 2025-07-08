@@ -10,6 +10,9 @@ import { BookSessionForm } from "@/components/app/book-session-form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+
 
 const resources = [
   {
@@ -77,16 +80,28 @@ const providers = [
      { name: "David Chen", avatar: "https://placehold.co/100x100/a7f3d0/065f46.png", aiHint: "man outdoors", specialties: ["Conflict Resolution", "Mediation"], verified: true },
 ]
 
-function getDialogContent(title: string) {
+
+export default function WellBeingPage() {
+  const { toast } = useToast();
+
+  const showComingSoon = () => {
+    toast({
+        title: "Feature Coming Soon",
+        description: "This resource will be available shortly."
+    })
+  }
+
+  const getDialogContent = (title: string) => {
+    const linkButtonClasses = "underline text-primary hover:text-primary/80 text-left w-full justify-start p-0 h-auto";
     switch (title) {
         case "Guided Prayer & Meditation":
             return (
                 <div className="space-y-3">
                     <p>Here are some resources to guide you in prayer and meditation:</p>
                     <ul className="list-disc pl-5 space-y-2">
-                        <li><a href="#" className="underline text-primary hover:text-primary/80">10-Minute Guided Christian Meditation</a></li>
-                        <li><a href="#" className="underline text-primary hover:text-primary/80">Lectio Divina: Hearing God through Scripture</a></li>
-                        <li><a href="#" className="underline text-primary hover:text-primary/80">Soaking Worship & Instrumental Prayer Playlist</a></li>
+                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>10-Minute Guided Christian Meditation</Button></li>
+                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>Lectio Divina: Hearing God through Scripture</Button></li>
+                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>Soaking Worship & Instrumental Prayer Playlist</Button></li>
                     </ul>
                 </div>
             );
@@ -97,7 +112,7 @@ function getDialogContent(title: string) {
                     <p>Inhale for 4 seconds meditating on "The Lord is my Shepherd", hold for 4 seconds, and exhale for 6 seconds meditating on "I shall not want." This practice grounds you in scripture and calms your nervous system.</p>
                      <p className="font-semibold">The 5-4-3-2-1 Grounding Technique:</p>
                      <p>Acknowledge 5 things you can see, 4 things you can touch, 3 things you can hear, 2 things you can smell, and 1 thing you can taste. This helps you connect with the present moment.</p>
-                     <a href="#" className="underline text-primary hover:text-primary/80 block pt-2">Read More: A Christian Perspective on Managing Anxiety</a>
+                     <Button variant="link" className={cn(linkButtonClasses, "mt-2")} onClick={showComingSoon}>Read More: A Christian Perspective on Managing Anxiety</Button>
                 </div>
             );
         case "Addiction & Recovery":
@@ -105,9 +120,9 @@ function getDialogContent(title: string) {
                  <div className="space-y-3">
                     <p>You are not alone in this fight. God offers freedom and healing. Here are some starting points for help:</p>
                     <ul className="list-disc pl-5 space-y-2">
-                        <li><a href="#" className="underline text-primary hover:text-primary/80">Celebrate Recovery - Find a Local Group</a></li>
-                        <li><a href="#" className="underline text-primary hover:text-primary/80">Focus on the Family: Help for Addiction</a></li>
-                        <li><a href="#" className="underline text-primary hover:text-primary/80">Testimony: A Story of Freedom in Christ (Video)</a></li>
+                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>Celebrate Recovery - Find a Local Group</Button></li>
+                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>Focus on the Family: Help for Addiction</Button></li>
+                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>Testimony: A Story of Freedom in Christ (Video)</Button></li>
                     </ul>
                 </div>
             );
@@ -128,9 +143,9 @@ function getDialogContent(title: string) {
                  <div className="space-y-3">
                     <p>Resources to build a stronger, Christ-centered family:</p>
                      <ul className="list-disc pl-5 space-y-2">
-                        <li><a href="#" className="underline text-primary hover:text-primary/80">Focus on the Family: Marriage Resources</a></li>
-                        <li><a href="#" className="underline text-primary hover:text-primary/80">Article: The 5 Love Languages Explained</a></li>
-                        <li><a href="#" className="underline text-primary hover:text-primary/80">Sermon: A Christ-Centered Home</a></li>
+                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>Focus on the Family: Marriage Resources</Button></li>
+                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>Article: The 5 Love Languages Explained</Button></li>
+                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>Sermon: A Christ-Centered Home</Button></li>
                     </ul>
                     <p className="pt-2">For personalized guidance, please consider booking a session with one of our verified counselors.</p>
                 </div>
@@ -141,8 +156,8 @@ function getDialogContent(title: string) {
                     <p className="font-semibold text-destructive">Disclaimer: The information provided here is for informational purposes only and not a substitute for professional legal or financial advice.</p>
                     <p>We encourage you to connect with Christian professionals who integrate faith and practice. Browse our provider directory for verified legal and financial experts in our community or check out these resources:</p>
                      <ul className="list-disc pl-5 space-y-2">
-                        <li><a href="#" className="underline text-primary hover:text-primary/80">Christian Legal Society</a></li>
-                        <li><a href="#" className="underline text-primary hover:text-primary/80">Kingdom Advisors</a></li>
+                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>Christian Legal Society</Button></li>
+                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>Kingdom Advisors</Button></li>
                     </ul>
                 </div>
             );
@@ -158,10 +173,8 @@ function getDialogContent(title: string) {
         default:
             return <p>More information coming soon.</p>;
     }
-}
+  }
 
-
-export default function WellBeingPage() {
   return (
     <div className="space-y-8">
       <div className="text-center max-w-3xl mx-auto">
@@ -263,46 +276,32 @@ export default function WellBeingPage() {
 
         <div className="lg:col-span-1 space-y-6 lg:sticky top-8">
             <Card>
-                <CardHeader className="flex-row items-center justify-between">
-                    <div>
+                <CardHeader>
                     <CardTitle>Are you a professional?</CardTitle>
                     <CardDescription>Register to offer your services.</CardDescription>
-                    </div>
                 </CardHeader>
                 <CardContent>
                     <Dialog>
                         <DialogTrigger asChild>
-                            <Button className="w-full"><Handshake className="mr-2"/> Register as a Provider</Button>
+                            <Button className="w-full">Register to Provide Services</Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[625px]">
-                            <ProviderRegistrationForm/>
+                            <ProviderRegistrationForm />
                         </DialogContent>
                     </Dialog>
                 </CardContent>
             </Card>
-
-            <Card className="border-destructive/50 bg-destructive/5">
+            <Card className="bg-destructive/10 border-destructive">
                 <CardHeader>
-                <CardTitle className="text-destructive flex items-center gap-2"><LifeBuoy/>Emergency Support</CardTitle>
-                <CardDescription className="text-destructive/80">
-                    If you are in crisis or need immediate help, please use these resources.
-                </CardDescription>
+                    <CardTitle className="flex items-center gap-2 text-destructive"><LifeBuoy/> Emergency Support</CardTitle>
+                    <CardDescription className="text-destructive/90">If you are in immediate crisis, please contact a professional.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4 text-sm">
-                    <div>
-                        <h4 className="font-semibold">National Crisis & Suicide Lifeline</h4>
-                        <p className="text-muted-foreground">Call or text <span className="font-bold">988</span> (US)</p>
-                    </div>
-                    <div>
-                        <h4 className="font-semibold">Crisis Text Line</h4>
-                        <p className="text-muted-foreground">Text <span className="font-bold">HOME to 741741</span> (US, Canada, UK)</p>
-                    </div>
+                <CardContent>
+                    <Button variant="destructive" className="w-full" onClick={showComingSoon}><Phone className="mr-2"/> Call a Helpline</Button>
                 </CardContent>
             </Card>
         </div>
-       </div>
-
+      </div>
     </div>
   );
 }
-
