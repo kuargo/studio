@@ -88,12 +88,19 @@ export const createJournalEntry = async (user: User, entryData: Omit<JournalEntr
         throw new Error("User must be logged in to create a journal entry.");
     }
     
+    // Construct the object explicitly to ensure a clean data structure.
+    const newEntry = {
+      title: entryData.title,
+      content: entryData.content,
+      type: entryData.type,
+      isPublic: entryData.isPublic,
+      tags: entryData.tags,
+      userId: user.uid,
+      timestamp: serverTimestamp(),
+    };
+
     try {
-        await addDoc(collection(db, "journalEntries"), {
-            ...entryData,
-            userId: user.uid,
-            timestamp: serverTimestamp(),
-        });
+        await addDoc(collection(db, "journalEntries"), newEntry);
     } catch (error) {
         console.error("Error creating journal entry:", error);
         throw new Error("Could not create journal entry.");
