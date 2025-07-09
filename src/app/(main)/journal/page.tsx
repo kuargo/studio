@@ -66,13 +66,22 @@ export default function JournalPage() {
             setLoadingEntries(false);
             return;
         }
+        // This query was simplified to avoid needing a composite index in Firestore,
+        // which can sometimes cause misleading permission-denied errors.
         const q = query(
             collection(db, "journalEntries"), 
-            where("userId", "==", user.uid),
-            orderBy("timestamp", "desc")
+            where("userId", "==", user.uid)
         );
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const fetchedEntries = snapshot.docs.map(doc => ({ ...doc.data() as JournalEntryData, id: doc.id }));
+            
+            // Sort entries on the client-side to ensure newest appear first.
+            fetchedEntries.sort((a, b) => {
+                const timeA = a.timestamp?.toDate()?.getTime() ?? 0;
+                const timeB = b.timestamp?.toDate()?.getTime() ?? 0;
+                return timeB - timeA;
+            });
+
             setEntries(fetchedEntries);
             setLoadingEntries(false);
         }, (error) => {
