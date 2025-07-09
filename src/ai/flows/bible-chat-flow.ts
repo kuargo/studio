@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A Bible chat AI agent.
@@ -10,13 +11,13 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const BibleChatInputSchema = z.object({
+const BibleChatInputSchema = z.object({
   question: z.string().describe('The user\'s question about the biblical text.'),
   context: z.string().describe('The biblical text to use as context for answering the question.'),
 });
 export type BibleChatInput = z.infer<typeof BibleChatInputSchema>;
 
-export const BibleChatOutputSchema = z.object({
+const BibleChatOutputSchema = z.object({
     answer: z.string().describe('The AI-generated answer to the user\'s question.'),
 });
 export type BibleChatOutput = z.infer<typeof BibleChatOutputSchema>;
