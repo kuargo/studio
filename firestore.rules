@@ -4,39 +4,42 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users: Can read their own profile, anyone can create one.
+    // Default deny all reads and writes. This is a security best practice.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Users: Can read/write their own profile, but not other users' profiles.
     match /users/{userId} {
-      allow read, update, delete: if request.auth != null && request.auth.uid == userId;
-      allow create: if request.auth != null;
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Journal Entries: Users can only manage their own entries.
-    match /journalEntries/{entryId} {
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-    }
-
-    // Prayer Requests: Publicly readable, but only authors can create. Anyone can update.
-    match /prayerRequests/{requestId} {
-      allow read;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      // Allow any authenticated user to update (e.g., for comments)
-      allow update: if request.auth != null;
-    }
-
-    // Counter shards for prayer requests are write-only for authenticated users.
-    match /prayerRequests/{requestId}/counter_shards/{shardId} {
-        allow read: if false;
-        allow write: if request.auth != null;
-    }
-
-    // Social Posts: Publicly readable, but only authors can create/delete.
-    // Anyone can update (for likes).
+    // Posts: All logged-in users can read. Only owners can create, update, delete.
     match /posts/{postId} {
-      allow read;
+      allow read: if request.auth != null;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update: if request.auth != null; // Allows liking
-      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // Prayer Requests: All logged-in users can read. Only owners can create/update.
+    match /prayerRequests/{requestId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+
+      // Allow any logged-in user to trigger the distributed counter for praying
+      match /counter_shards/{shardId} {
+        allow create: if request.auth != null;
+      }
+    }
+
+    // Journal Entries: Users can only create entries for themselves.
+    // They can read their own entries OR any public entries.
+    // They can only update/delete their own entries.
+    match /journalEntries/{entryId} {
+      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || resource.data.isPublic == true);
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
   }
 }
