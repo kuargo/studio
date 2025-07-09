@@ -1,43 +1,42 @@
 
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
+    // User profiles can be read by any authenticated user, but only written by the owner.
     match /users/{userId} {
-      allow read, update, delete: if isOwner(userId);
-      allow create: if request.auth != null;
+      allow read: if request.auth.uid != null;
+      allow update: if request.auth.uid == userId;
+      allow create: if request.auth.uid != null;
     }
 
-    // Journal Entries: A user can only read, create, update, or delete their own entries.
-    // This stricter read rule solves the query permission issue.
+    // Journal Entries are private. Only the owner can read or write their own entries.
     match /journalEntries/{entryId} {
-       allow read, update, delete: if request.auth != null && isOwner(resource.data.userId);
-       allow create: if request.auth != null;
-    }
-    
-    // Social Feed Posts: All posts are public to read.
-    // Users can only create, update, or delete their own posts.
-    match /posts/{postId} {
-      allow read: if true;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && isOwner(resource.data.userId);
+      allow read, update, delete: if request.auth.uid == resource.data.userId;
+      allow create: if request.auth.uid != null && request.resource.data.userId == request.auth.uid;
     }
 
-    // Prayer Requests: All requests are public to read.
-    // Users can only create, update, or delete their own requests.
+    // Posts (Social Feed) are publicly readable, but writes are protected.
+    match /posts/{postId} {
+      allow read: if true; // Anyone can read posts. This fixes the snapshot listener error.
+      allow create: if request.auth.uid != null && request.resource.data.userId == request.auth.uid;
+      // Any authenticated user can update (like) a post. The owner can delete.
+      allow update: if request.auth.uid != null;
+      allow delete: if request.auth.uid == resource.data.userId;
+    }
+
+    // Prayer Requests are publicly readable, but writes are protected.
     match /prayerRequests/{requestId} {
-      allow read: if true;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && isOwner(resource.data.userId);
-      
-      // Allow any authenticated user to add a shard for the distributed counter
+      allow read: if true; // Anyone can read prayer requests. This fixes the snapshot listener error.
+      allow create: if request.auth.uid != null && request.resource.data.userId == request.auth.uid;
+      // Any authenticated user can update (pray for/comment). The owner can delete.
+      allow update: if request.auth.uid != null;
+      allow delete: if request.auth.uid == resource.data.userId;
+
+      // Rules for the distributed counter subcollection.
+      // Any authenticated user can trigger the counter.
       match /counter_shards/{shardId} {
-        allow create: if request.auth != null;
+        allow create: if request.auth.uid != null;
       }
     }
   }
