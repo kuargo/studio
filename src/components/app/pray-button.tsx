@@ -3,7 +3,8 @@
 
 import React, { useState, useTransition, useEffect } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -25,19 +26,32 @@ export function PrayButton({ prayerId, count }: { prayerId: string, count: numbe
   }, [prayerId]);
 
   useEffect(() => {
-    // Do not attempt to listen for updates if the user is not logged in.
-    if (!db || !prayerId || !user) return;
+    let unsub: (() => void) | null = null;
+    
+    // The listener for prayer count updates should also be auth-aware
+    // to prevent potential errors on logout/login transitions.
+    const authUnsubscribe = onAuthStateChanged(auth, (authUser) => {
+        if (unsub) {
+            unsub();
+        }
 
-    // Listen for real-time updates to the prayer count from Firestore
-    const unsub = onSnapshot(doc(db, `prayerRequests/${prayerId}`), (doc) => {
-        if (doc.exists()) {
-            const data = doc.data();
-            setPrayCount(data.prayCount || 0);
+        if (authUser) {
+            unsub = onSnapshot(doc(db, `prayerRequests/${prayerId}`), (doc) => {
+                if (doc.exists()) {
+                    const data = doc.data();
+                    setPrayCount(data.prayCount || 0);
+                }
+            });
         }
     });
 
-    return () => unsub();
-  }, [prayerId, user]);
+    return () => {
+        authUnsubscribe();
+        if (unsub) {
+            unsub();
+        }
+    }
+  }, [prayerId]);
 
 
   const handleClick = () => {

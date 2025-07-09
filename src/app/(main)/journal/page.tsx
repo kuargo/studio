@@ -3,10 +3,10 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { db } from "@/lib/firebase";
-import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
+import { db, auth } from "@/lib/firebase";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 import { createJournalEntry, JournalEntryData } from "@/lib/firestore";
-import { getJournalSuggestion, JournalAssistantInput } from "@/ai/flows/journal-assistant-flow";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,7 +40,7 @@ const JournalSkeleton = () => (
 );
 
 export default function JournalPage() {
-    const { user, loading } = useAuth();
+    const { user } = useAuth();
     const { toast } = useToast();
 
     // Form state
@@ -62,43 +62,50 @@ export default function JournalPage() {
     const [loadingEntries, setLoadingEntries] = useState(true);
 
     useEffect(() => {
-        // Do not proceed if auth is still loading or if there is no user.
-        if (loading || !user) {
-            // If auth has finished loading and there's no user, stop the loading spinner.
-            if (!loading) {
+        let snapshotUnsubscribe: (() => void) | null = null;
+
+        const authUnsubscribe = onAuthStateChanged(auth, (authUser) => {
+            if (snapshotUnsubscribe) {
+                snapshotUnsubscribe();
+            }
+
+            if (authUser) {
+                const q = query(
+                    collection(db, "journalEntries"),
+                    where("userId", "==", authUser.uid)
+                );
+
+                snapshotUnsubscribe = onSnapshot(q,
+                    (snapshot) => {
+                        const fetchedEntries = snapshot.docs.map(doc => ({ ...doc.data() as JournalEntryData, id: doc.id }));
+                        const sortedEntries = fetchedEntries.sort((a, b) => (b.timestamp?.toDate()?.getTime() ?? 0) - (a.timestamp?.toDate()?.getTime() ?? 0));
+                        setEntries(sortedEntries);
+                        setLoadingEntries(false);
+                    },
+                    (error) => {
+                        console.error("Journal snapshot error:", error);
+                        if (error.code === 'permission-denied') {
+                            setEntries([]);
+                        } else {
+                            toast({ variant: "destructive", title: "Error", description: "Could not fetch your journal entries." });
+                        }
+                        setLoadingEntries(false);
+                    }
+                );
+            } else {
+                setEntries([]);
                 setLoadingEntries(false);
             }
-            return;
-        }
+        });
 
-        const q = query(
-            collection(db, "journalEntries"), 
-            where("userId", "==", user.uid),
-            orderBy("timestamp", "desc")
-        );
-
-        const unsubscribe = onSnapshot(q, 
-            (snapshot) => {
-                const fetchedEntries = snapshot.docs.map(doc => ({ ...doc.data() as JournalEntryData, id: doc.id }));
-                setEntries(fetchedEntries);
-                setLoadingEntries(false);
-            }, 
-            (error) => {
-                // Gracefully handle permission errors which can occur during auth state changes
-                if (error.code === 'permission-denied') {
-                    console.log("Journal listener permission denied, likely due to auth state change.");
-                    setEntries([]); // Clear data on permission denied
-                } else {
-                    console.error("Error fetching journal entries:", error);
-                    toast({ variant: "destructive", title: "Error", description: "Could not fetch your journal entries." });
-                }
-                setLoadingEntries(false);
+        return () => {
+            authUnsubscribe();
+            if (snapshotUnsubscribe) {
+                snapshotUnsubscribe();
             }
-        );
+        };
+    }, [toast]);
 
-        // Cleanup the listener when the component unmounts or user changes.
-        return () => unsubscribe();
-    }, [user, loading, toast]);
 
     const handleSaveEntry = async () => {
         if (!user || !title || !content) {

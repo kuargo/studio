@@ -15,7 +15,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useAuth } from "@/hooks/use-auth";
 import { createSocialPost, toggleLikePost } from "@/lib/firestore";
 import { useToast } from "@/hooks/use-toast";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 import { collection, query, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -82,29 +83,47 @@ export default function SocialFeedPage() {
     const [posting, setPosting] = useState(false);
 
     useEffect(() => {
-        // This listener is for public data, so we don't need to wait for auth.
-        const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
-        const unsubscribe = onSnapshot(q, 
-            (querySnapshot) => {
-                const fetchedPosts = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                } as Post));
-                setPosts(fetchedPosts);
-                setLoading(false);
-            }, 
-            (error) => {
-                console.error("Error fetching posts:", error);
-                toast({
-                    variant: "destructive",
-                    title: "Error",
-                    description: "Could not fetch social feed. Check security rules."
-                });
+        let snapshotUnsubscribe: (() => void) | null = null;
+        const authUnsubscribe = onAuthStateChanged(auth, (authUser) => {
+            if (snapshotUnsubscribe) {
+                snapshotUnsubscribe();
+            }
+
+            if (authUser) {
+                const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
+                snapshotUnsubscribe = onSnapshot(q,
+                    (querySnapshot) => {
+                        const fetchedPosts = querySnapshot.docs.map(doc => ({
+                            id: doc.id,
+                            ...doc.data()
+                        } as Post));
+                        setPosts(fetchedPosts);
+                        setLoading(false);
+                    },
+                    (error) => {
+                        console.error("Social Feed snapshot error:", error);
+                        if (error.code !== 'permission-denied') {
+                            toast({
+                                variant: "destructive",
+                                title: "Error",
+                                description: "Could not fetch social feed."
+                            });
+                        }
+                        setLoading(false);
+                    }
+                );
+            } else {
+                setPosts([]);
                 setLoading(false);
             }
-        );
+        });
 
-        return () => unsubscribe();
+        return () => {
+            authUnsubscribe();
+            if (snapshotUnsubscribe) {
+                snapshotUnsubscribe();
+            }
+        };
     }, [toast]);
 
 

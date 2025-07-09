@@ -1,42 +1,42 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users can only read/write their own profile
+    // User profiles are readable by anyone, but only the owner can write.
     match /users/{userId} {
-      allow read, update: if request.auth.uid == userId;
-      allow create: if request.auth.uid == userId;
-    }
-
-    // Journal entries are private to the user
-    match /journalEntries/{entryId} {
-        // Allow a user to list only their own entries.
-        allow list: if request.auth != null && request.auth.uid == request.query.where.userId;
-        // Allow a user to get, update, or delete their own specific entry.
-        allow get, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-        // Allow a user to create an entry for themselves.
-        allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-    }
-
-    // Prayer requests are public, but writing requires auth
-    match /prayerRequests/{requestId} {
       allow read: if true;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      // Disallow direct updates/deletes for now. These would be handled via transactions or cloud functions.
-      allow update, delete: if false;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
 
-      // Allow authenticated users to add to the counter subcollection for likes.
+    // Journal Entries: Only the owner can read or write their own entries.
+    match /journalEntries/{entryId} {
+      // A user can get their own entry, or list their own entries.
+      // The client-side query MUST contain `where("userId", "==", request.auth.uid)` for list to work.
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+
+      // Writes are fully secure.
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+    // Public feeds are readable by any logged-in user. Writes are restricted.
+    match /prayerRequests/{requestId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // Allow any auth'd user to update (for likes/prayers)
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      
+      // Rules for the distributed counter extension
       match /counter_shards/{shardId} {
-        allow create: if request.auth != null;
+        allow create: if true;
       }
     }
-
-    // Social feed posts are public, but writing requires auth
+    
     match /posts/{postId} {
-      allow read: if true;
+      allow read: if request.auth != null;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      // Allow updates only for liking/unliking, which is handled by a transaction.
-      // A user can only delete their own posts.
       allow update: if request.auth != null;
       allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }

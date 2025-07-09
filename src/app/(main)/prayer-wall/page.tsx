@@ -3,7 +3,8 @@
 
 import { useState, useEffect } from "react";
 import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, where, Timestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -57,7 +58,7 @@ const PrayerWallSkeleton = () => (
 
 
 export default function PrayerWallPage() {
-    const { user, loading: authLoading } = useAuth();
+    const { user } = useAuth();
     const { toast } = useToast();
     const [newRequest, setNewRequest] = useState("");
     const [loading, setLoading] = useState(false);
@@ -70,29 +71,47 @@ export default function PrayerWallPage() {
     const [loadingPrayer, setLoadingPrayer] = useState(false);
 
     useEffect(() => {
-        // This listener is for public data, so we don't need to wait for auth.
-        const q = query(collection(db, "prayerRequests"), orderBy("timestamp", "desc"));
-        const unsubscribe = onSnapshot(q, 
-            (querySnapshot) => {
-                const requests = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                } as PrayerRequest));
-                setPrayerRequests(requests);
-                setInitialLoading(false);
-            }, 
-            (error) => {
-                console.error("Error fetching prayer requests: ", error);
-                toast({
-                    variant: "destructive",
-                    title: "Error",
-                    description: "Could not fetch prayer requests. Check security rules."
-                });
+        let snapshotUnsubscribe: (() => void) | null = null;
+        const authUnsubscribe = onAuthStateChanged(auth, (authUser) => {
+            if (snapshotUnsubscribe) {
+                snapshotUnsubscribe();
+            }
+
+            if (authUser) {
+                const q = query(collection(db, "prayerRequests"), orderBy("timestamp", "desc"));
+                snapshotUnsubscribe = onSnapshot(q,
+                    (querySnapshot) => {
+                        const requests = querySnapshot.docs.map(doc => ({
+                            id: doc.id,
+                            ...doc.data()
+                        } as PrayerRequest));
+                        setPrayerRequests(requests);
+                        setInitialLoading(false);
+                    },
+                    (error) => {
+                        console.error("Prayer Wall snapshot error: ", error);
+                        if (error.code !== 'permission-denied') {
+                             toast({
+                                variant: "destructive",
+                                title: "Error",
+                                description: "Could not fetch prayer requests."
+                            });
+                        }
+                        setInitialLoading(false);
+                    }
+                );
+            } else {
+                setPrayerRequests([]);
                 setInitialLoading(false);
             }
-        );
+        });
 
-        return () => unsubscribe();
+        return () => {
+            authUnsubscribe();
+            if (snapshotUnsubscribe) {
+                snapshotUnsubscribe();
+            }
+        };
     }, [toast]);
 
 
