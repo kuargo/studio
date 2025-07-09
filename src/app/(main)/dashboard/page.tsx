@@ -22,6 +22,9 @@ import {
     GraduationCap,
     Music2,
     HeartHandshake,
+    Wand2,
+    PenSquare,
+    Sparkles,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -200,6 +203,20 @@ export default function DashboardPage() {
                 <div className="space-y-6">
                     <Card>
                         <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><Wand2 /> AI-Powered Tools</CardTitle>
+                            <CardDescription>Enhance your spiritual journey with our new AI assistants.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                            <Button variant="outline" className="w-full justify-start" asChild>
+                                <Link href="/journal"><PenSquare className="mr-2"/> AI Journal Assistant</Link>
+                            </Button>
+                            <Button variant="outline" className="w-full justify-start" asChild>
+                                <Link href="/prayer-wall"><Sparkles className="mr-2"/> AI Prayer Assistant</Link>
+                            </Button>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
                             <CardTitle>Prayer Wall</CardTitle>
                             <CardDescription>Lift up your community.</CardDescription>
                         </CardHeader>
@@ -231,5 +248,3 @@ export default function DashboardPage() {
         </div>
     );
 }
-
-    

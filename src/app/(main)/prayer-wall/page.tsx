@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, where } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, where, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, ThumbsUp, MessageCircle, Smile, CheckCheck, Sparkles, Trophy, BookOpen } from "lucide-react";
+import { Send, ThumbsUp, MessageCircle, Smile, CheckCheck, Sparkles, Trophy, BookOpen, Wand2 } from "lucide-react";
 import { PrayButton } from "@/components/app/pray-button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
+import { askPrayerAssistant, PrayerAssistantInput } from "@/ai/flows/prayer-assistant-flow";
 
 type PrayerRequest = {
     id: string;
@@ -28,7 +29,7 @@ type PrayerRequest = {
     aiHint: string;
     request: string;
     category: 'Personal' | 'Family' | 'Church' | 'Praise' | 'Answered' | 'Testimony' | 'Verdict';
-    timestamp: any;
+    timestamp: Timestamp;
     prayCount: number;
     comments: { name: string; text: string; }[];
     type: 'request' | 'testimony' | 'verdict' | 'answered';
@@ -62,6 +63,11 @@ export default function PrayerWallPage() {
     const [loading, setLoading] = useState(false);
     const [prayerRequests, setPrayerRequests] = useState<PrayerRequest[]>([]);
     const [initialLoading, setInitialLoading] = useState(true);
+
+    // AI Prayer Assistant State
+    const [prayerTopic, setPrayerTopic] = useState("");
+    const [prayerResponse, setPrayerResponse] = useState("");
+    const [loadingPrayer, setLoadingPrayer] = useState(false);
 
     useEffect(() => {
         if (!user || !db) {
@@ -121,6 +127,26 @@ export default function PrayerWallPage() {
             });
         } finally {
             setLoading(false);
+        }
+    };
+    
+    const handleGetPrayer = async () => {
+        if (!prayerTopic.trim()) return;
+        setLoadingPrayer(true);
+        setPrayerResponse("");
+        try {
+            const input: PrayerAssistantInput = { topic: prayerTopic };
+            const result = await askPrayerAssistant(input);
+            setPrayerResponse(result.prayer);
+        } catch (error) {
+             console.error("AI Prayer Error: ", error);
+            toast({
+                variant: "destructive",
+                title: "AI Error",
+                description: "Could not generate a prayer. Please try again."
+            });
+        } finally {
+            setLoadingPrayer(false);
         }
     };
 
@@ -206,6 +232,32 @@ export default function PrayerWallPage() {
                             <Link href="/bible">
                                 <BookOpen className="mr-2 h-4 w-4" /> Read the Bible
                             </Link>
+                        </Button>
+                    </CardFooter>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                           <Wand2 className="text-primary"/> AI Prayer Assistant
+                        </CardTitle>
+                        <CardDescription>Need help finding the words? Let our AI assist you in crafting a prayer.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <Textarea 
+                            placeholder="e.g., For strength during a difficult time"
+                            value={prayerTopic}
+                            onChange={(e) => setPrayerTopic(e.target.value)}
+                        />
+                        {loadingPrayer && <Skeleton className="h-24 w-full" />}
+                        {prayerResponse && (
+                            <div className="p-4 bg-muted rounded-md text-sm">
+                                <p className="whitespace-pre-wrap">{prayerResponse}</p>
+                            </div>
+                        )}
+                    </CardContent>
+                    <CardFooter>
+                        <Button className="w-full" onClick={handleGetPrayer} disabled={loadingPrayer || !prayerTopic.trim()}>
+                            {loadingPrayer ? "Generating..." : "Ask for a Prayer"}
                         </Button>
                     </CardFooter>
                 </Card>

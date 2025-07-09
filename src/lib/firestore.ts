@@ -1,4 +1,4 @@
-import { doc, setDoc, serverTimestamp, collection, addDoc, getDoc, updateDoc, runTransaction, arrayUnion, arrayRemove, increment } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, collection, addDoc, getDoc, updateDoc, runTransaction, arrayUnion, arrayRemove, increment, Timestamp } from "firebase/firestore";
 import type { User } from "firebase/auth";
 import { db } from "./firebase";
 
@@ -15,6 +15,18 @@ type UserProfileData = {
     quote?: string;
     favoriteScripture?: string;
 };
+
+// Shape of the Journal Entry data
+export type JournalEntryData = {
+    userId: string;
+    title: string;
+    content: string;
+    type: string;
+    isPublic: boolean;
+    tags: string[];
+    timestamp: any; // serverTimestamp()
+};
+
 
 export const createUserProfile = async (user: User, additionalData: Record<string, any> = {}) => {
   if (!user || !db) return;
@@ -63,6 +75,28 @@ export const updateUserProfile = async (uid: string, data: Partial<UserProfileDa
     } catch (error) {
         console.error("Error updating user profile:", error);
         throw new Error("Could not update user profile.");
+    }
+};
+
+/**
+ * Creates a new journal entry in Firestore.
+ * @param user The authenticated user object.
+ * @param entryData The data for the journal entry.
+ */
+export const createJournalEntry = async (user: User, entryData: Omit<JournalEntryData, 'userId' | 'timestamp'>) => {
+    if (!db || !user) {
+        throw new Error("User must be logged in to create a journal entry.");
+    }
+    
+    try {
+        await addDoc(collection(db, "journalEntries"), {
+            ...entryData,
+            userId: user.uid,
+            timestamp: serverTimestamp(),
+        });
+    } catch (error) {
+        console.error("Error creating journal entry:", error);
+        throw new Error("Could not create journal entry.");
     }
 };
 
