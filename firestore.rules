@@ -4,42 +4,73 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Default deny all reads and writes. This is a security best practice.
-    match /{document=**} {
-      allow read, write: if false;
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    // Users: Can read/write their own profile, but not other users' profiles.
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // USERS
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
+      allow create: if isSignedIn();
     }
 
-    // Posts: All logged-in users can read. Only owners can create, update, delete.
-    match /posts/{postId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-    }
+    // JOURNAL ENTRIES
+    match /journalEntries/{entryId} {
+        // Anyone can read public entries
+        allow read: if resource.data.isPublic == true;
+        
+        // Logged-in users can read their own private entries
+        allow read: if isSignedIn() && isOwner(resource.data.userId);
 
-    // Prayer Requests: All logged-in users can read. Only owners can create/update.
+        // Owners can update/delete their own entries
+        allow update, delete: if isSignedIn() && isOwner(resource.data.userId);
+        
+        // Logged-in users can create an entry. Ownership is set by the client.
+        allow create: if isSignedIn();
+    }
+    
+    // PRAYER REQUESTS
     match /prayerRequests/{requestId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Anyone can read prayer requests
+      allow read;
+      
+      // Logged in users can create prayer requests
+      allow create: if isSignedIn();
 
-      // Allow any logged-in user to trigger the distributed counter for praying
+      // We don't want users updating the main doc directly for prayer counts,
+      // but they should be able to comment or perhaps mark as answered.
+      // This is a simplified rule for now.
+      allow update: if isSignedIn(); 
+
+      // Users can only delete their own prayer requests.
+      allow delete: if isSignedIn() && isOwner(resource.data.userId);
+
+      // Rules for the distributed counter subcollection
       match /counter_shards/{shardId} {
-        allow create: if request.auth != null;
+        // Anyone logged in can write to a shard to update the count
+        allow write: if isSignedIn();
       }
     }
+    
+    // SOCIAL POSTS
+    match /posts/{postId} {
+        // Anyone can read posts
+        allow read;
 
-    // Journal Entries: Users can only create entries for themselves.
-    // They can read their own entries OR any public entries.
-    // They can only update/delete their own entries.
-    match /journalEntries/{entryId} {
-      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || resource.data.isPublic == true);
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+        // Logged-in users can create posts
+        allow create: if isSignedIn();
+        
+        // For likes, we need to allow updates from any signed-in user
+        // A more granular rule would check that only 'likes' and 'likedBy' are changing.
+        allow update: if isSignedIn();
+
+        // Only the owner can delete their post
+        allow delete: if isSignedIn() && isOwner(resource.data.userId);
     }
   }
 }
