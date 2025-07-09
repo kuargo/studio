@@ -154,7 +154,7 @@ export default function DashboardPage() {
                                     {theVibeAndCoreItems.map((item, index) => (
                                     <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
                                         <div className="p-1">
-                                            <Link href="#" className="group block">
+                                            <Link href="/social-feed" className="group block">
                                                 <Card className="overflow-hidden">
                                                     <CardContent className="p-0">
                                                         <div className="aspect-video relative">
