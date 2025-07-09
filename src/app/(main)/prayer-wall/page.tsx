@@ -57,7 +57,7 @@ const PrayerWallSkeleton = () => (
 
 
 export default function PrayerWallPage() {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const { toast } = useToast();
     const [newRequest, setNewRequest] = useState("");
     const [loading, setLoading] = useState(false);
@@ -70,31 +70,30 @@ export default function PrayerWallPage() {
     const [loadingPrayer, setLoadingPrayer] = useState(false);
 
     useEffect(() => {
-        if (!user || !db) {
-            setInitialLoading(false);
-            return;
-        }
-        
+        // This listener is for public data, so we don't need to wait for auth.
         const q = query(collection(db, "prayerRequests"), orderBy("timestamp", "desc"));
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            const requests = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            } as PrayerRequest));
-            setPrayerRequests(requests);
-            setInitialLoading(false);
-        }, (error) => {
-            console.error("Error fetching prayer requests: ", error);
-            toast({
-                variant: "destructive",
-                title: "Error",
-                description: "Could not fetch prayer requests. Check security rules."
-            });
-            setInitialLoading(false);
-        });
+        const unsubscribe = onSnapshot(q, 
+            (querySnapshot) => {
+                const requests = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                } as PrayerRequest));
+                setPrayerRequests(requests);
+                setInitialLoading(false);
+            }, 
+            (error) => {
+                console.error("Error fetching prayer requests: ", error);
+                toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: "Could not fetch prayer requests. Check security rules."
+                });
+                setInitialLoading(false);
+            }
+        );
 
         return () => unsubscribe();
-    }, [user, toast]);
+    }, [toast]);
 
 
     const handlePostRequest = async () => {

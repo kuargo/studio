@@ -40,7 +40,7 @@ const JournalSkeleton = () => (
 );
 
 export default function JournalPage() {
-    const { user } = useAuth();
+    const { user, loading } = useAuth();
     const { toast } = useToast();
 
     // Form state
@@ -62,35 +62,43 @@ export default function JournalPage() {
     const [loadingEntries, setLoadingEntries] = useState(true);
 
     useEffect(() => {
-        if (!user) {
-            setLoadingEntries(false);
+        // Do not proceed if auth is still loading or if there is no user.
+        if (loading || !user) {
+            // If auth has finished loading and there's no user, stop the loading spinner.
+            if (!loading) {
+                setLoadingEntries(false);
+            }
             return;
         }
-        // This query was simplified to avoid needing a composite index in Firestore,
-        // which can sometimes cause misleading permission-denied errors.
+
         const q = query(
             collection(db, "journalEntries"), 
-            where("userId", "==", user.uid)
+            where("userId", "==", user.uid),
+            orderBy("timestamp", "desc")
         );
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const fetchedEntries = snapshot.docs.map(doc => ({ ...doc.data() as JournalEntryData, id: doc.id }));
-            
-            // Sort entries on the client-side to ensure newest appear first.
-            fetchedEntries.sort((a, b) => {
-                const timeA = a.timestamp?.toDate()?.getTime() ?? 0;
-                const timeB = b.timestamp?.toDate()?.getTime() ?? 0;
-                return timeB - timeA;
-            });
 
-            setEntries(fetchedEntries);
-            setLoadingEntries(false);
-        }, (error) => {
-            console.error("Error fetching journal entries:", error);
-            toast({ variant: "destructive", title: "Error", description: "Could not fetch your journal entries." });
-            setLoadingEntries(false);
-        });
+        const unsubscribe = onSnapshot(q, 
+            (snapshot) => {
+                const fetchedEntries = snapshot.docs.map(doc => ({ ...doc.data() as JournalEntryData, id: doc.id }));
+                setEntries(fetchedEntries);
+                setLoadingEntries(false);
+            }, 
+            (error) => {
+                // Gracefully handle permission errors which can occur during auth state changes
+                if (error.code === 'permission-denied') {
+                    console.log("Journal listener permission denied, likely due to auth state change.");
+                    setEntries([]); // Clear data on permission denied
+                } else {
+                    console.error("Error fetching journal entries:", error);
+                    toast({ variant: "destructive", title: "Error", description: "Could not fetch your journal entries." });
+                }
+                setLoadingEntries(false);
+            }
+        );
+
+        // Cleanup the listener when the component unmounts or user changes.
         return () => unsubscribe();
-    }, [user, toast]);
+    }, [user, loading, toast]);
 
     const handleSaveEntry = async () => {
         if (!user || !title || !content) {

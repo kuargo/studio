@@ -82,31 +82,30 @@ export default function SocialFeedPage() {
     const [posting, setPosting] = useState(false);
 
     useEffect(() => {
-        if (!user || !db) {
-            setLoading(false);
-            return;
-        }
-
+        // This listener is for public data, so we don't need to wait for auth.
         const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            const fetchedPosts = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            } as Post));
-            setPosts(fetchedPosts);
-            setLoading(false);
-        }, (error) => {
-            console.error("Error fetching posts:", error);
-            toast({
-                variant: "destructive",
-                title: "Error",
-                description: "Could not fetch social feed. Check security rules."
-            });
-            setLoading(false);
-        });
+        const unsubscribe = onSnapshot(q, 
+            (querySnapshot) => {
+                const fetchedPosts = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                } as Post));
+                setPosts(fetchedPosts);
+                setLoading(false);
+            }, 
+            (error) => {
+                console.error("Error fetching posts:", error);
+                toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: "Could not fetch social feed. Check security rules."
+                });
+                setLoading(false);
+            }
+        );
 
         return () => unsubscribe();
-    }, [user, toast]);
+    }, [toast]);
 
 
     const handlePostSubmit = async () => {
