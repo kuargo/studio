@@ -6,8 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Wand2, BookOpen, Send } from "lucide-react";
+import { Wand2, BookOpen, Send, User, Bot } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { askBibleAi, BibleChatInput } from "@/ai/flows/bible-chat-flow";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const booksOfBible = [
   "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra", "Nehemiah", "Esther", "Job", "Psalms", "Proverbs", "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah", "Lamentations", "Ezekiel", "Daniel", "Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi", "Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians", "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews", "James", "1 Peter", "2 Peter", "1 John", "2 John", "3 John", "Jude", "Revelation"
@@ -32,13 +35,39 @@ const genesisChapter1 = `
 
 export default function BiblePage() {
     const { toast } = useToast();
+    const [question, setQuestion] = useState("");
+    const [lastQuestion, setLastQuestion] = useState("");
+    const [answer, setAnswer] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
-    const showComingSoon = () => {
-        toast({
-            title: "Feature Coming Soon",
-            description: "Full Bible integration and AI chat are on the way!"
-        })
-    }
+    const handleAskAi = async () => {
+        if (!question.trim()) return;
+
+        setIsLoading(true);
+        setAnswer("");
+        setLastQuestion(question);
+        
+        const input: BibleChatInput = {
+            question: question,
+            context: `Genesis Chapter 1 (KJV):\n${genesisChapter1}`
+        };
+
+        try {
+            const result = await askBibleAi(input);
+            setAnswer(result.answer);
+        } catch (error) {
+            console.error("Error asking Bible AI:", error);
+            toast({
+                variant: "destructive",
+                title: "AI Error",
+                description: "The AI failed to generate a response. Please try again."
+            });
+        } finally {
+            setIsLoading(false);
+            setQuestion("");
+        }
+    };
+
 
   return (
     <div className="grid lg:grid-cols-3 gap-8 items-start">
@@ -75,13 +104,13 @@ export default function BiblePage() {
                         </Select>
                     </div>
 
-                    <div className="p-4 border rounded-md bg-secondary/50 max-h-[60vh] overflow-y-auto">
+                    <ScrollArea className="p-4 border rounded-md bg-secondary/50 max-h-[60vh]">
                         <h2 className="text-2xl font-bold mb-4">Genesis, Chapter 1 (KJV)</h2>
                         <div className="whitespace-pre-wrap font-serif text-base leading-loose">
                             {genesisChapter1}
                              <p className="text-center text-muted-foreground py-4">...</p>
                         </div>
-                    </div>
+                    </ScrollArea>
                 </CardContent>
             </Card>
         </div>
@@ -96,13 +125,63 @@ export default function BiblePage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="p-4 border rounded-md bg-secondary/50 h-64 text-sm text-muted-foreground flex items-center justify-center">
-                        <p>AI response will appear here.</p>
-                    </div>
+                    <ScrollArea className="p-4 border rounded-md bg-secondary/50 h-80 text-sm">
+                        {isLoading && (
+                            <div className="space-y-4">
+                                <div className="flex items-start gap-2">
+                                    <User className="h-5 w-5 text-muted-foreground mt-1" />
+                                    <div className="bg-background p-3 rounded-lg flex-1">
+                                        <p>{lastQuestion}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                    <Bot className="h-5 w-5 text-primary mt-1" />
+                                    <div className="bg-background p-3 rounded-lg flex-1 space-y-2">
+                                        <Skeleton className="h-4 w-5/6" />
+                                        <Skeleton className="h-4 w-full" />
+                                        <Skeleton className="h-4 w-3/4" />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {!isLoading && answer && (
+                            <div className="space-y-4">
+                                <div className="flex items-start gap-2">
+                                    <User className="h-5 w-5 text-muted-foreground mt-1" />
+                                    <div className="bg-background p-3 rounded-lg flex-1">
+                                        <p>{lastQuestion}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                    <Bot className="h-5 w-5 text-primary mt-1" />
+                                    <div className="bg-background p-3 rounded-lg flex-1">
+                                        <p className="whitespace-pre-wrap">{answer}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                         {!isLoading && !answer && (
+                            <div className="h-full flex items-center justify-center text-muted-foreground">
+                                <p>AI response will appear here.</p>
+                            </div>
+                         )}
+                    </ScrollArea>
                     <div className="relative">
-                        <Textarea placeholder="e.g., What is the meaning of 'the armor of God'?" className="pr-12"/>
-                        <Button size="icon" className="absolute right-2 bottom-2 h-8 w-8" onClick={showComingSoon}>
-                            <Send className="h-4 w-4"/>
+                        <Textarea 
+                            placeholder="e.g., What was created on the first day?" 
+                            className="pr-12"
+                            value={question}
+                            onChange={(e) => setQuestion(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleAskAi();
+                                }
+                            }}
+                            disabled={isLoading}
+                        />
+                        <Button size="icon" className="absolute right-2 bottom-2 h-8 w-8" onClick={handleAskAi} disabled={isLoading || !question.trim()}>
+                           {isLoading ? <span className="animate-spin h-4 w-4 rounded-full border-2 border-transparent border-t-primary-foreground"></span> : <Send className="h-4 w-4"/>}
                         </Button>
                     </div>
                 </CardContent>
