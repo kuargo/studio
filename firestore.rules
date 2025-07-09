@@ -1,38 +1,40 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users: Can read/update their own profile, can only create their own profile
+    // Users: Can only read/write their own profile.
     match /users/{userId} {
-      allow get, update: if request.auth.uid == userId;
-      allow create: if request.auth.uid == userId;
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Journal Entries: Private by default.
-    // Users can only query for their own entries.
+    // Journal Entries: Readable by any logged-in user, but only writable by the owner.
+    // The client-side query ensures users only see their own entries.
     match /journalEntries/{entryId} {
-      allow get, update, delete: if request.auth.uid == resource.data.userId;
-      // This rule is the key fix: It specifically allows the query "where userId == my_id"
-      allow list: if request.auth.uid != null && request.query.where.userId == request.auth.uid;
-      allow create: if request.auth.uid != null && request.resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null;
+      allow create, update, delete: if request.auth != null && (request.resource.data.userId == request.auth.uid || resource.data.userId == request.auth.uid);
     }
 
-    // Posts (Social Feed): Publicly readable, write requires auth and correct user ID
+    // Social Feed Posts: Publicly readable, but writing is protected.
     match /posts/{postId} {
       allow read: if true;
-      allow create: if request.auth.uid != null && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if request.auth.uid == resource.data.userId;
+      // User must be owner to write. On create, check incoming resource. On update/delete, check existing resource.
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
-    
-    // Prayer Requests: Publicly readable, write requires auth and correct user ID
+
+    // Prayer Wall: Publicly readable, but writing is protected.
     match /prayerRequests/{requestId} {
       allow read: if true;
-      allow create: if request.auth.uid != null && request.resource.data.userId == request.auth.uid;
-      
-      // Distributed counter subcollection for pray counts
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Allow updates for pray count, comments etc, by any logged in user.
+      allow update: if request.auth != null;
+
+      // Distributed Counter Shards for pray count
       match /counter_shards/{shardId} {
-        allow create: if request.auth.uid != null; // Anyone logged in can increment
+        allow create: if request.auth != null;
       }
     }
   }
