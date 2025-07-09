@@ -12,8 +12,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const BibleChatInputSchema = z.object({
-  question: z.string().describe('The user\'s question about the biblical text.'),
-  context: z.string().describe('The biblical text to use as context for answering the question.'),
+  question: z.string().describe("The user's question about the Bible."),
 });
 export type BibleChatInput = z.infer<typeof BibleChatInputSchema>;
 
@@ -31,16 +30,11 @@ const prompt = ai.definePrompt({
   name: 'bibleChatPrompt',
   input: {schema: BibleChatInputSchema},
   output: {schema: BibleChatOutputSchema},
-  prompt: `You are a helpful and wise theological assistant. Your purpose is to help users understand scripture better.
+  prompt: `You are a helpful and wise theological assistant and expert on the Bible. Your purpose is to help users understand scripture better by answering their questions.
 
-Answer the user's question based *only* on the provided biblical text context. Do not use outside knowledge or other parts of the Bible unless the provided text directly references them.
+Your answers should be clear, encouraging, and based on established biblical knowledge. When relevant, cite specific Bible verses (e.g., John 3:16) to support your answer.
 
-If the answer is not in the text, politely state that the provided passage does not contain the answer. Do not invent information. Be encouraging and clear in your explanation.
-
-Provided Biblical Text:
----
-{{{context}}}
----
+Keep your answers concise and easy to understand for a general audience.
 
 User's Question:
 "{{{question}}}"`,

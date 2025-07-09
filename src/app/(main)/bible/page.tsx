@@ -49,7 +49,6 @@ export default function BiblePage() {
         
         const input: BibleChatInput = {
             question: question,
-            context: `Genesis Chapter 1 (KJV):\n${genesisChapter1}`
         };
 
         try {
@@ -168,7 +167,7 @@ export default function BiblePage() {
                     </ScrollArea>
                     <div className="relative">
                         <Textarea 
-                            placeholder="e.g., What was created on the first day?" 
+                            placeholder="e.g., Who was Abraham?" 
                             className="pr-12"
                             value={question}
                             onChange={(e) => setQuestion(e.target.value)}
