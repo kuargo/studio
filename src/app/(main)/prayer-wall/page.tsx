@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import Link from "next/link";
 
 type PrayerRequest = {
     id: string;
