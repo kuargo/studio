@@ -3,50 +3,42 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Users: Can only read/write their own profile.
+    
+    // Users can only read and update their own profile.
     match /users/{userId} {
       allow read, update: if request.auth != null && request.auth.uid == userId;
-      // Allow create for any authenticated user, to create their own profile.
+      // Allow profile creation during signup
       allow create: if request.auth != null;
     }
 
-    // Journal Entries: A user can only manage their own entries.
-    match /journalEntries/{entryId} {
-        // Allow read only if the entry belongs to the requesting user.
-        allow list, get: if request.auth != null && request.auth.uid == resource.data.userId;
-        // Allow create only if the new entry's userId matches the user.
-        allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-        // Allow update/delete only if the user owns the entry.
-        allow update, delete: if request.auth != null && get(/databases/$(database)/documents/journalEntries/$(entryId)).data.userId == request.auth.uid;
+    // Prayer requests can be read by any authenticated user.
+    // Users can only create, update, or delete their own prayer requests.
+    match /prayerRequests/{requestId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      
+      // Allow the distributed counter extension to write to shards.
+      match /counter_shards/{shardId} {
+        allow write: if true;
+      }
     }
 
-    // Prayer Requests: Publicly readable, but only owners can create/edit.
-    match /prayerRequests/{requestId} {
-      allow read: if true;
-      // Allow create if the new request's userId matches the user.
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      // Allow updates (like adding comments or praying) by any authenticated user.
-      // Deletion should be restricted to owner or admin.
-      allow update: if request.auth != null;
-      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    // Posts can be read by any authenticated user.
+    // Users can only create, update, or delete their own posts.
+    match /posts/{postId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+        allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
     
-    // Counter shards for prayer requests are write-only for the extension.
-    match /prayerRequests/{requestId}/counter_shards/{shardId} {
-        allow read: if false;
-        allow write: if true; // The distributed counter extension handles this securely.
+    // Journal entries are private and can only be accessed by their owner.
+    match /journalEntries/{entryId} {
+        allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+        allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
 
-    // Social Posts: Publicly readable, but only owners can create/edit.
-    match /posts/{postId} {
-      allow read: if true;
-      // Allow create if the new post's userId matches the user.
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      // Allow updates (like liking) by any authenticated user.
-      // Deletion should be restricted to owner or admin.
-      allow update: if request.auth != null;
-      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
-    }
   }
 }
+
+    
