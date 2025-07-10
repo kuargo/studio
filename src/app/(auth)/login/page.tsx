@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -173,7 +174,7 @@ export default function LoginPage() {
               <Checkbox id="remember-me" checked={rememberMe} onCheckedChange={(checked) => setRememberMe(!!checked)} />
               <Label htmlFor="remember-me" className="text-sm font-normal">Remember me</Label>
             </div>
-            <Link href="#" className="text-sm text-primary underline">
+            <Link href="/forgot-password" className="text-sm text-primary underline">
               Forgot password?
             </Link>
           </div>
