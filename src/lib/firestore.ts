@@ -75,11 +75,13 @@ export const getUserProfile = async (uid: string): Promise<Partial<UserProfileDa
 };
 
 export const updateUserProfile = async (uid: string, data: Partial<UserProfileData>) => {
-    if (!db) return;
+    if (!db || !uid) {
+        throw new Error("User not authenticated or Firestore not available.");
+    }
     const userRef = doc(db, `users/${uid}`);
     try {
-        // Use setDoc with merge: true to create or update the document
-        // This handles cases where a profile might not exist yet but we have auth data
+        // Use setDoc with merge: true. This will create the document if it doesn't exist,
+        // and update it if it does. It's the most robust way to handle profile updates.
         await setDoc(userRef, data, { merge: true });
     } catch (error) {
         console.error("Error updating user profile:", error);
