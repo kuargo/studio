@@ -26,19 +26,32 @@ export function SettingsContent() {
     useEffect(() => {
         async function loadProfile() {
             if (user) {
-                setInitialLoading(true);
-                const firestoreProfile = await getUserProfile(user.uid);
-                const combinedProfile = {
-                    displayName: user.displayName || "",
-                    photoURL: user.photoURL || "",
-                    ...firestoreProfile,
-                };
-                setProfile(combinedProfile);
+                try {
+                    const firestoreProfile = await getUserProfile(user.uid);
+                    // Combine auth data (as fallback) with Firestore data
+                    const combinedProfile = {
+                        displayName: user.displayName || "",
+                        photoURL: user.photoURL || "",
+                        ...firestoreProfile, // Firestore data takes precedence
+                    };
+                    setProfile(combinedProfile);
+                } catch (error) {
+                    console.error("Failed to load user profile:", error);
+                    toast({
+                        variant: "destructive",
+                        title: "Error",
+                        description: "Could not load your profile data.",
+                    });
+                } finally {
+                    setInitialLoading(false);
+                }
+            } else {
+                // If there's no user, we're not loading data.
                 setInitialLoading(false);
             }
         }
         loadProfile();
-    }, [user]);
+    }, [user, toast]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
