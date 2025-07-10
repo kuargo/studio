@@ -1,44 +1,53 @@
-
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // User profiles are readable by anyone, but only the owner can write.
+    // Users: Can only read/write their own profile.
     match /users/{userId} {
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+      // Deny create/delete on the user's own doc for safety
+      allow create, delete: if false;
     }
 
-    // Journal Entries: Only the owner can read or write their own entries.
+    // Journal Entries: Private by default.
+    // A user can only interact with their own journal entries.
     match /journalEntries/{entryId} {
-      // A user can get their own entry, or list their own entries.
-      // The client-side query MUST contain `where("userId", "==", request.auth.uid)` for list to work.
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      
+      // Allow a user to query their own list of entries.
+      allow list: if request.auth != null && request.query.resource.data.userId == request.auth.uid;
+    }
 
-      // Writes are fully secure.
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    // Prayer Requests: Publicly readable, but only authenticated users can create/update.
+    match /prayerRequests/{prayerId} {
+      allow read: if true; // Anyone can read the prayer wall
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      
+      // Only the owner can update their prayer request (e.g., mark as answered)
+      allow update: if request.auth != null && request.auth.uid == resource.data.userId;
+      
+      // Comments/shards can be created by any authenticated user
+      match /counter_shards/{shardId} {
+        allow create: if request.auth != null;
+        allow read, update, delete: if false; // Shards are write-only triggers
+      }
+    }
+
+    // Social Feed Posts: Publicly readable, but only authenticated users can create/update.
+    match /posts/{postId} {
+      allow read: if true; // Anyone can read the social feed
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      
+      // Only owner can update/delete post. Liking is handled via transaction in backend code.
+      // The `toggleLikePost` function uses a transaction which is covered by this update rule.
       allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
 
-    // Public feeds are readable by any logged-in user. Writes are restricted.
-    match /prayerRequests/{requestId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      // Allow any auth'd user to update (for likes/prayers)
-      allow update: if request.auth != null;
-      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      
-      // Rules for the distributed counter extension
-      match /counter_shards/{shardId} {
-        allow create: if true;
-      }
-    }
-    
-    match /posts/{postId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update: if request.auth != null;
-      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    // Default deny all other access
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
