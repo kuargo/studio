@@ -3,9 +3,8 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { db, auth } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
 import { createJournalEntry, JournalEntryData } from "@/lib/firestore";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,6 +20,7 @@ import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getJournalSuggestion, JournalAssistantInput } from "@/ai/flows/journal-assistant-flow";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type JournalEntry = JournalEntryData & { id: string };
 
@@ -63,50 +63,38 @@ export default function JournalPage() {
     const [loadingEntries, setLoadingEntries] = useState(true);
 
     useEffect(() => {
-        let snapshotUnsubscribe: (() => void) | null = null;
+        if (!user) {
+            setLoadingEntries(false);
+            setEntries([]);
+            return;
+        }
 
-        const authUnsubscribe = onAuthStateChanged(auth, (authUser) => {
-            if (snapshotUnsubscribe) {
-                snapshotUnsubscribe();
-            }
+        const q = query(
+            collection(db, "journalEntries"),
+            where("userId", "==", user.uid)
+        );
 
-            if (authUser) {
-                const q = query(
-                    collection(db, "journalEntries"),
-                    where("userId", "==", authUser.uid)
-                );
-
-                snapshotUnsubscribe = onSnapshot(q,
-                    (snapshot) => {
-                        const fetchedEntries = snapshot.docs.map(doc => ({ ...doc.data() as JournalEntryData, id: doc.id }));
-                        const sortedEntries = fetchedEntries.sort((a, b) => (b.timestamp?.toDate()?.getTime() ?? 0) - (a.timestamp?.toDate()?.getTime() ?? 0));
-                        setEntries(sortedEntries);
-                        setLoadingEntries(false);
-                    },
-                    (error) => {
-                        console.error("Journal snapshot error:", error);
-                        if (error.code === 'permission-denied') {
-                             console.log("Permission denied on journal listener, likely during auth transition.");
-                            setEntries([]);
-                        } else {
-                            toast({ variant: "destructive", title: "Error", description: "Could not fetch your journal entries." });
-                        }
-                        setLoadingEntries(false);
-                    }
-                );
-            } else {
-                setEntries([]);
+        const unsubscribe = onSnapshot(q,
+            (snapshot) => {
+                const fetchedEntries = snapshot.docs.map(doc => ({ ...doc.data() as JournalEntryData, id: doc.id }));
+                const sortedEntries = fetchedEntries.sort((a, b) => (b.timestamp?.toDate()?.getTime() ?? 0) - (a.timestamp?.toDate()?.getTime() ?? 0));
+                setEntries(sortedEntries);
+                setLoadingEntries(false);
+            },
+            (error) => {
+                console.error("Journal snapshot error:", error);
+                if (error.code === 'permission-denied') {
+                     console.log("Permission denied on journal listener, likely during auth transition.");
+                    setEntries([]);
+                } else {
+                    toast({ variant: "destructive", title: "Error", description: "Could not fetch your journal entries." });
+                }
                 setLoadingEntries(false);
             }
-        });
+        );
 
-        return () => {
-            authUnsubscribe();
-            if (snapshotUnsubscribe) {
-                snapshotUnsubscribe();
-            }
-        };
-    }, [toast]);
+        return () => unsubscribe();
+    }, [user, toast]);
 
 
     const handleSaveEntry = async () => {
@@ -249,37 +237,39 @@ export default function JournalPage() {
                 <CardHeader>
                     <CardTitle className="text-lg">Past Entries</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3 max-h-[70vh] overflow-y-auto">
-                    {loadingEntries ? <JournalSkeleton /> : (
-                        entries.length > 0 ? entries.map(entry => (
-                            <Card key={entry.id} className="p-0 hover:bg-accent transition-colors">
-                                <Link href="#" className="block p-4">
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex-1">
-                                            <Badge variant={entry.isPublic ? "outline" : "secondary" } className="mb-2">{entry.type}</Badge>
-                                            <h3 className="font-semibold">{entry.title}</h3>
+                <CardContent>
+                    <ScrollArea className="space-y-3 max-h-[70vh] overflow-y-auto pr-4">
+                        {loadingEntries ? <JournalSkeleton /> : (
+                            entries.length > 0 ? entries.map(entry => (
+                                <Card key={entry.id} className="p-0 hover:bg-accent transition-colors mb-3">
+                                    <Link href="#" className="block p-4">
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex-1">
+                                                <Badge variant={entry.isPublic ? "outline" : "secondary" } className="mb-2">{entry.type}</Badge>
+                                                <h3 className="font-semibold">{entry.title}</h3>
+                                            </div>
+                                            {entry.isPublic ? <Unlock className="w-4 h-4 text-muted-foreground" /> : <Lock className="w-4 h-4 text-muted-foreground" />}
                                         </div>
-                                        {entry.isPublic ? <Unlock className="w-4 h-4 text-muted-foreground" /> : <Lock className="w-4 h-4 text-muted-foreground" />}
-                                    </div>
-                                    <p className="text-sm text-muted-foreground">
-                                        {entry.timestamp?.toDate().toLocaleDateString() || 'Just now'}
-                                    </p>
-                                    <p className="text-sm text-foreground/80 mt-1 truncate">{entry.content}</p>
-                                    {entry.isPublic && (
-                                    <div className="mt-3 pt-3 border-t">
-                                        <div className="flex items-center gap-2">
-                                            <Button variant="ghost" size="icon" className="h-7 w-7"><ThumbsUp className="w-4 h-4"/></Button>
-                                            <Button variant="ghost" size="icon" className="h-7 w-7"><Smile className="w-4 h-4"/></Button>
-                                            <Button variant="ghost" size="icon" className="h-7 w-7"><Lightbulb className="w-4 h-4"/></Button>
-                                            <div className="flex-1" />
-                                            {entry.tags.slice(0, 2).map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
+                                        <p className="text-sm text-muted-foreground">
+                                            {entry.timestamp?.toDate().toLocaleDateString() || 'Just now'}
+                                        </p>
+                                        <p className="text-sm text-foreground/80 mt-1 truncate">{entry.content}</p>
+                                        {entry.isPublic && (
+                                        <div className="mt-3 pt-3 border-t">
+                                            <div className="flex items-center gap-2">
+                                                <Button variant="ghost" size="icon" className="h-7 w-7"><ThumbsUp className="w-4 h-4"/></Button>
+                                                <Button variant="ghost" size="icon" className="h-7 w-7"><Smile className="w-4 h-4"/></Button>
+                                                <Button variant="ghost" size="icon" className="h-7 w-7"><Lightbulb className="w-4 h-4"/></Button>
+                                                <div className="flex-1" />
+                                                {entry.tags.slice(0, 2).map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
+                                            </div>
                                         </div>
-                                    </div>
-                                    )}
-                                </Link>
-                            </Card>
-                        )) : <p className="text-sm text-muted-foreground text-center py-4">No journal entries yet.</p>
-                    )}
+                                        )}
+                                    </Link>
+                                </Card>
+                            )) : <p className="text-sm text-muted-foreground text-center py-4">No journal entries yet.</p>
+                        )}
+                    </ScrollArea>
                 </CardContent>
             </Card>
         </div>

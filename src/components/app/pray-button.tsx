@@ -3,8 +3,7 @@
 
 import React, { useState, useTransition, useEffect } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
-import { db, auth } from "@/lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -26,31 +25,16 @@ export function PrayButton({ prayerId, count }: { prayerId: string, count: numbe
   }, [prayerId]);
 
   useEffect(() => {
-    let unsub: (() => void) | null = null;
+    if (!prayerId) return;
     
-    // The listener for prayer count updates should also be auth-aware
-    // to prevent potential errors on logout/login transitions.
-    const authUnsubscribe = onAuthStateChanged(auth, (authUser) => {
-        if (unsub) {
-            unsub();
-        }
-
-        if (authUser) {
-            unsub = onSnapshot(doc(db, `prayerRequests/${prayerId}`), (doc) => {
-                if (doc.exists()) {
-                    const data = doc.data();
-                    setPrayCount(data.prayCount || 0);
-                }
-            });
+    const unsub = onSnapshot(doc(db, `prayerRequests/${prayerId}`), (doc) => {
+        if (doc.exists()) {
+            const data = doc.data();
+            setPrayCount(data.prayCount || 0);
         }
     });
 
-    return () => {
-        authUnsubscribe();
-        if (unsub) {
-            unsub();
-        }
-    }
+    return () => unsub();
   }, [prayerId]);
 
 
@@ -92,5 +76,3 @@ export function PrayButton({ prayerId, count }: { prayerId: string, count: numbe
     </div>
   );
 }
-
-    

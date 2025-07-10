@@ -3,8 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, where, Timestamp } from "firebase/firestore";
-import { db, auth } from "@/lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -71,48 +70,39 @@ export function PrayerWallContent() {
     const [loadingPrayer, setLoadingPrayer] = useState(false);
 
     useEffect(() => {
-        let snapshotUnsubscribe: (() => void) | null = null;
-        const authUnsubscribe = onAuthStateChanged(auth, (authUser) => {
-            if (snapshotUnsubscribe) {
-                snapshotUnsubscribe();
-            }
+        // Don't try to fetch data if the user isn't authenticated yet.
+        if (!user) {
+            setInitialLoading(false);
+            setPrayerRequests([]);
+            return;
+        }
 
-            if (authUser) {
-                const q = query(collection(db, "prayerRequests"), orderBy("timestamp", "desc"));
-                snapshotUnsubscribe = onSnapshot(q,
-                    (querySnapshot) => {
-                        const requests = querySnapshot.docs.map(doc => ({
-                            id: doc.id,
-                            ...doc.data()
-                        } as PrayerRequest));
-                        setPrayerRequests(requests);
-                        setInitialLoading(false);
-                    },
-                    (error) => {
-                        console.error("Prayer Wall snapshot error: ", error);
-                        if (error.code !== 'permission-denied') {
-                             toast({
-                                variant: "destructive",
-                                title: "Error",
-                                description: "Could not fetch prayer requests."
-                            });
-                        }
-                        setInitialLoading(false);
-                    }
-                );
-            } else {
-                setPrayerRequests([]);
+        const q = query(collection(db, "prayerRequests"), orderBy("timestamp", "desc"));
+        
+        const unsubscribe = onSnapshot(q,
+            (querySnapshot) => {
+                const requests = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                } as PrayerRequest));
+                setPrayerRequests(requests);
+                setInitialLoading(false);
+            },
+            (error) => {
+                console.error("Prayer Wall snapshot error: ", error);
+                if (error.code !== 'permission-denied') {
+                     toast({
+                        variant: "destructive",
+                        title: "Error",
+                        description: "Could not fetch prayer requests."
+                    });
+                }
                 setInitialLoading(false);
             }
-        });
+        );
 
-        return () => {
-            authUnsubscribe();
-            if (snapshotUnsubscribe) {
-                snapshotUnsubscribe();
-            }
-        };
-    }, [toast]);
+        return () => unsubscribe();
+    }, [user, toast]);
 
 
     const handlePostRequest = async () => {
@@ -330,7 +320,7 @@ function PrayerCard({ id, name, avatar, aiHint, request, prayCount, timestamp, c
                 <Collapsible className="w-full">
                      <Separator />
                     <div className="p-4 flex items-center gap-2">
-                        <PrayButton prayerId={id} count={prayCount} aria-label="Pray for this request" />
+                        <PrayButton prayerId={id} count={prayCount} />
                         <div className="flex items-center gap-1 ml-auto">
                             <Button variant="ghost" size="sm" className="flex items-center gap-1.5"><ThumbsUp className="w-4 h-4" /> Agree</Button>
                             <Button variant="ghost" size="sm" className="flex items-center gap-1.5"><Smile className="w-4 h-4" /> Encourage</Button>

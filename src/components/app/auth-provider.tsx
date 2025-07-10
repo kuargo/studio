@@ -42,15 +42,17 @@ const FirebaseNotConfigured = () => {
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authReady, setAuthReady] = useState(false); // New state
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (!firebaseConfigured) {
       setLoading(false);
+      setAuthReady(true);
       return;
     }
     
-    const unsubscribe = onAuthStateChanged(auth!, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUser(user);
         const tokenResult = await user.getIdTokenResult();
@@ -60,6 +62,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setIsAdmin(false);
       }
       setLoading(false);
+      setAuthReady(true); // Signal that initial auth check is complete
     });
 
     return () => unsubscribe();
@@ -70,7 +73,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin }}>
+    <AuthContext.Provider value={{ user, loading, authReady, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

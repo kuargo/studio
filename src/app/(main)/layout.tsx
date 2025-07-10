@@ -12,27 +12,24 @@ import { useToast } from '@/hooks/use-toast';
 import { getUserProfile } from '@/lib/firestore';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading, isAdmin } = useAuth();
+  const { user, loading, authReady, isAdmin } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
 
   useEffect(() => {
-    // This effect acts as our primary AuthGuard.
-    // It waits until the auth state is fully resolved.
-    if (loading) {
-      // If still loading, we don't do anything yet. The AuthLoader is shown.
+    // Wait until Firebase has confirmed the auth state
+    if (!authReady) {
       return;
     }
 
-    // If loading is finished and there's no user, redirect to login.
+    // If auth is ready and there's no user, redirect to login.
     if (!user) {
       router.push('/login');
       return;
     }
 
     // If a user is logged in, check for terms acceptance and admin routes.
-    // This check now only runs when we are certain we have a user.
     if (user) {
       if (pathname !== '/legal/accept') {
         getUserProfile(user.uid).then(profile => {
@@ -55,22 +52,22 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         router.push('/dashboard');
       }
     }
-  }, [user, loading, isAdmin, pathname, router, toast]);
+  }, [user, authReady, isAdmin, pathname, router, toast]);
 
   // While auth state is resolving, show a full-page loader.
   // This prevents any child components from rendering and trying to access
   // Firestore before the auth state is ready.
-  if (loading) {
+  if (!authReady) {
     return <AuthLoader />;
   }
   
-  // If loading is done but there is no user, this component will trigger the
+  // If auth is ready but there is no user, this component will trigger the
   // redirect effect above and return null for a moment.
   if (!user) {
     return null;
   }
   
-  // Only when loading is done AND a user exists, render the main app layout.
+  // Only when auth is ready AND a user exists, render the main app layout.
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon" variant="floating">
