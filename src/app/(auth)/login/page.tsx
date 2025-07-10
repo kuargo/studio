@@ -82,7 +82,10 @@ export default function LoginPage() {
     
     try {
       const result = await signInWithPopup(auth, provider);
-      await createUserProfile(result.user, {});
+      const profile = await getUserProfile(result.user.uid);
+      if (!profile) {
+        await createUserProfile(result.user, {});
+      }
       await handleSuccessfulLogin(result.user);
     } catch (error: any) {
       handleAuthError(error, "Social Login Failed");

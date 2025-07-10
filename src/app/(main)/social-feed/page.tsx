@@ -255,27 +255,29 @@ function PostCard({ post, timeAgo }: { post: Post, timeAgo: (date: Timestamp | n
     const { toast } = useToast();
     const [isPending, startTransition] = useTransition();
 
-    const [isLiked, setIsLiked] = useState(user && post.likedBy.includes(user.uid));
-    const [likeCount, setLikeCount] = useState(post.likes);
+    const [isLiked, setIsLiked] = useState(user && post.likedBy?.includes(user.uid));
+    const [likeCount, setLikeCount] = useState(post.likes || 0);
 
     useEffect(() => {
-        setIsLiked(user && post.likedBy.includes(user.uid));
-        setLikeCount(post.likes);
-    }, [post.likes, post.likedBy, user]);
+        setIsLiked(user && post.likedBy?.includes(user.uid));
+        setLikeCount(post.likes || 0);
+    }, [post, user]);
 
     const handleLikeClick = () => {
         if (!user || isPending) return;
 
         startTransition(async () => {
             // Optimistic UI update
-            setIsLiked(!isLiked);
-            setLikeCount(likeCount + (!isLiked ? 1 : -1));
+            const newLikedState = !isLiked;
+            const newLikeCount = likeCount + (newLikedState ? 1 : -1);
+            setIsLiked(newLikedState);
+            setLikeCount(newLikeCount);
             
             try {
                 await toggleLikePost(post.id, user.uid);
             } catch (error) {
                 // Revert UI on error
-                setIsLiked(isLiked);
+                setIsLiked(!newLikedState);
                 setLikeCount(likeCount);
                 toast({ variant: "destructive", title: "Error", description: "Could not update like." });
             }
@@ -298,11 +300,11 @@ function PostCard({ post, timeAgo }: { post: Post, timeAgo: (date: Timestamp | n
                 <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
                         <Avatar>
-                            <AvatarImage src={post.user.avatar} data-ai-hint={post.user.aiHint} />
-                            <AvatarFallback>{post.user.name.charAt(0)}</AvatarFallback>
+                            <AvatarImage src={post.user?.avatar} data-ai-hint={post.user?.aiHint} />
+                            <AvatarFallback>{post.user?.name?.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
-                            <p className="font-semibold">{post.user.name}</p>
+                            <p className="font-semibold">{post.user?.name}</p>
                             <p className="text-xs text-muted-foreground">{timeAgo(post.timestamp)}</p>
                         </div>
                     </div>
@@ -311,7 +313,7 @@ function PostCard({ post, timeAgo }: { post: Post, timeAgo: (date: Timestamp | n
                             <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal /></Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                            <DropdownMenuItem>Follow {post.user.name}</DropdownMenuItem>
+                            <DropdownMenuItem>Follow {post.user?.name}</DropdownMenuItem>
                             <DropdownMenuItem>Hide this post</DropdownMenuItem>
                             <DropdownMenuItem>Report post</DropdownMenuItem>
                         </DropdownMenuContent>
@@ -337,7 +339,7 @@ function PostCard({ post, timeAgo }: { post: Post, timeAgo: (date: Timestamp | n
                             <Heart className={cn("w-5 h-5", isLiked && "fill-destructive text-destructive")} /> {likeCount}
                         </Button>
                         <Button variant="ghost" className="flex items-center gap-2">
-                            <MessageCircle className="w-5 h-5" /> {post.comments}
+                            <MessageCircle className="w-5 h-5" /> {post.comments || 0}
                         </Button>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>

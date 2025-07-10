@@ -1,6 +1,7 @@
 
 "use client";
 
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { BrainCircuit, CalendarPlus, Ear, HeartPulse, Users, Scale, ShieldCheck, LifeBuoy, Baby, FileCheck, Phone, Handshake, UserCheck } from "lucide-react";
@@ -80,19 +81,11 @@ const providers = [
      { name: "David Chen", avatar: "https://placehold.co/100x100/a7f3d0/065f46.png", aiHint: "man outdoors", specialties: ["Conflict Resolution", "Mediation"], verified: true },
 ]
 
-
-export default function WellBeingPage() {
-  const { toast } = useToast();
-
-  const showComingSoon = () => {
-    toast({
-        title: "Feature Coming Soon",
-        description: "This resource will be available shortly."
-    })
-  }
-
-  const getDialogContent = (title: string) => {
+function ResourceDialogContent({ title }: { title: string }) {
+    const { toast } = useToast();
+    const showComingSoon = () => toast({ title: "Feature Coming Soon" });
     const linkButtonClasses = "underline text-primary hover:text-primary/80 text-left w-full justify-start p-0 h-auto";
+
     switch (title) {
         case "Guided Prayer & Meditation":
             return (
@@ -173,6 +166,17 @@ export default function WellBeingPage() {
         default:
             return <p>More information coming soon.</p>;
     }
+}
+
+
+export default function WellBeingPage() {
+  const { toast } = useToast();
+
+  const showComingSoon = () => {
+    toast({
+        title: "Feature Coming Soon",
+        description: "This resource will be available shortly."
+    })
   }
 
   return (
@@ -241,34 +245,34 @@ export default function WellBeingPage() {
                 </CardHeader>
                  <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {resources.map(res => (
-                        <Dialog key={res.title}>
-                            <Card className="flex flex-col">
-                                <CardHeader className="flex-grow">
+                       <Card key={res.title} className="flex flex-col">
+                            <CardHeader className="flex-grow">
                                 <div className="flex flex-col items-center text-center">
                                     <div className={`p-3 rounded-full mb-3 ${res.bg}`}>
                                         <res.icon className={`w-6 h-6 ${res.color}`} />
                                     </div>
                                     <h3 className="font-semibold text-base">{res.title}</h3>
                                 </div>
-                                </CardHeader>
-                                <CardFooter>
+                            </CardHeader>
+                            <CardFooter>
+                                <Dialog>
                                     <DialogTrigger asChild>
                                         <Button className="w-full" variant="secondary">
                                             {res.cta}
                                         </Button>
                                     </DialogTrigger>
-                                </CardFooter>
-                            </Card>
-                             <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>{res.title}</DialogTitle>
-                                    <DialogDescription>{res.description}</DialogDescription>
-                                </DialogHeader>
-                                <div className="pt-4 space-y-4 text-sm text-muted-foreground">
-                                    {getDialogContent(res.title)}
-                                </div>
-                            </DialogContent>
-                        </Dialog>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>{res.title}</DialogTitle>
+                                            <DialogDescription>{res.description}</DialogDescription>
+                                        </DialogHeader>
+                                        <div className="pt-4 space-y-4 text-sm text-muted-foreground">
+                                           <ResourceDialogContent title={res.title} />
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
+                            </CardFooter>
+                        </Card>
                     ))}
                 </CardContent>
             </Card>
