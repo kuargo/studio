@@ -52,6 +52,22 @@ export default function SignupPage() {
     router.push("/legal/accept");
   };
 
+  const validatePassword = (password: string) => {
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+    const hasValidLength = password.length >= 8;
+    
+    if (!hasValidLength) return "Password must be at least 8 characters long.";
+    if (!hasUpperCase) return "Password must contain at least one uppercase letter.";
+    if (!hasLowerCase) return "Password must contain at least one lowercase letter.";
+    if (!hasNumber) return "Password must contain at least one number.";
+    if (!hasSpecialChar) return "Password must contain at least one special character.";
+
+    return null;
+  }
+
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
@@ -62,6 +78,17 @@ export default function SignupPage() {
       });
       return;
     }
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+        toast({
+            variant: "destructive",
+            title: "Weak Password",
+            description: passwordError,
+        });
+        return;
+    }
+
     setLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -123,7 +150,7 @@ export default function SignupPage() {
           description = "Email/password sign up is not enabled. Please contact support.";
           break;
         case 'auth/weak-password':
-          description = "The password is too weak. Please use a stronger password (at least 6 characters).";
+          description = "The password is too weak. Please use a stronger password.";
           break;
          case 'auth/account-exists-with-different-credential':
           description = "An account already exists with the same email address but different sign-in credentials. Sign in using a provider associated with this email address.";
@@ -182,11 +209,13 @@ export default function SignupPage() {
                 id="password"
                 type="password"
                 required
-                minLength={6}
-                placeholder="At least 6 characters"
+                placeholder="Create a strong password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+               <p className="text-xs text-muted-foreground">
+                Must be 8+ characters and include uppercase, lowercase, a number, and a special character.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirm-password">Confirm Password</Label>
@@ -194,7 +223,6 @@ export default function SignupPage() {
                 id="confirm-password"
                 type="password"
                 required
-                minLength={6}
                 placeholder="Re-enter your password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
