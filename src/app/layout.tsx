@@ -1,3 +1,4 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
 import '@/lib/firebase-error-suppressor'; // Import the suppressor to run it globally
@@ -7,6 +8,26 @@ export const metadata: Metadata = {
   title: 'Connect Hub 2.0: Gospel Remix',
   description: 'A modern social and spiritual platform for churches.',
 };
+
+// Foundational JSON-LD for AI crawlers
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Connect Hub 2.0: Gospel Remix',
+  applicationCategory: 'SocialNetworking',
+  operatingSystem: 'Web',
+  description: 'A modern social and spiritual platform for churches, featuring a real-time prayer wall, sermon remixing, event management, and a personalized social feed.',
+  author: {
+    '@type': 'Organization',
+    name: 'Connect Hub Developers'
+  },
+  keywords: 'church, faith, social media, prayer, sermon, christian, community, events, giving, mentorship',
+  offers: {
+    '@type': 'Offer',
+    price: '0'
+  }
+};
+
 
 export default function RootLayout({
   children,
@@ -19,6 +40,10 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </head>
       <body className="font-body antialiased">
         <Providers>

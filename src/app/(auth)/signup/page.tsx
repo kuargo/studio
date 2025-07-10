@@ -1,14 +1,16 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   createUserWithEmailAndPassword,
   updateProfile,
   signInWithPopup,
   GoogleAuthProvider,
-  FacebookAuthProvider
+  FacebookAuthProvider,
+  onAuthStateChanged,
+  type User,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
@@ -26,7 +28,7 @@ import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { createUserProfile, getUserProfile } from "@/lib/firestore";
 import { Separator } from "@/components/ui/separator";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -44,6 +46,14 @@ const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
+const PasswordRequirement = ({ isValid, children }: { isValid: boolean; children: React.ReactNode }) => (
+    <div className={`flex items-center text-xs ${isValid ? 'text-green-600' : 'text-muted-foreground'}`}>
+        {isValid ? <CheckCircle className="h-3 w-3 mr-1.5" /> : <XCircle className="h-3 w-3 mr-1.5" />}
+        {children}
+    </div>
+);
+
+
 export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -55,39 +65,40 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
-  const handleSuccessfulSignup = async (user: any) => {
-    const profile = await getUserProfile(user.uid);
-    if (!profile || !profile.termsAccepted) {
-       // Create profile if it's a new social user, or handle existing social user who hasn't accepted terms
-       if (!profile) {
-           await createUserProfile(user, { termsAccepted: false });
-       }
-       toast({
-        title: "Welcome! One last step...",
-        description: "Please review and accept the terms to continue.",
-      });
-       router.push("/legal/accept");
-    } else {
-      // User has already accepted terms in the past
-      router.push("/dashboard");
-    }
-  };
-
-  const validatePassword = (password: string) => {
+  const passwordValidation = useMemo(() => {
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
     const hasNumber = /[0-9]/.test(password);
     const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
     const hasValidLength = password.length >= 8;
-    
-    if (!hasValidLength) return "Password must be at least 8 characters long.";
-    if (!hasUpperCase) return "Password must contain at least one uppercase letter.";
-    if (!hasLowerCase) return "Password must contain at least one lowercase letter.";
-    if (!hasNumber) return "Password must contain at least one number.";
-    if (!hasSpecialChar) return "Password must contain at least one special character.";
+    return { hasUpperCase, hasLowerCase, hasNumber, hasSpecialChar, hasValidLength, allValid: hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar && hasValidLength };
+  }, [password]);
 
-    return null;
-  }
+  const handleSuccessfulSignup = (user: User) => {
+    const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
+        if (authUser && authUser.uid === user.uid) {
+            unsubscribe();
+            try {
+                const profile = await getUserProfile(user.uid);
+                if (!profile) {
+                    await createUserProfile(user, { termsAccepted: false });
+                }
+                
+                toast({
+                    title: "Welcome! One last step...",
+                    description: "Please review and accept the terms to continue.",
+                });
+                router.push("/legal/accept");
+
+            } catch (error) {
+                 console.error("Signup profile check failed:", error);
+                 handleAuthError(error, "Signup Failed");
+            } finally {
+                setSocialLoading(null);
+            }
+        }
+    });
+  };
 
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,12 +119,11 @@ export default function SignupPage() {
       return;
     }
 
-    const passwordError = validatePassword(password);
-    if (passwordError) {
+    if (!passwordValidation.allValid) {
         toast({
             variant: "destructive",
             title: "Weak Password",
-            description: passwordError,
+            description: "Please ensure your password meets all requirements.",
         });
         return;
     }
@@ -155,10 +165,9 @@ export default function SignupPage() {
     
     try {
       const result = await signInWithPopup(auth, provider);
-      await handleSuccessfulSignup(result.user);
+      handleSuccessfulSignup(result.user);
     } catch (error: any) {
       handleAuthError(error, "Social Signup Failed");
-    } finally {
       setSocialLoading(null);
     }
   };
@@ -250,9 +259,13 @@ export default function SignupPage() {
                     {showPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
                 </Button>
               </div>
-               <p className="text-xs text-muted-foreground">
-                Must be 8+ characters and include uppercase, lowercase, a number, and a special character.
-              </p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-2">
+                    <PasswordRequirement isValid={passwordValidation.hasValidLength}>8+ characters</PasswordRequirement>
+                    <PasswordRequirement isValid={passwordValidation.hasUpperCase}>1 uppercase</PasswordRequirement>
+                    <PasswordRequirement isValid={passwordValidation.hasLowerCase}>1 lowercase</PasswordRequirement>
+                    <PasswordRequirement isValid={passwordValidation.hasNumber}>1 number</PasswordRequirement>
+                    <PasswordRequirement isValid={passwordValidation.hasSpecialChar}>1 special char</PasswordRequirement>
+                </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirm-password">Confirm Password</Label>

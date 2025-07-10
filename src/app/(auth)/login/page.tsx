@@ -11,6 +11,8 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   FacebookAuthProvider,
+  onAuthStateChanged,
+  type User,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
@@ -55,22 +57,37 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<null | 'google' | 'facebook'>(null);
 
-  const handleSuccessfulLogin = async (user: any) => {
-    const profile = await getUserProfile(user.uid);
-    if (!profile || !profile.termsAccepted) {
-      if (!profile) {
-        // This case handles users who signed up before the profile system existed.
-        await createUserProfile(user, {});
-      }
-      toast({
-        title: "Welcome! One last step...",
-        description: "Please review and accept the terms to continue.",
-      });
-      router.push("/legal/accept");
-    } else {
-      router.push("/dashboard");
-    }
-  }
+  const handleSuccessfulLogin = (user: User) => {
+    // onAuthStateChanged ensures Firebase session is fully propagated
+    // before we attempt any Firestore reads.
+    const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
+        if (authUser && authUser.uid === user.uid) {
+            unsubscribe(); // We only need this to run once
+            try {
+                const profile = await getUserProfile(user.uid);
+                if (!profile) {
+                    await createUserProfile(user, {});
+                    router.push("/legal/accept");
+                } else if (!profile.termsAccepted) {
+                    toast({
+                        title: "Welcome! One last step...",
+                        description: "Please review and accept the terms to continue.",
+                    });
+                    router.push("/legal/accept");
+                } else {
+                    router.push("/dashboard");
+                }
+            } catch (error) {
+                console.error("Login profile check failed:", error);
+                handleAuthError(error, "Login Failed");
+            } finally {
+                setLoading(false);
+                setSocialLoading(null);
+            }
+        }
+    });
+};
+
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,10 +95,9 @@ export default function LoginPage() {
     try {
       await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      await handleSuccessfulLogin(userCredential.user);
+      handleSuccessfulLogin(userCredential.user);
     } catch (error: any) {
       handleAuthError(error, "Login Failed");
-    } finally {
       setLoading(false);
     }
   };
@@ -94,10 +110,9 @@ export default function LoginPage() {
     
     try {
       const result = await signInWithPopup(auth, provider);
-      await handleSuccessfulLogin(result.user);
+      handleSuccessfulLogin(result.user);
     } catch (error: any) {
       handleAuthError(error, "Social Login Failed");
-    } finally {
       setSocialLoading(null);
     }
   };
@@ -122,6 +137,9 @@ export default function LoginPage() {
       case 'auth/popup-closed-by-user':
         description = "The sign-in popup was closed before completing. Please try again.";
         return; // Don't show a toast for this
+      case 'permission-denied':
+        description = "Login failed due to a permissions issue. Please try again in a moment.";
+        break;
       default:
         description = error.message;
     }
