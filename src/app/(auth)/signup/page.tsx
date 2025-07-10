@@ -44,6 +44,7 @@ export default function SignupPage() {
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<null | 'google' | 'facebook'>(null);
 
@@ -53,6 +54,14 @@ export default function SignupPage() {
 
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (password !== confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Passwords Do Not Match",
+        description: "Please check your passwords and try again.",
+      });
+      return;
+    }
     setLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -89,7 +98,6 @@ export default function SignupPage() {
     
     try {
       const result = await signInWithPopup(auth, provider);
-      // Check if profile exists, only create if it doesn't
       const profile = await getUserProfile(result.user.uid);
       if (!profile) {
         await createUserProfile(result.user, {});
@@ -178,6 +186,18 @@ export default function SignupPage() {
                 placeholder="At least 6 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirm Password</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                required
+                minLength={6}
+                placeholder="Re-enter your password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
               />
             </div>
              <Button type="submit" className="w-full" disabled={loading}>
