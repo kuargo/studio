@@ -11,8 +11,6 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   FacebookAuthProvider,
-  onAuthStateChanged,
-  type User,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
@@ -30,7 +28,6 @@ import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { createUserProfile, getUserProfile } from "@/lib/firestore";
 
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -57,36 +54,12 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<null | 'google' | 'facebook'>(null);
 
-  const handleSuccessfulLogin = (user: User) => {
-    // onAuthStateChanged ensures Firebase session is fully propagated
-    // before we attempt any Firestore reads.
-    const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
-        if (authUser && authUser.uid === user.uid) {
-            unsubscribe(); // We only need this to run once
-            try {
-                const profile = await getUserProfile(user.uid);
-                if (!profile) {
-                    await createUserProfile(user, {});
-                    router.push("/legal/accept");
-                } else if (!profile.termsAccepted) {
-                    toast({
-                        title: "Welcome! One last step...",
-                        description: "Please review and accept the terms to continue.",
-                    });
-                    router.push("/legal/accept");
-                } else {
-                    router.push("/dashboard");
-                }
-            } catch (error) {
-                console.error("Login profile check failed:", error);
-                handleAuthError(error, "Login Failed");
-            } finally {
-                setLoading(false);
-                setSocialLoading(null);
-            }
-        }
-    });
-};
+  const handleAuthSuccess = () => {
+    // The main layout's AuthGuard will handle redirection
+    // to either /dashboard or /legal/accept.
+    // This component's only job is to get the user authenticated.
+    router.push('/dashboard'); 
+  };
 
 
   const handleEmailLogin = async (e: React.FormEvent) => {
@@ -94,8 +67,8 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      handleSuccessfulLogin(userCredential.user);
+      await signInWithEmailAndPassword(auth, email, password);
+      handleAuthSuccess();
     } catch (error: any) {
       handleAuthError(error, "Login Failed");
       setLoading(false);
@@ -109,11 +82,12 @@ export default function LoginPage() {
       : new FacebookAuthProvider();
     
     try {
-      const result = await signInWithPopup(auth, provider);
-      handleSuccessfulLogin(result.user);
+      await signInWithPopup(auth, provider);
+      handleAuthSuccess();
     } catch (error: any) {
       handleAuthError(error, "Social Login Failed");
-      setSocialLoading(null);
+    } finally {
+        setSocialLoading(null);
     }
   };
 
@@ -137,11 +111,14 @@ export default function LoginPage() {
       case 'auth/popup-closed-by-user':
         description = "The sign-in popup was closed before completing. Please try again.";
         return; // Don't show a toast for this
+      case 'auth/authorized-domain':
+         description = "Login failed. This app's domain is not authorized for authentication. Please contact support.";
+         break;
       case 'permission-denied':
-        description = "Login failed due to a permissions issue. Please try again in a moment.";
-        break;
+         description = "Login failed due to a permissions issue. Please try again in a moment.";
+         break;
       default:
-        description = error.message;
+        description = error.message || "An unknown error occurred.";
     }
     toast({
       variant: "destructive",

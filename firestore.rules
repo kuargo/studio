@@ -4,41 +4,45 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Users can only read and update their own profile.
+    // Users can create their own profile, and can only read/write their own document.
     match /users/{userId} {
-      allow read, update: if request.auth != null && request.auth.uid == userId;
-      // Allow profile creation during signup
+      allow read, update, delete: if request.auth != null && request.auth.uid == userId;
       allow create: if request.auth != null;
     }
 
-    // Prayer requests can be read by any authenticated user.
-    // Users can only create, update, or delete their own prayer requests.
+    // Authenticated users can read any public journal entry.
+    // Users can only create, update, or delete their own entries.
+    match /journalEntries/{entryId} {
+      allow read: if request.auth != null && (resource.data.isPublic == true || request.auth.uid == resource.data.userId);
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+    // Authenticated users can read prayer requests and their subcollections.
+    // Users can only write to their own requests.
     match /prayerRequests/{requestId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
       
-      // Allow the distributed counter extension to write to shards.
+      // The distributed counter extension writes to this subcollection.
+      // We allow any authenticated user to trigger this write.
       match /counter_shards/{shardId} {
-        allow write: if true;
+        allow write: if request.auth != null;
       }
     }
 
-    // Posts can be read by any authenticated user.
-    // Users can only create, update, or delete their own posts.
+    // Authenticated users can read all social posts.
+    // Users can only create posts for themselves, and can only update/delete their own.
     match /posts/{postId} {
-        allow read: if request.auth != null;
-        allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-        allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
     
-    // Journal entries are private and can only be accessed by their owner.
-    match /journalEntries/{entryId} {
-        allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-        allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    // Default deny all other reads/writes
+    match /{document=**} {
+      allow read, write: if false;
     }
-
   }
 }
-
-    

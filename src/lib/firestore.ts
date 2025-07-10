@@ -37,13 +37,16 @@ export const createUserProfile = async (user: User, additionalData: Record<strin
   
   const docSnap = await getDoc(userRef);
 
+  // Only create a profile if one doesn't already exist.
+  // This is crucial for social sign-ins where this function might be called
+  // on every login.
   if (!docSnap.exists()) {
       const userData: Omit<UserProfileData, 'createdAt'> = {
         uid: user.uid,
         email: user.email,
         displayName: user.displayName || additionalData.displayName || user.email?.split('@')[0] || "User",
         photoURL: user.photoURL || `https://placehold.co/100x100.png`,
-        termsAccepted: false, // Default to false on creation
+        termsAccepted: additionalData.termsAccepted || false,
         birthday: "",
         location: "",
         church: "",
@@ -124,9 +127,12 @@ export const updatePrayerCount = async (prayerId: string, incrementValue: 1 | -1
         return;
     }
     
+    // The collection path must match exactly what the extension is configured to watch.
     const shardsRef = collection(db, `prayerRequests/${prayerId}/counter_shards`);
 
     try {
+        // The extension listens for new documents in this subcollection.
+        // The document content must be `{ _increment: <number> }`.
         await addDoc(shardsRef, { _increment: incrementValue });
     } catch (error) {
         console.error("Error updating prayer count:", error);

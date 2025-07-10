@@ -9,8 +9,6 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   FacebookAuthProvider,
-  onAuthStateChanged,
-  type User,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
@@ -26,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
-import { createUserProfile, getUserProfile } from "@/lib/firestore";
+import { createUserProfile } from "@/lib/firestore";
 import { Separator } from "@/components/ui/separator";
 import { Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -74,30 +72,10 @@ export default function SignupPage() {
     return { hasUpperCase, hasLowerCase, hasNumber, hasSpecialChar, hasValidLength, allValid: hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar && hasValidLength };
   }, [password]);
 
-  const handleSuccessfulSignup = (user: User) => {
-    const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
-        if (authUser && authUser.uid === user.uid) {
-            unsubscribe();
-            try {
-                const profile = await getUserProfile(user.uid);
-                if (!profile) {
-                    await createUserProfile(user, { termsAccepted: false });
-                }
-                
-                toast({
-                    title: "Welcome! One last step...",
-                    description: "Please review and accept the terms to continue.",
-                });
-                router.push("/legal/accept");
-
-            } catch (error) {
-                 console.error("Signup profile check failed:", error);
-                 handleAuthError(error, "Signup Failed");
-            } finally {
-                setSocialLoading(null);
-            }
-        }
-    });
+  const handleAuthSuccess = () => {
+    // The main layout's AuthGuard will handle redirection
+    // to either /dashboard or /legal/accept.
+    router.push('/dashboard');
   };
 
   const handleEmailSignup = async (e: React.FormEvent) => {
@@ -131,25 +109,16 @@ export default function SignupPage() {
     setLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
       const displayName = userCredential.user.displayName || email.split('@')[0];
-      const photoURL = userCredential.user.photoURL || `https://placehold.co/100x100.png`;
-
-      await updateProfile(userCredential.user, {
-        displayName,
-        photoURL,
-      });
+      await updateProfile(userCredential.user, { displayName });
 
       await createUserProfile(userCredential.user, {
         displayName,
-        photoURL,
         termsAccepted: true
       });
 
-      toast({
-        title: "Account Created!",
-        description: "Welcome to Connect Hub. You are now being redirected.",
-      });
-      router.push("/dashboard");
+      handleAuthSuccess();
     } catch (error: any) {
       handleAuthError(error, "Signup Failed");
     } finally {
@@ -165,9 +134,12 @@ export default function SignupPage() {
     
     try {
       const result = await signInWithPopup(auth, provider);
-      handleSuccessfulSignup(result.user);
+      // Create profile on first social login, if it doesn't exist
+      await createUserProfile(result.user, { termsAccepted: false });
+      handleAuthSuccess();
     } catch (error: any) {
       handleAuthError(error, "Social Signup Failed");
+    } finally {
       setSocialLoading(null);
     }
   };
