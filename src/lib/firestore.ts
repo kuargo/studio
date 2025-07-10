@@ -1,3 +1,4 @@
+
 import { doc, setDoc, serverTimestamp, collection, addDoc, getDoc, updateDoc, runTransaction, arrayUnion, arrayRemove, increment, Timestamp } from "firebase/firestore";
 import type { User } from "firebase/auth";
 import { db } from "./firebase";
@@ -142,6 +143,13 @@ export const createSocialPost = async (user: User, content: string) => {
         throw new Error("User must be logged in to create a post.");
     }
 
+    let postType: 'testimony' | 'prayer_request' | 'text' = 'text';
+    if (/(testimony|grateful|thankful)/i.test(content)) {
+        postType = 'testimony';
+    } else if (/(pray|prayer|praying)/i.test(content)) {
+        postType = 'prayer_request';
+    }
+
     try {
         await addDoc(collection(db, "posts"), {
             userId: user.uid,
@@ -152,10 +160,11 @@ export const createSocialPost = async (user: User, content: string) => {
             },
             content: content,
             timestamp: serverTimestamp(),
-            type: "text", // Defaulting to text posts for now
+            type: postType,
             likes: 0,
             likedBy: [],
             comments: 0,
+            prayCount: postType === 'prayer_request' ? 0 : undefined,
         });
     } catch (error) {
         console.error("Error creating social post:", error);

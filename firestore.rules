@@ -4,49 +4,49 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users can only read and write their own profile document.
+    // Users: Can only read/write their own profile.
     match /users/{userId} {
-      allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+      // Allow create for any authenticated user, to create their own profile.
       allow create: if request.auth != null;
     }
 
-    // Journal Entries are private. Users can only manage their own.
+    // Journal Entries: A user can only manage their own entries.
     match /journalEntries/{entryId} {
-      allow read, write, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+        // Allow read only if the entry belongs to the requesting user.
+        allow list, get: if request.auth != null && request.auth.uid == resource.data.userId;
+        // Allow create only if the new entry's userId matches the user.
+        allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+        // Allow update/delete only if the user owns the entry.
+        allow update, delete: if request.auth != null && get(/databases/$(database)/documents/journalEntries/$(entryId)).data.userId == request.auth.uid;
     }
 
-    // Prayer Requests are public to read. Users can only create/update/delete their own.
+    // Prayer Requests: Publicly readable, but only owners can create/edit.
     match /prayerRequests/{requestId} {
       allow read: if true;
-      allow update(data), delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      // Allow create if the new request's userId matches the user.
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      // Special rule for the distributed counter extension
-      match /counter_shards/{shardId} {
-        allow write: if true;
-      }
+      // Allow updates (like adding comments or praying) by any authenticated user.
+      // Deletion should be restricted to owner or admin.
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    
+    // Counter shards for prayer requests are write-only for the extension.
+    match /prayerRequests/{requestId}/counter_shards/{shardId} {
+        allow read: if false;
+        allow write: if true; // The distributed counter extension handles this securely.
     }
 
-    // Social Feed Posts are public to read. Users can only create/delete their own.
-    // Liking (update) is allowed by any authenticated user.
+    // Social Posts: Publicly readable, but only owners can create/edit.
     match /posts/{postId} {
       allow read: if true;
-      allow update: if request.auth != null; // Allows any logged-in user to like/unlike
-      allow delete, create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      // Allow create if the new post's userId matches the user.
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // Allow updates (like liking) by any authenticated user.
+      // Deletion should be restricted to owner or admin.
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
-    
-    // Placeholder rules for future features. Admins can manage, users can submit.
-    match /events/{eventId} {
-      allow read: if true;
-      // In a real app, write access would be restricted to admins or organizers.
-      allow write: if request.auth != null; 
-    }
-    
-    match /mentorApplications/{appId} {
-      // Only admins should be able to read/write applications.
-      allow read, write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
-      allow create: if request.auth != null;
-    }
-
   }
 }

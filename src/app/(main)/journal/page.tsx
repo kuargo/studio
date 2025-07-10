@@ -20,6 +20,7 @@ import { PlusCircle, Lock, Unlock, Smile, ThumbsUp, Lightbulb, Wand2 } from "luc
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getJournalSuggestion, JournalAssistantInput } from "@/ai/flows/journal-assistant-flow";
 
 type JournalEntry = JournalEntryData & { id: string };
 
@@ -85,6 +86,7 @@ export default function JournalPage() {
                     (error) => {
                         console.error("Journal snapshot error:", error);
                         if (error.code === 'permission-denied') {
+                             console.log("Permission denied on journal listener, likely during auth transition.");
                             setEntries([]);
                         } else {
                             toast({ variant: "destructive", title: "Error", description: "Could not fetch your journal entries." });
