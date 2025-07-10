@@ -5,59 +5,39 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { auth } from "@/lib/firebase";
 import { updateProfile } from "firebase/auth";
-import { updateUserProfile, getUserProfile } from "@/lib/firestore";
+import { updateUserProfile, getUserProfile, UserProfileData } from "@/lib/firestore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Camera } from "lucide-react";
-
-type UserProfile = {
-    displayName: string;
-    photoURL: string;
-    birthday: string;
-    location: string;
-    church: string;
-    quote: string;
-    favoriteScripture: string;
-};
+import { Skeleton } from "../ui/skeleton";
 
 export function SettingsContent() {
     const { user } = useAuth();
     const { toast } = useToast();
-    const [profile, setProfile] = useState<UserProfile>({
-        displayName: "",
-        photoURL: "",
-        birthday: "",
-        location: "",
-        church: "",
-        quote: "",
-        favoriteScripture: "",
-    });
+    const [profile, setProfile] = useState<Partial<UserProfileData>>({});
     const [loading, setLoading] = useState(false);
     const [initialLoading, setInitialLoading] = useState(true);
 
     useEffect(() => {
-        if (user) {
-            setProfile({
-                displayName: user.displayName || "",
-                photoURL: user.photoURL || "",
-                birthday: "",
-                location: "",
-                church: "",
-                quote: "",
-                favoriteScripture: "",
-            });
-
-            getUserProfile(user.uid).then((firestoreProfile) => {
-                if (firestoreProfile) {
-                    setProfile(prev => ({ ...prev, ...firestoreProfile }));
-                }
-            }).finally(() => setInitialLoading(false));
+        async function loadProfile() {
+            if (user) {
+                setInitialLoading(true);
+                const firestoreProfile = await getUserProfile(user.uid);
+                const combinedProfile = {
+                    displayName: user.displayName || "",
+                    photoURL: user.photoURL || "",
+                    ...firestoreProfile,
+                };
+                setProfile(combinedProfile);
+                setInitialLoading(false);
+            }
         }
+        loadProfile();
     }, [user]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -75,23 +55,23 @@ export function SettingsContent() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!user) return;
+        if (!user || !auth.currentUser) {
+            toast({ variant: "destructive", title: "Error", description: "You must be logged in to save."});
+            return
+        };
 
         setLoading(true);
         try {
-            // Update Firebase Auth profile
-            await updateProfile(auth.currentUser!, {
-                displayName: profile.displayName,
-                photoURL: profile.photoURL,
-            });
+            // Update Firebase Auth profile if displayName or photoURL has changed
+            if (auth.currentUser.displayName !== profile.displayName || auth.currentUser.photoURL !== profile.photoURL) {
+                await updateProfile(auth.currentUser, {
+                    displayName: profile.displayName,
+                    photoURL: profile.photoURL,
+                });
+            }
 
-            // Update Firestore profile (excluding fields managed by Auth)
-            const { displayName, photoURL, ...firestoreData } = profile;
-            await updateUserProfile(user.uid, {
-                displayName: profile.displayName,
-                photoURL: profile.photoURL,
-                ...firestoreData
-            });
+            // Update Firestore profile with all fields
+            await updateUserProfile(user.uid, profile);
 
             toast({
                 title: "Profile Updated",
@@ -110,7 +90,35 @@ export function SettingsContent() {
     };
 
     if (initialLoading) {
-        return <div>Loading profile...</div>
+        return (
+             <div className="max-w-4xl mx-auto space-y-6">
+                <Skeleton className="h-8 w-1/3" />
+                <Card>
+                    <CardHeader>
+                        <Skeleton className="h-6 w-1/4" />
+                        <Skeleton className="h-4 w-3/4" />
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                         <div className="flex items-center gap-6">
+                            <Skeleton className="h-24 w-24 rounded-full" />
+                            <div className="flex-grow space-y-2">
+                                <Skeleton className="h-4 w-1/4" />
+                                <Skeleton className="h-10 w-full" />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    </CardContent>
+                    <CardFooter>
+                        <Skeleton className="h-10 w-24" />
+                    </CardFooter>
+                </Card>
+            </div>
+        )
     }
 
     return (
@@ -147,7 +155,7 @@ export function SettingsContent() {
                                 <Input
                                     id="displayName"
                                     name="displayName"
-                                    value={profile.displayName}
+                                    value={profile.displayName || ''}
                                     onChange={handleInputChange}
                                     placeholder="Your Name"
                                 />
@@ -156,31 +164,31 @@ export function SettingsContent() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="birthday">Birthday</Label>
-                                <Input id="birthday" name="birthday" type="date" value={profile.birthday} onChange={handleInputChange} />
+                                <Input id="birthday" name="birthday" type="date" value={profile.birthday || ''} onChange={handleInputChange} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="location">Location</Label>
-                                <Input id="location" name="location" placeholder="City, Country" value={profile.location} onChange={handleInputChange}/>
+                                <Input id="location" name="location" placeholder="City, Country" value={profile.location || ''} onChange={handleInputChange}/>
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="church">Home Church</Label>
-                                <Input id="church" name="church" placeholder="e.g., Connect Hub Central" value={profile.church} onChange={handleInputChange} />
+                                <Input id="church" name="church" placeholder="e.g., Connect Hub Central" value={profile.church || ''} onChange={handleInputChange} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="favoriteScripture">Favorite Scripture</Label>
-                                <Input id="favoriteScripture" name="favoriteScripture" placeholder="e.g., John 3:16" value={profile.favoriteScripture} onChange={handleInputChange} />
+                                <Input id="favoriteScripture" name="favoriteScripture" placeholder="e.g., John 3:16" value={profile.favoriteScripture || ''} onChange={handleInputChange} />
                             </div>
                             <div className="md:col-span-2 space-y-2">
                                 <Label htmlFor="quote">Favorite Quote</Label>
-                                <Textarea id="quote" name="quote" placeholder="A quote that inspires you..." value={profile.quote} onChange={handleInputChange} />
+                                <Textarea id="quote" name="quote" placeholder="A quote that inspires you..." value={profile.quote || ''} onChange={handleInputChange} />
                             </div>
                         </div>
                     </CardContent>
-                    <CardContent>
-                        <Button type="submit" disabled={loading}>
+                    <CardFooter>
+                        <Button type="submit" disabled={loading || initialLoading}>
                             {loading ? "Saving..." : "Save Changes"}
                         </Button>
-                    </CardContent>
+                    </CardFooter>
                 </form>
             </Card>
         </div>

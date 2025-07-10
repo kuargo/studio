@@ -41,7 +41,7 @@ export const createUserProfile = async (user: User, additionalData: Record<strin
   // This is crucial for social sign-ins where this function might be called
   // on every login.
   if (!docSnap.exists()) {
-      const userData: Omit<UserProfileData, 'createdAt'> = {
+      const userData = {
         uid: user.uid,
         email: user.email,
         displayName: user.displayName || additionalData.displayName || user.email?.split('@')[0] || "User",
@@ -67,18 +67,20 @@ export const createUserProfile = async (user: User, additionalData: Record<strin
   }
 };
 
-export const getUserProfile = async (uid: string): Promise<UserProfileData | null> => {
+export const getUserProfile = async (uid: string): Promise<Partial<UserProfileData> | null> => {
     if (!db) return null;
     const userRef = doc(db, `users/${uid}`);
     const docSnap = await getDoc(userRef);
-    return docSnap.exists() ? docSnap.data() as UserProfileData : null;
+    return docSnap.exists() ? docSnap.data() as Partial<UserProfileData> : null;
 };
 
 export const updateUserProfile = async (uid: string, data: Partial<UserProfileData>) => {
     if (!db) return;
     const userRef = doc(db, `users/${uid}`);
     try {
-        await updateDoc(userRef, data);
+        // Use setDoc with merge: true to create or update the document
+        // This handles cases where a profile might not exist yet but we have auth data
+        await setDoc(userRef, data, { merge: true });
     } catch (error) {
         console.error("Error updating user profile:", error);
         throw new Error("Could not update user profile.");
