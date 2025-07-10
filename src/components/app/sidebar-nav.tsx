@@ -44,6 +44,7 @@ type MenuItem = {
   icon: React.ElementType;
   tooltip: string;
   color?: string;
+  adminOnly?: boolean;
 };
 
 const menuItems: MenuItem[] = [
@@ -63,6 +64,10 @@ const secondaryMenuItems: MenuItem[] = [
   { href: "/volunteering", label: "Volunteering", icon: HeartHandshake, tooltip: "Volunteering", color: "text-teal-500" },
   { href: "/well-being", label: "Well-being", icon: HeartPulse, tooltip: "Well-being", color: "text-cyan-500" },
 ];
+
+const adminMenuItems: MenuItem[] = [
+    { href: "/admin", label: "Admin Panel", icon: Shield, tooltip: "Admin Panel", color: "text-destructive", adminOnly: true},
+]
 
 export function SidebarNav() {
   const pathname = usePathname();
@@ -89,22 +94,27 @@ export function SidebarNav() {
 
   const renderMenuItems = (items: typeof menuItems) => (
     <SidebarMenu>
-      {items.map((item) => (
-        <SidebarMenuItem key={item.href}>
-            <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.tooltip}>
-              <Link href={item.href}>
-                <div className={cn("p-1.5 rounded-md", 
-                    pathname.startsWith(item.href) 
-                    ? 'bg-primary/10' 
-                    : 'bg-muted group-hover:bg-primary/10'
-                  )}>
-                    <item.icon className={cn("h-4 w-4 transition-colors", item.color, !pathname.startsWith(item.href) && "group-hover:text-primary")} />
-                </div>
-                <span>{item.label}</span>
-              </Link>
-            </SidebarMenuButton>
-        </SidebarMenuItem>
-      ))}
+      {items.map((item) => {
+        if (item.adminOnly && !isAdmin) {
+            return null;
+        }
+        return (
+            <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.tooltip}>
+                <Link href={item.href}>
+                    <div className={cn("p-1.5 rounded-md", 
+                        pathname.startsWith(item.href) 
+                        ? 'bg-primary/10' 
+                        : 'bg-muted group-hover:bg-primary/10'
+                    )}>
+                        <item.icon className={cn("h-4 w-4 transition-colors", item.color, !pathname.startsWith(item.href) && "group-hover:text-primary")} />
+                    </div>
+                    <span>{item.label}</span>
+                </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+        )
+      })}
     </SidebarMenu>
   );
 
@@ -122,20 +132,16 @@ export function SidebarNav() {
         {renderMenuItems(menuItems)}
         <SidebarSeparator className="my-4" />
         {renderMenuItems(secondaryMenuItems)}
+         {isAdmin && (
+            <>
+                <SidebarSeparator className="my-4" />
+                {renderMenuItems(adminMenuItems)}
+            </>
+         )}
       </SidebarContent>
       <SidebarFooter>
         <SidebarSeparator className="mb-4" />
         <SidebarMenu>
-          {isAdmin && (
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname.startsWith('/admin')} tooltip="Admin Panel">
-                <Link href="/admin">
-                  <div className="p-1.5 bg-muted rounded-md"><Shield className="h-4 w-4 text-destructive" /></div>
-                  <span>Admin Panel</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )}
           <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={pathname.startsWith('/settings')} tooltip="Settings">
                 <Link href="/settings">

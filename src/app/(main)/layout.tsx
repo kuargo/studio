@@ -9,6 +9,7 @@ import { SidebarNav } from "@/components/app/sidebar-nav";
 import { useAuth } from "@/hooks/use-auth";
 import { AuthLoader } from "@/components/app/auth-provider";
 import { useToast } from '@/hooks/use-toast';
+import { getUserProfile } from '@/lib/firestore';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, isAdmin } = useAuth();
@@ -20,9 +21,18 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     if (!loading && !user) {
       router.push('/login');
     }
-  }, [user, loading, router]);
-  
-  useEffect(() => {
+
+    if (!loading && user) {
+        // Redirect to terms acceptance if not accepted
+        if (pathname !== '/legal/accept') {
+            getUserProfile(user.uid).then(profile => {
+                if (profile && !profile.termsAccepted) {
+                    router.push('/legal/accept');
+                }
+            });
+        }
+    }
+    
     if (!loading && user && pathname.startsWith('/admin') && !isAdmin) {
         toast({
             variant: "destructive",
@@ -40,6 +50,20 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   if (pathname.startsWith('/admin') && !isAdmin) {
     return <AuthLoader />;
   }
+
+  // Show a loader while checking for terms acceptance to prevent layout flicker
+  if (pathname !== '/legal/accept' && user) {
+      let termsAccepted = false; // assume not accepted until checked
+      getUserProfile(user.uid).then(profile => {
+          if (profile?.termsAccepted) {
+              termsAccepted = true;
+          }
+      });
+      if (!termsAccepted) {
+          return <AuthLoader />;
+      }
+  }
+
 
   return (
     <SidebarProvider>

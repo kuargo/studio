@@ -46,6 +46,10 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<null | 'google' | 'facebook'>(null);
 
+  const handleSuccessfulSignup = () => {
+    router.push("/legal/accept");
+  };
+
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -66,9 +70,9 @@ export default function SignupPage() {
 
       toast({
         title: "Account Created",
-        description: "Welcome! You are now logged in.",
+        description: "Please review and accept the terms to continue.",
       });
-      router.push("/dashboard");
+      handleSuccessfulSignup();
     } catch (error: any) {
       handleAuthError(error, "Signup Failed");
     } finally {
@@ -85,7 +89,7 @@ export default function SignupPage() {
     try {
       const result = await signInWithPopup(auth, provider);
       await createUserProfile(result.user, {});
-      router.push("/dashboard");
+      handleSuccessfulSignup();
     } catch (error: any) {
       handleAuthError(error, "Social Signup Failed");
     } finally {

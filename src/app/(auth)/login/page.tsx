@@ -27,7 +27,7 @@ import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { createUserProfile } from "@/lib/firestore";
+import { createUserProfile, getUserProfile } from "@/lib/firestore";
 
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -51,13 +51,22 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<null | 'google' | 'facebook'>(null);
 
+  const handleSuccessfulLogin = async (user: any) => {
+    const profile = await getUserProfile(user.uid);
+    if (!profile || !profile.termsAccepted) {
+      router.push("/legal/accept");
+    } else {
+      router.push("/dashboard");
+    }
+  }
+
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push("/dashboard");
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      await handleSuccessfulLogin(userCredential.user);
     } catch (error: any) {
       handleAuthError(error, "Login Failed");
     } finally {
@@ -73,9 +82,8 @@ export default function LoginPage() {
     
     try {
       const result = await signInWithPopup(auth, provider);
-      // This will create a profile if one doesn't exist.
       await createUserProfile(result.user, {});
-      router.push("/dashboard");
+      await handleSuccessfulLogin(result.user);
     } catch (error: any) {
       handleAuthError(error, "Social Login Failed");
     } finally {
