@@ -1,3 +1,7 @@
+
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,6 +19,16 @@ const givingHistory = [
 ]
 
 export default function GivingPage() {
+  const [amount, setAmount] = useState("");
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow only numbers and a single decimal point
+    if (/^\d*\.?\d{0,2}$/.test(value)) {
+      setAmount(value);
+    }
+  };
+
   return (
     <div className="grid lg:grid-cols-3 gap-8 items-start">
       <div className="lg:col-span-2 space-y-8">
@@ -44,7 +58,16 @@ export default function GivingPage() {
                     </Select>
                     <div className="relative flex-grow">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                        <Input id="amount" placeholder="0.00" className="pl-6 font-semibold text-lg" />
+                        <Input 
+                            id="amount" 
+                            type="text" 
+                            pattern="[0-9]*" 
+                            inputMode="decimal"
+                            placeholder="0.00" 
+                            className="pl-6 font-semibold text-lg" 
+                            value={amount}
+                            onChange={handleAmountChange}
+                        />
                     </div>
                 </div>
             </div>

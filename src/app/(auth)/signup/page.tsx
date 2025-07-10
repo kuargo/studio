@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -23,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
-import { createUserProfile } from "@/lib/firestore";
+import { createUserProfile, getUserProfile } from "@/lib/firestore";
 import { Separator } from "@/components/ui/separator";
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -88,7 +89,11 @@ export default function SignupPage() {
     
     try {
       const result = await signInWithPopup(auth, provider);
-      await createUserProfile(result.user, {});
+      // Check if profile exists, only create if it doesn't
+      const profile = await getUserProfile(result.user.uid);
+      if (!profile) {
+        await createUserProfile(result.user, {});
+      }
       handleSuccessfulSignup();
     } catch (error: any) {
       handleAuthError(error, "Social Signup Failed");
