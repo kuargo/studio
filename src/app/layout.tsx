@@ -1,7 +1,6 @@
 
 import type {Metadata} from 'next';
 import './globals.css';
-import '@/lib/firebase-error-suppressor'; // Import the suppressor to run it globally
 import { Providers } from '@/components/app/providers';
 
 export const metadata: Metadata = {

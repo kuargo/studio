@@ -21,25 +21,31 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     if (!loading && !user) {
       router.push('/login');
     }
-
+  }, [user, loading, router]);
+  
+  useEffect(() => {
     if (!loading && user) {
         // Redirect to terms acceptance if not accepted
         if (pathname !== '/legal/accept') {
             getUserProfile(user.uid).then(profile => {
                 if (profile && !profile.termsAccepted) {
+                    toast({
+                        title: "Welcome! One last step...",
+                        description: "Please review and accept the terms to continue.",
+                    });
                     router.push('/legal/accept');
                 }
             });
         }
-    }
-    
-    if (!loading && user && pathname.startsWith('/admin') && !isAdmin) {
-        toast({
-            variant: "destructive",
-            title: "Access Denied",
-            description: "You do not have permission to view this page.",
-        });
-        router.push('/dashboard');
+        
+        if (pathname.startsWith('/admin') && !isAdmin) {
+            toast({
+                variant: "destructive",
+                title: "Access Denied",
+                description: "You do not have permission to view this page.",
+            });
+            router.push('/dashboard');
+        }
     }
   }, [user, loading, isAdmin, pathname, router, toast]);
 
@@ -47,24 +53,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     return <AuthLoader />;
   }
   
-  if (pathname.startsWith('/admin') && !isAdmin) {
-    return <AuthLoader />;
-  }
-
-  // Show a loader while checking for terms acceptance to prevent layout flicker
-  if (pathname !== '/legal/accept' && user) {
-      let termsAccepted = false; // assume not accepted until checked
-      getUserProfile(user.uid).then(profile => {
-          if (profile?.termsAccepted) {
-              termsAccepted = true;
-          }
-      });
-      if (!termsAccepted) {
-          return <AuthLoader />;
-      }
-  }
-
-
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon" variant="floating">
