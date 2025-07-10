@@ -26,6 +26,8 @@ import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { createUserProfile, getUserProfile } from "@/lib/firestore";
 import { Separator } from "@/components/ui/separator";
+import { Eye, EyeOff } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -47,9 +49,23 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<null | 'google' | 'facebook'>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
-  const handleSuccessfulSignup = () => {
-    router.push("/legal/accept");
+  const handleSuccessfulSignup = async (user: any) => {
+    // For email signup, we know they agreed. For social, we still check.
+    const profile = await getUserProfile(user.uid);
+    if (!profile) {
+      // It's a brand new user via social, create profile and go to terms.
+       await createUserProfile(user, { termsAccepted: false });
+       router.push("/legal/accept");
+    } else if (!profile.termsAccepted) {
+      // Existing user via social who hasn't accepted terms
+      router.push("/legal/accept");
+    } else {
+      // User has already accepted terms in the past
+      router.push("/dashboard");
+    }
   };
 
   const validatePassword = (password: string) => {
@@ -70,6 +86,14 @@ export default function SignupPage() {
 
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+     if (!agreedToTerms) {
+        toast({
+            variant: "destructive",
+            title: "Terms & Conditions",
+            description: "You must agree to the terms and conditions to sign up.",
+        });
+        return;
+    }
     if (password !== confirmPassword) {
       toast({
         variant: "destructive",
@@ -103,13 +127,14 @@ export default function SignupPage() {
       await createUserProfile(userCredential.user, {
         displayName,
         photoURL,
+        termsAccepted: true
       });
 
       toast({
-        title: "Account Created",
-        description: "Please review and accept the terms to continue.",
+        title: "Account Created!",
+        description: "Welcome to Connect Hub. You are now being redirected.",
       });
-      handleSuccessfulSignup();
+      router.push("/dashboard");
     } catch (error: any) {
       handleAuthError(error, "Signup Failed");
     } finally {
@@ -125,11 +150,7 @@ export default function SignupPage() {
     
     try {
       const result = await signInWithPopup(auth, provider);
-      const profile = await getUserProfile(result.user.uid);
-      if (!profile) {
-        await createUserProfile(result.user, {});
-      }
-      handleSuccessfulSignup();
+      await handleSuccessfulSignup(result.user);
     } catch (error: any) {
       handleAuthError(error, "Social Signup Failed");
     } finally {
@@ -205,28 +226,63 @@ export default function SignupPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                placeholder="Create a strong password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <div className="relative">
+                <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    placeholder="Create a strong password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+                <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                    onClick={() => setShowPassword(prev => !prev)}
+                >
+                    {showPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
+                </Button>
+              </div>
                <p className="text-xs text-muted-foreground">
                 Must be 8+ characters and include uppercase, lowercase, a number, and a special character.
               </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirm-password">Confirm Password</Label>
-              <Input
-                id="confirm-password"
-                type="password"
-                required
-                placeholder="Re-enter your password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
+              <div className="relative">
+                <Input
+                    id="confirm-password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    placeholder="Re-enter your password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                    onClick={() => setShowPassword(prev => !prev)}
+                >
+                     {showPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
+                </Button>
+              </div>
+            </div>
+            <div className="flex items-start space-x-2">
+                <Checkbox id="terms" checked={agreedToTerms} onCheckedChange={(checked) => setAgreedToTerms(!!checked)} className="mt-1"/>
+                <Label htmlFor="terms" className="text-sm font-normal text-muted-foreground">
+                    I agree to the{" "}
+                    <Link href="/legal/terms" target="_blank" className="underline text-primary hover:text-primary/80">
+                        Terms of Service
+                    </Link>{" "}
+                    and{" "}
+                    <Link href="/legal/privacy" target="_blank" className="underline text-primary hover:text-primary/80">
+                        Privacy Policy
+                    </Link>.
+                </Label>
             </div>
              <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Creating Account..." : "Sign Up with Email"}
