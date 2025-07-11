@@ -84,16 +84,16 @@ export const updateUserProfile = async (uid: string, data: Partial<UserProfileDa
 
     // CRITICAL: Create a new object with only the fields that are safe to update.
     // This prevents accidental writes of protected fields like 'uid' or 'createdAt'.
-    const cleanProfileData: { [key: string]: any } = {
-        ...data,
-        updatedAt: serverTimestamp(),
-    };
+    const cleanProfileData: { [key: string]: any } = { ...data };
     
     // Explicitly remove fields that should NEVER be updated by the client.
     delete cleanProfileData.uid;
     delete cleanProfileData.createdAt;
     delete cleanProfileData.email; // Email should not be changed here
     delete cleanProfileData.termsAccepted; // Terms acceptance should be a one-way operation
+
+    // Add the update timestamp
+    cleanProfileData.updatedAt = serverTimestamp();
 
     try {
         // Use setDoc with merge: true. This is the most robust way to handle updates.
