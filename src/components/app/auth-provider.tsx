@@ -56,14 +56,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (user) {
         setUser(user);
         const tokenResult = await user.getIdTokenResult();
-        
-        // =========================================================================
-        // TEMPORARY ADMIN OVERRIDE - This grants admin access for initial setup.
-        // This MUST be removed after the first admin user is properly configured via a backend function.
-        const isSuperAdmin = user.email === 'mwaniki.dennis@gmail.com';
-        setIsAdmin(!!tokenResult.claims.admin || isSuperAdmin);
-        // =========================================================================
-
+        setIsAdmin(!!tokenResult.claims.admin);
       } else {
         setUser(null);
         setIsAdmin(false);
