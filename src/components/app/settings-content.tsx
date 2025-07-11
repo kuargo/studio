@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { auth, storage } from "@/lib/firebase";
 import { updateProfile } from "firebase/auth";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { updateUserProfile, getUserProfile, UserProfileData, updateUserProfilePhoto } from "@/lib/firestore";
+import { updateUserProfile, getUserProfile, UserProfileData } from "@/lib/firestore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, Loader2 } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
+import { LocationInput } from "./location-input";
 
 export function SettingsContent() {
     const { user } = useAuth();
@@ -59,6 +60,10 @@ export function SettingsContent() {
         setProfile(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleLocationSelect = (name: 'location' | 'church', value: string) => {
+        setProfile(prev => ({ ...prev, [name]: value }));
+    };
+
     const handleAvatarButtonClick = () => {
         fileInputRef.current?.click();
     };
@@ -79,20 +84,18 @@ export function SettingsContent() {
             const snapshot = await uploadBytes(storageRef, file);
             const downloadURL = await getDownloadURL(snapshot.ref);
 
-            // Update both Firebase Auth profile and Firestore
             if (auth.currentUser) {
                 await updateProfile(auth.currentUser, { photoURL: downloadURL });
             }
-            await updateUserProfilePhoto(user.uid, downloadURL);
+            await updateUserProfile(user.uid, { photoURL: downloadURL });
 
             setProfile(prev => ({ ...prev, photoURL: downloadURL }));
             toast({ title: "Avatar Updated!", description: "Your new profile picture has been saved." });
 
         } catch (error: any) {
-            console.error("Avatar upload failed:", error);
              let description = "Could not upload your avatar. Please try again.";
             if (error.code === 'storage/unauthorized') {
-                description = "You do not have permission to upload. Please check Storage Rules.";
+                description = "You do not have permission to upload. Check Storage Rules.";
             } else if (error.code === 'storage/object-not-found') {
                 description = "File not found during upload. Please try again.";
             }
@@ -237,11 +240,22 @@ export function SettingsContent() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="location">Location</Label>
-                                <Input id="location" name="location" placeholder="City, Country" value={profile.location || ''} onChange={handleInputChange}/>
+                                <LocationInput
+                                    id="location"
+                                    value={profile.location || ''}
+                                    onValueChange={(value) => handleLocationSelect('location', value)}
+                                    placeholder="City, Country"
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="church">Home Church</Label>
-                                <Input id="church" name="church" placeholder="e.g., Connect Hub Central" value={profile.church || ''} onChange={handleInputChange} />
+                                 <LocationInput
+                                    id="church"
+                                    value={profile.church || ''}
+                                    onValueChange={(value) => handleLocationSelect('church', value)}
+                                    placeholder="e.g., Connect Hub Central"
+                                    types={['establishment']}
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="favoriteScripture">Favorite Scripture</Label>
