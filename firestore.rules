@@ -1,66 +1,62 @@
-
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Users Collection
+
+    // Users collection rules
     match /users/{userId} {
-      // ANY authenticated user can create their OWN profile document.
+      // Admins can read any user's profile.
+      // A regular user can only read their own profile.
+      allow read: if request.auth != null && (request.auth.uid == userId || request.auth.token.admin == true);
+
+      // A user can only create their own profile document.
       // The `uid` in the document must match their auth `uid`.
-      allow create: if request.auth != null && request.auth.uid == userId;
-      
-      // ANY authenticated user can READ their OWN profile document.
-      allow read: if request.auth != null && request.auth.uid == userId;
-      
-      // An authenticated user can UPDATE their OWN profile document.
-      // They are NOT allowed to change their own 'uid' or 'createdAt' fields.
-      allow update: if request.auth != null && request.auth.uid == userId
-                    && !('uid' in request.resource.data)
-                    && !('createdAt' in request.resource.data);
-      
-      // Users are not allowed to delete their own profiles from the app.
+      allow create: if request.auth != null && request.auth.uid == userId && request.resource.data.uid == userId;
+
+      // A user can only update their own profile.
+      // They are not allowed to change their `uid`.
+      allow update: if request.auth != null && request.auth.uid == userId;
+
+      // No one can delete a user profile from the client.
       allow delete: if false;
     }
 
-    // Prayer Requests Collection
-    match /prayerRequests/{requestId} {
-      // ANY authenticated user can read ALL prayer requests.
-      allow read: if request.auth != null;
-      
-      // A user can CREATE a prayer request if their auth uid matches the userId in the document.
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      
-      // A user can UPDATE or DELETE their OWN prayer requests.
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-    
-    // Distributed counter shards for prayer requests
-    match /prayerRequests/{requestId}/counter_shards/{shardId} {
-      // ANY authenticated user can write to a shard to increment/decrement the counter.
-      allow write: if request.auth != null;
-    }
-
-    // Journal Entries Collection
+    // Journal entries rules
     match /journalEntries/{entryId} {
-      // Users can only read, write, and delete THEIR OWN journal entries.
-      // This is enforced by checking if their auth uid matches the userId stored on the document.
-      allow read, write, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      
-      // Rule for creation is slightly different, as `resource.data` doesn't exist yet.
-      // We check against the incoming data (`request.resource.data`).
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-    }
-    
-    // Social Posts Collection
-    match /posts/{postId} {
-        // ANY authenticated user can read ALL posts.
-        allow read: if request.auth != null;
+        // Admins can read any journal entry (for moderation).
+        // A user can read their own private journal entries.
+        // Any authenticated user can read public journal entries.
+        allow read: if request.auth != null && 
+                      (request.auth.uid == resource.data.userId || 
+                       resource.data.isPublic == true ||
+                       request.auth.token.admin == true);
         
-        // A user can CREATE a post if their auth uid matches the userId in the document.
-        allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+        // A user can only write (create, update, delete) their own entries.
+        allow write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
 
-        // A user can UPDATE or DELETE their OWN posts.
-        allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    // Prayer requests rules
+    match /prayerRequests/{requestId} {
+        // Any authenticated user can read all prayer requests.
+        allow read: if request.auth != null;
+
+        // A user can only write (create, update, delete) their own requests.
+        allow write: if request.auth != null && request.auth.uid == resource.data.userId;
+
+        // Rules for the distributed counter subcollection
+        match /counter_shards/{shardId} {
+            // Anyone authenticated can write to the shards to update the count.
+            allow write: if request.auth != null;
+        }
+    }
+
+    // Social posts rules
+    match /posts/{postId} {
+        // Any authenticated user can read all posts.
+        allow read: if request.auth != null;
+
+        // A user can only write (create, update, delete) their own posts.
+        allow write: if request.auth != null && request.auth.uid == resource.data.userId;
     }
   }
 }
