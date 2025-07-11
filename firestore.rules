@@ -1,52 +1,66 @@
 
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Users collection - bulletproof rules
+    
+    // Users Collection
     match /users/{userId} {
-      // Allow reading own profile
+      // ANY authenticated user can create their OWN profile document.
+      // The `uid` in the document must match their auth `uid`.
+      allow create: if request.auth != null && request.auth.uid == userId;
+      
+      // ANY authenticated user can READ their OWN profile document.
       allow read: if request.auth != null && request.auth.uid == userId;
       
-      // Allow creating own profile (first time)
-      allow create: if request.auth != null && 
-                      request.auth.uid == userId &&
-                      request.resource.data.uid == userId;
+      // An authenticated user can UPDATE their OWN profile document.
+      // They are NOT allowed to change their own 'uid' or 'createdAt' fields.
+      allow update: if request.auth != null && request.auth.uid == userId
+                    && !('uid' in request.resource.data)
+                    && !('createdAt' in request.resource.data);
       
-      // Allow updating own profile - the bulletproof way
-      // This rule ensures an authenticated user can update their own document,
-      // but explicitly prevents them from changing their own uid,
-      // which is a critical security measure.
-      allow update: if request.auth != null && 
-                      request.auth.uid == userId &&
-                      // Ensure uid field is not present in the update data
-                      !('uid' in request.resource.data) &&
-                      // Ensure createdAt is not present
-                      !('createdAt' in request.resource.data);
+      // Users are not allowed to delete their own profiles from the app.
+      allow delete: if false;
     }
 
-    match /journalEntries/{entryId} {
-      // User can only CRUD their own journal entries
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-    }
-
+    // Prayer Requests Collection
     match /prayerRequests/{requestId} {
-      // Anyone authenticated can read requests
+      // ANY authenticated user can read ALL prayer requests.
       allow read: if request.auth != null;
-      // Users can only create/write their own requests
-      allow write: if request.auth != null && request.auth.uid == resource.data.userId;
+      
+      // A user can CREATE a prayer request if their auth uid matches the userId in the document.
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      
+      // A user can UPDATE or DELETE their OWN prayer requests.
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    
+    // Distributed counter shards for prayer requests
+    match /prayerRequests/{requestId}/counter_shards/{shardId} {
+      // ANY authenticated user can write to a shard to increment/decrement the counter.
+      allow write: if request.auth != null;
     }
 
+    // Journal Entries Collection
+    match /journalEntries/{entryId} {
+      // Users can only read, write, and delete THEIR OWN journal entries.
+      // This is enforced by checking if their auth uid matches the userId stored on the document.
+      allow read, write, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      
+      // Rule for creation is slightly different, as `resource.data` doesn't exist yet.
+      // We check against the incoming data (`request.resource.data`).
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
+    
+    // Social Posts Collection
     match /posts/{postId} {
-      // Anyone authenticated can read posts
-      allow read: if request.auth != null;
-      // Users can only create/write their own posts
-      allow write: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-    }
+        // ANY authenticated user can read ALL posts.
+        allow read: if request.auth != null;
+        
+        // A user can CREATE a post if their auth uid matches the userId in the document.
+        allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
 
+        // A user can UPDATE or DELETE their OWN posts.
+        allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
   }
 }

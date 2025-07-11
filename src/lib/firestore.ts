@@ -39,21 +39,13 @@ export const createUserProfile = async (user: User, additionalData: Record<strin
   
   const docSnap = await getDoc(userRef);
 
-  // Only create a profile if one doesn't already exist.
-  // This is crucial for social sign-ins where this function might be called
-  // on every login.
   if (!docSnap.exists()) {
-      const userData = {
+      const userData: Partial<UserProfileData> = {
         uid: user.uid,
         email: user.email,
         displayName: user.displayName || additionalData.displayName || user.email?.split('@')[0] || "User",
         photoURL: user.photoURL || `https://placehold.co/100x100.png`,
         termsAccepted: additionalData.termsAccepted || false,
-        birthday: "",
-        location: "",
-        church: "",
-        quote: "",
-        favoriteScripture: "",
         ...additionalData,
       };
 
@@ -90,17 +82,18 @@ export const updateUserProfile = async (uid: string, data: Partial<UserProfileDa
     }
     const userRef = doc(db, `users/${uid}`);
 
-    // CRITICAL: Sanitize the data to prevent security rule violations.
-    // Create a new object with only the fields that are allowed to be updated.
-    // Never include `uid` or `createdAt` in an update payload.
-    const cleanProfileData: Partial<Omit<UserProfileData, 'uid' | 'createdAt'>> = {
-      ...data,
-      updatedAt: serverTimestamp(),
+    // CRITICAL: Create a new object with only the fields that are safe to update.
+    // This prevents accidental writes of protected fields like 'uid' or 'createdAt'.
+    const cleanProfileData: { [key: string]: any } = {
+        ...data,
+        updatedAt: serverTimestamp(),
     };
     
-    // Explicitly remove fields that should not be updated.
+    // Explicitly remove fields that should NEVER be updated by the client.
     delete cleanProfileData.uid;
     delete cleanProfileData.createdAt;
+    delete cleanProfileData.email; // Email should not be changed here
+    delete cleanProfileData.termsAccepted; // Terms acceptance should be a one-way operation
 
     try {
         // Use setDoc with merge: true. This is the most robust way to handle updates.
@@ -155,12 +148,9 @@ export const updatePrayerCount = async (prayerId: string, incrementValue: 1 | -1
         return;
     }
     
-    // The collection path must match exactly what the extension is configured to watch.
     const shardsRef = collection(db, `prayerRequests/${prayerId}/counter_shards`);
 
     try {
-        // The extension listens for new documents in this subcollection.
-        // The document content must be `{ _increment: <number> }`.
         await addDoc(shardsRef, { _increment: incrementValue });
     } catch (error) {
         console.error("Error updating prayer count:", error);

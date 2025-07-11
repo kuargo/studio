@@ -46,7 +46,6 @@ export function SettingsContent() {
                     setInitialLoading(false);
                 }
             } else {
-                // If there's no user, we're not loading data.
                 setInitialLoading(false);
             }
         }
@@ -58,7 +57,6 @@ export function SettingsContent() {
         setProfile(prev => ({ ...prev, [name]: value }));
     };
     
-    // Placeholder for file upload logic
     const handleAvatarChange = () => {
         toast({
             title: "Feature Coming Soon",
@@ -70,21 +68,33 @@ export function SettingsContent() {
         e.preventDefault();
         if (!user || !auth.currentUser) {
             toast({ variant: "destructive", title: "Error", description: "You must be logged in to save."});
-            return
-        };
+            return;
+        }
 
         setLoading(true);
         try {
-            // Update Firebase Auth profile if displayName or photoURL has changed
+            // Step 1: Update the Firebase Auth profile (for immediate display name changes etc.)
             if (auth.currentUser.displayName !== profile.displayName || auth.currentUser.photoURL !== profile.photoURL) {
                 await updateProfile(auth.currentUser, {
                     displayName: profile.displayName,
-                    photoURL: profile.photoURL,
+                    // photoURL will be handled by Firebase Storage in the future
                 });
             }
 
-            // Update Firestore profile with all fields
-            await updateUserProfile(user.uid, profile);
+            // Step 2: Create a clean data object for Firestore
+            // THIS IS THE CRITICAL FIX: Only include fields that should be in the 'users' collection.
+            // Do NOT pass the entire `profile` state object.
+            const firestoreData: Partial<UserProfileData> = {
+                displayName: profile.displayName,
+                birthday: profile.birthday,
+                location: profile.location,
+                church: profile.church,
+                favoriteScripture: profile.favoriteScripture,
+                quote: profile.quote,
+            };
+
+            // Step 3: Update the Firestore document with the clean data
+            await updateUserProfile(user.uid, firestoreData);
 
             toast({
                 title: "Profile Updated",
@@ -95,7 +105,7 @@ export function SettingsContent() {
             toast({
                 variant: "destructive",
                 title: "Update Failed",
-                description: "Could not update your profile. Please try again.",
+                description: "Could not update your profile. Please check permissions and try again.",
             });
         } finally {
             setLoading(false);
