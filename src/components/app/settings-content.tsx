@@ -1,11 +1,12 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { auth } from "@/lib/firebase";
+import { auth, storage } from "@/lib/firebase";
 import { updateProfile } from "firebase/auth";
-import { updateUserProfile, getUserProfile, UserProfileData } from "@/lib/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { updateUserProfile, getUserProfile, UserProfileData, updateUserProfilePhoto } from "@/lib/firestore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -13,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Camera } from "lucide-react";
+import { Camera, Loader2 } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 
 export function SettingsContent() {
@@ -21,18 +22,19 @@ export function SettingsContent() {
     const { toast } = useToast();
     const [profile, setProfile] = useState<Partial<UserProfileData>>({});
     const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [initialLoading, setInitialLoading] = useState(true);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         async function loadProfile() {
             if (user) {
                 try {
                     const firestoreProfile = await getUserProfile(user.uid);
-                    // Combine auth data (as fallback) with Firestore data
                     const combinedProfile = {
                         displayName: user.displayName || "",
                         photoURL: user.photoURL || "",
-                        ...firestoreProfile, // Firestore data takes precedence
+                        ...firestoreProfile,
                     };
                     setProfile(combinedProfile);
                 } catch (error) {
@@ -56,14 +58,50 @@ export function SettingsContent() {
         const { name, value } = e.target;
         setProfile(prev => ({ ...prev, [name]: value }));
     };
-    
-    const handleAvatarChange = () => {
-        toast({
-            title: "Feature Coming Soon",
-            description: "Avatar uploading will be implemented soon.",
-        });
+
+    const handleAvatarButtonClick = () => {
+        fileInputRef.current?.click();
     };
 
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !user) return;
+
+        if (!file.type.startsWith("image/")) {
+            toast({ variant: "destructive", title: "Invalid File", description: "Please select an image file." });
+            return;
+        }
+
+        setUploading(true);
+        const storageRef = ref(storage, `profile-images/${user.uid}/${file.name}`);
+
+        try {
+            const snapshot = await uploadBytes(storageRef, file);
+            const downloadURL = await getDownloadURL(snapshot.ref);
+
+            // Update both Firebase Auth profile and Firestore
+            if (auth.currentUser) {
+                await updateProfile(auth.currentUser, { photoURL: downloadURL });
+            }
+            await updateUserProfilePhoto(user.uid, downloadURL);
+
+            setProfile(prev => ({ ...prev, photoURL: downloadURL }));
+            toast({ title: "Avatar Updated!", description: "Your new profile picture has been saved." });
+
+        } catch (error: any) {
+            console.error("Avatar upload failed:", error);
+             let description = "Could not upload your avatar. Please try again.";
+            if (error.code === 'storage/unauthorized') {
+                description = "You do not have permission to upload. Please check Storage Rules.";
+            } else if (error.code === 'storage/object-not-found') {
+                description = "File not found during upload. Please try again.";
+            }
+            toast({ variant: "destructive", title: "Upload Failed", description });
+        } finally {
+            setUploading(false);
+        }
+    };
+    
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user || !auth.currentUser) {
@@ -73,17 +111,12 @@ export function SettingsContent() {
 
         setLoading(true);
         try {
-            // Step 1: Update the Firebase Auth profile (for immediate display name changes etc.)
-            if (auth.currentUser.displayName !== profile.displayName || auth.currentUser.photoURL !== profile.photoURL) {
+            if (auth.currentUser.displayName !== profile.displayName) {
                 await updateProfile(auth.currentUser, {
                     displayName: profile.displayName,
-                    // photoURL will be handled by Firebase Storage in the future
                 });
             }
 
-            // Step 2: Create a clean data object for Firestore
-            // THIS IS THE CRITICAL FIX: Only include fields that should be in the 'users' collection.
-            // Do NOT pass the entire `profile` state object.
             const firestoreData: Partial<UserProfileData> = {
                 displayName: profile.displayName,
                 birthday: profile.birthday,
@@ -93,7 +126,6 @@ export function SettingsContent() {
                 quote: profile.quote,
             };
 
-            // Step 3: Update the Firestore document with the clean data
             await updateUserProfile(user.uid, firestoreData);
 
             toast({
@@ -161,13 +193,27 @@ export function SettingsContent() {
                                 <Avatar className="h-24 w-24">
                                     <AvatarImage src={profile.photoURL} data-ai-hint="person portrait" />
                                     <AvatarFallback>{profile.displayName?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+                                     {uploading && (
+                                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full">
+                                            <Loader2 className="h-8 w-8 text-white animate-spin" />
+                                        </div>
+                                    )}
                                 </Avatar>
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={handleFileSelect}
+                                    className="hidden"
+                                    accept="image/*"
+                                    disabled={uploading}
+                                />
                                 <Button
                                     type="button"
                                     variant="outline"
                                     size="icon"
                                     className="absolute bottom-0 right-0 rounded-full h-8 w-8"
-                                    onClick={handleAvatarChange}
+                                    onClick={handleAvatarButtonClick}
+                                    disabled={uploading}
                                 >
                                     <Camera className="h-4 w-4" />
                                     <span className="sr-only">Change photo</span>
@@ -208,7 +254,7 @@ export function SettingsContent() {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button type="submit" disabled={loading || initialLoading}>
+                        <Button type="submit" disabled={loading || initialLoading || uploading}>
                             {loading ? "Saving..." : "Save Changes"}
                         </Button>
                     </CardFooter>

@@ -1,5 +1,4 @@
 
-
 import { doc, setDoc, serverTimestamp, collection, addDoc, getDoc, updateDoc, runTransaction, arrayUnion, arrayRemove, increment, Timestamp } from "firebase/firestore";
 import type { User } from "firebase/auth";
 import { db } from "./firebase";
@@ -82,27 +81,43 @@ export const updateUserProfile = async (uid: string, data: Partial<UserProfileDa
     }
     const userRef = doc(db, `users/${uid}`);
 
-    // CRITICAL: Create a new object with only the fields that are safe to update.
-    // This prevents accidental writes of protected fields like 'uid' or 'createdAt'.
     const cleanProfileData: { [key: string]: any } = { ...data };
     
-    // Explicitly remove fields that should NEVER be updated by the client.
     delete cleanProfileData.uid;
     delete cleanProfileData.createdAt;
-    delete cleanProfileData.email; // Email should not be changed here
-    delete cleanProfileData.termsAccepted; // Terms acceptance should be a one-way operation
+    delete cleanProfileData.email;
+    delete cleanProfileData.termsAccepted;
+    // We handle photoURL updates in a separate function to keep logic clean
+    delete cleanProfileData.photoURL;
 
-    // Add the update timestamp
     cleanProfileData.updatedAt = serverTimestamp();
 
     try {
-        // Use setDoc with merge: true. This is the most robust way to handle updates.
-        // It creates the document if it doesn't exist, and updates it if it does,
-        // without overwriting the entire document.
         await setDoc(userRef, cleanProfileData, { merge: true });
     } catch (error) {
         console.error("Error updating user profile:", error);
         throw new Error("Could not update user profile.");
+    }
+};
+
+/**
+ * Specifically updates only the photoURL for a user profile.
+ * @param uid The user's ID.
+ * @param photoURL The new photo URL.
+ */
+export const updateUserProfilePhoto = async (uid: string, photoURL: string) => {
+    if (!db || !uid) {
+        throw new Error("User not authenticated or Firestore not available.");
+    }
+    const userRef = doc(db, `users/${uid}`);
+    try {
+        await updateDoc(userRef, {
+            photoURL: photoURL,
+            updatedAt: serverTimestamp(),
+        });
+    } catch (error) {
+        console.error("Error updating user photo:", error);
+        throw new Error("Could not update user photo.");
     }
 };
 

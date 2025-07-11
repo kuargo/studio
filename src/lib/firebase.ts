@@ -1,7 +1,9 @@
+
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp, FirebaseOptions } from "firebase/app";
 import { getAuth, Auth, GoogleAuthProvider, FacebookAuthProvider } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
+import { getStorage, FirebaseStorage } from "firebase/storage";
 
 // =================================================================
 //
@@ -16,15 +18,17 @@ import { getFirestore, Firestore } from "firebase/firestore";
 // 2. Add a "Web" application to your project.
 // 3. In the Firebase Console, go to "Authentication" > "Sign-in method" and enable "Email/Password".
 // 4. In the Firebase Console, go to "Firestore Database" and create a database.
-// 5. Create a file named `.env.local` in the root of this project.
-// 6. Copy the contents of `.env.example` into `.env.local`.
-// 7. Paste your project's `firebaseConfig` values into `.env.local`.
+// 5. In the Firebase Console, go to "Storage" and create a storage bucket.
+// 6. Create a file named `.env.local` in the root of this project.
+// 7. Copy the contents of `.env.example` into `.env.local`.
+// 8. Paste your project's `firebaseConfig` values into `.env.local`.
 //
 // =================================================================
 
 let app;
 let auth: Auth;
 let db: Firestore;
+let storage: FirebaseStorage;
 let firebaseConfigured = false;
 
 const firebaseConfig: FirebaseOptions = {
@@ -46,6 +50,7 @@ if (
     app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
+    storage = getStorage(app);
     firebaseConfigured = true;
   } catch (error) {
     console.error("Firebase initialization failed. Check your .env.local credentials.", error);
@@ -57,4 +62,4 @@ if (
 }
 
 
-export { app, auth, db, firebaseConfigured, GoogleAuthProvider, FacebookAuthProvider };
+export { app, auth, db, storage, firebaseConfigured, GoogleAuthProvider, FacebookAuthProvider };
