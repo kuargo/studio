@@ -4,45 +4,49 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users collection
+    // Users collection - bulletproof rules
     match /users/{userId} {
+      // Allow reading own profile
       allow read: if request.auth != null && request.auth.uid == userId;
       
+      // Allow creating own profile (first time)
       allow create: if request.auth != null && 
                       request.auth.uid == userId &&
                       request.resource.data.uid == userId;
       
+      // Allow updating own profile - the bulletproof way
+      // This rule ensures an authenticated user can update their own document,
+      // but explicitly prevents them from changing their own uid,
+      // which is a critical security measure.
       allow update: if request.auth != null && 
                       request.auth.uid == userId &&
-                      // Users should not be able to change their UID after creation
-                      (!('uid' in request.resource.data) || 
-                       request.resource.data.uid == resource.data.uid);
+                      // Ensure uid field is not present in the update data
+                      !('uid' in request.resource.data) &&
+                      // Ensure createdAt is not present
+                      !('createdAt' in request.resource.data);
     }
 
-    // Journal entries
     match /journalEntries/{entryId} {
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      // User can only CRUD their own journal entries
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
 
-    // Prayer requests
     match /prayerRequests/{requestId} {
+      // Anyone authenticated can read requests
       allow read: if request.auth != null;
-      // You can also add update/delete if owners should be able to edit their requests
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null; // Any authenticated user can create a request
+      // Users can only create/write their own requests
+      allow write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
 
-    // Social posts
     match /posts/{postId} {
-        // Logged-in users can read all posts
-        allow read: if request.auth != null;
-
-        // Users can only create posts for themselves
-        allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-        
-        // Users can only update or delete their own posts
-        allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      // Anyone authenticated can read posts
+      allow read: if request.auth != null;
+      // Users can only create/write their own posts
+      allow write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
+
   }
 }

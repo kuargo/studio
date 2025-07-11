@@ -11,6 +11,7 @@ export type UserProfileData = {
     displayName: string;
     photoURL: string;
     createdAt: any; // serverTimestamp() is of type FieldValue
+    updatedAt?: any;
     termsAccepted: boolean;
     birthday?: string;
     location?: string;
@@ -59,7 +60,8 @@ export const createUserProfile = async (user: User, additionalData: Record<strin
       try {
         await setDoc(userRef, {
             ...userData,
-            createdAt: serverTimestamp()
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
         });
       } catch (error) {
         console.error("Error creating user profile:", error);
@@ -75,23 +77,36 @@ export const getUserProfile = async (uid: string): Promise<Partial<UserProfileDa
     return docSnap.exists() ? docSnap.data() as Partial<UserProfileData> : null;
 };
 
+/**
+ * Updates a user's profile in Firestore.
+ * This function rigorously sanitizes the data to ensure protected fields
+ * are not sent, which would violate security rules.
+ * @param uid The user's ID.
+ * @param data The profile data to update.
+ */
 export const updateUserProfile = async (uid: string, data: Partial<UserProfileData>) => {
     if (!db || !uid) {
         throw new Error("User not authenticated or Firestore not available.");
     }
     const userRef = doc(db, `users/${uid}`);
 
-    // Sanitize data before sending to prevent security rule violations.
-    // The user should not be able to change their own UID or creation date.
-    const updateData = { ...data };
-    delete updateData.uid;
-    delete updateData.createdAt;
-
+    // CRITICAL: Sanitize the data to prevent security rule violations.
+    // Create a new object with only the fields that are allowed to be updated.
+    // Never include `uid` or `createdAt` in an update payload.
+    const cleanProfileData: Partial<Omit<UserProfileData, 'uid' | 'createdAt'>> = {
+      ...data,
+      updatedAt: serverTimestamp(),
+    };
+    
+    // Explicitly remove fields that should not be updated.
+    delete cleanProfileData.uid;
+    delete cleanProfileData.createdAt;
 
     try {
-        // Use setDoc with merge: true. This will create the document if it doesn't exist,
-        // and update it if it does. It's the most robust way to handle profile updates.
-        await setDoc(userRef, updateData, { merge: true });
+        // Use setDoc with merge: true. This is the most robust way to handle updates.
+        // It creates the document if it doesn't exist, and updates it if it does,
+        // without overwriting the entire document.
+        await setDoc(userRef, cleanProfileData, { merge: true });
     } catch (error) {
         console.error("Error updating user profile:", error);
         throw new Error("Could not update user profile.");
