@@ -1,4 +1,5 @@
 
+
 import { doc, setDoc, serverTimestamp, collection, addDoc, getDoc, updateDoc, runTransaction, arrayUnion, arrayRemove, increment, Timestamp } from "firebase/firestore";
 import type { User } from "firebase/auth";
 import { db } from "./firebase";
@@ -79,10 +80,18 @@ export const updateUserProfile = async (uid: string, data: Partial<UserProfileDa
         throw new Error("User not authenticated or Firestore not available.");
     }
     const userRef = doc(db, `users/${uid}`);
+
+    // Sanitize data before sending to prevent security rule violations.
+    // The user should not be able to change their own UID or creation date.
+    const updateData = { ...data };
+    delete updateData.uid;
+    delete updateData.createdAt;
+
+
     try {
         // Use setDoc with merge: true. This will create the document if it doesn't exist,
         // and update it if it does. It's the most robust way to handle profile updates.
-        await setDoc(userRef, data, { merge: true });
+        await setDoc(userRef, updateData, { merge: true });
     } catch (error) {
         console.error("Error updating user profile:", error);
         throw new Error("Could not update user profile.");
