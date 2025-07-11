@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar";
 import { Header } from "@/components/app/header";
@@ -12,10 +12,21 @@ import { useToast } from '@/hooks/use-toast';
 import { getUserProfile } from '@/lib/firestore';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading, authReady, isAdmin } = useAuth();
+  const { user, loading, authReady, isAdmin: isFirebaseAdmin } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
+  
+  // =========================================================================
+  // TEMPORARY ADMIN OVERRIDE - This grants admin access for initial setup.
+  // This MUST be removed after the first admin user is properly configured.
+  const [isAdmin, setIsAdmin] = useState(isFirebaseAdmin);
+  useEffect(() => {
+    const isSuperAdmin = user?.email === 'mwaniki.dennis@gmail.com';
+    setIsAdmin(isFirebaseAdmin || isSuperAdmin);
+  }, [isFirebaseAdmin, user]);
+  // =========================================================================
+
 
   useEffect(() => {
     // Wait until Firebase has confirmed the auth state
