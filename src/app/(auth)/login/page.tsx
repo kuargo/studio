@@ -53,6 +53,7 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<null | 'google' | 'facebook'>(null);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleAuthSuccess = () => {
     // The main layout's AuthGuard will handle redirection
@@ -65,18 +66,21 @@ export default function LoginPage() {
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage("");
     try {
       await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
       await signInWithEmailAndPassword(auth, email, password);
       handleAuthSuccess();
     } catch (error: any) {
       handleAuthError(error, "Login Failed");
+    } finally {
       setLoading(false);
     }
   };
 
   const handleSocialLogin = async (providerName: 'google' | 'facebook') => {
     setSocialLoading(providerName);
+    setErrorMessage("");
     const provider = providerName === 'google' 
       ? new GoogleAuthProvider() 
       : new FacebookAuthProvider();
@@ -120,6 +124,7 @@ export default function LoginPage() {
       default:
         description = error.message || "An unknown error occurred.";
     }
+    setErrorMessage(description);
     toast({
       variant: "destructive",
       title: title,
@@ -136,6 +141,7 @@ export default function LoginPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {errorMessage && <div data-testid="error-message" className="text-destructive text-sm p-3 bg-destructive/10 border border-destructive/20 rounded-md">{errorMessage}</div>}
         <div className="grid grid-cols-2 gap-4">
           <Button variant="outline" onClick={() => handleSocialLogin('google')} disabled={!!socialLoading} data-testid="google-login-button">
             {socialLoading === 'google' ? "Signing in..." : <><GoogleIcon className="mr-2 h-5 w-5"/> Google</>}
@@ -154,6 +160,7 @@ export default function LoginPage() {
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
+              data-testid="email"
               type="email"
               placeholder="name@example.com"
               required
@@ -165,6 +172,7 @@ export default function LoginPage() {
             <Label htmlFor="password">Password</Label>
             <Input
               id="password"
+              data-testid="password"
               type="password"
               required
               value={password}
@@ -180,7 +188,7 @@ export default function LoginPage() {
               Forgot password?
             </Link>
           </div>
-           <Button type="submit" className="w-full" disabled={loading} data-testid="email-login-button">
+           <Button type="submit" className="w-full" disabled={loading} data-testid="login-button">
             {loading ? "Signing In..." : "Sign In with Email"}
           </Button>
         </form>

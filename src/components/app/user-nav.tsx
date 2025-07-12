@@ -52,7 +52,7 @@ export function UserNav() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+        <Button variant="ghost" className="relative h-10 w-10 rounded-full" data-testid="user-menu">
           <Avatar className="h-10 w-10">
             <AvatarImage src={user.photoURL || ''} alt={user.displayName || "User"} data-ai-hint="person portrait" />
             <AvatarFallback>{userInitial}</AvatarFallback>
@@ -63,7 +63,7 @@ export function UserNav() {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <div className="flex items-center gap-2">
-                <p className="text-sm font-medium leading-none">{user.displayName || "Welcome"}</p>
+                <p className="text-sm font-medium leading-none" data-testid="user-display-name">{user.displayName || "Welcome"}</p>
                 {isAdmin && <Badge variant="destructive">Admin</Badge>}
             </div>
             <p className="text-xs leading-none text-muted-foreground">
@@ -87,7 +87,7 @@ export function UserNav() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout}>
+        <DropdownMenuItem onClick={handleLogout} data-testid="logout-button">
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
         </DropdownMenuItem>

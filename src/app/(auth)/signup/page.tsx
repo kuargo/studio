@@ -88,6 +88,7 @@ export default function SignupPage() {
   const { toast } = useToast();
   const [socialLoading, setSocialLoading] = useState<null | 'google' | 'facebook'>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -114,6 +115,7 @@ export default function SignupPage() {
   };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setErrorMessage("");
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       
@@ -133,6 +135,7 @@ export default function SignupPage() {
 
   const handleSocialLogin = async (providerName: 'google' | 'facebook') => {
     setSocialLoading(providerName);
+    setErrorMessage("");
     const provider = providerName === 'google' 
       ? new GoogleAuthProvider() 
       : new FacebookAuthProvider();
@@ -174,6 +177,7 @@ export default function SignupPage() {
         default:
           description = error.message;
       }
+      setErrorMessage(description);
       toast({
         variant: "destructive",
         title: title,
@@ -191,6 +195,7 @@ export default function SignupPage() {
         </CardDescription>
       </CardHeader>
        <CardContent className="space-y-4">
+          {errorMessage && <div data-testid="error-message" className="text-destructive text-sm p-3 bg-destructive/10 border border-destructive/20 rounded-md">{errorMessage}</div>}
           <div className="grid grid-cols-2 gap-4">
             <Button variant="outline" onClick={() => handleSocialLogin('google')} disabled={!!socialLoading || form.formState.isSubmitting} data-testid="google-signup-button">
               {socialLoading === 'google' ? "Signing up..." : <><GoogleIcon className="mr-2 h-5 w-5"/> Google</>}
@@ -213,7 +218,7 @@ export default function SignupPage() {
                         <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                            <Input type="email" placeholder="name@example.com" {...field} />
+                            <Input type="email" placeholder="name@example.com" {...field} data-testid="email"/>
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -231,6 +236,7 @@ export default function SignupPage() {
                                     type={showPassword ? "text" : "password"}
                                     placeholder="Create a strong password"
                                     {...field}
+                                    data-testid="password"
                                 />
                                 <Button 
                                     type="button" 
@@ -306,7 +312,7 @@ export default function SignupPage() {
                         </FormItem>
                     )}
                 />
-                <Button type="submit" className="w-full" disabled={form.formState.isSubmitting || !!socialLoading} data-testid="email-signup-button">
+                <Button type="submit" className="w-full" disabled={form.formState.isSubmitting || !!socialLoading} data-testid="signup-button">
                     {form.formState.isSubmitting ? "Creating Account..." : "Sign Up with Email"}
                 </Button>
             </form>

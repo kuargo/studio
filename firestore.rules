@@ -1,49 +1,43 @@
-
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Users can only read/write their own profile.
-    // Admins can read/write any user profile.
+    // Users can only read their own profile, create it if it doesn't exist,
+    // and update it. They cannot change their own UID.
     match /users/{userId} {
-      allow read, write: if request.auth.uid == userId || request.auth.token.admin == true;
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
     }
-
+    
     // Any authenticated user can read posts.
-    // Users can create posts.
-    // Users can only update/delete their own posts.
-    // Admins have full access.
+    // Users can only create posts for themselves.
+    // Users can only update their own posts.
     match /posts/{postId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth.uid == resource.data.userId || request.auth.token.admin == true;
-
-      // Rules for the distributed counter on posts (if implemented)
-      // This is not standard and depends on extension setup. For now, we secure the main doc.
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // Deletion rule can be added here if needed
+      // allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     // Any authenticated user can read prayer requests.
-    // Users can create requests.
-    // Users can only update/delete their own requests.
-    // Admins have full access.
+    // Users can only create requests for themselves.
+    // Users can only update their own requests.
     match /prayerRequests/{requestId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth.uid == resource.data.userId || request.auth.token.admin == true;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
       
-      // Allow anyone to trigger the distributed counter extension by writing to a subcollection.
+      // Rules for the distributed counter extension
       match /counter_shards/{shardId} {
         allow create: if request.auth != null;
       }
     }
-
-    // Journal entries are private, only the owner can manage them.
-    // Admins can read entries for moderation, but cannot write them.
+    
+    // Journal entries are private and can only be accessed by the owner.
     match /journalEntries/{entryId} {
-        allow read: if request.auth.uid == resource.data.userId || request.auth.token.admin == true;
-        allow create, update, delete: if request.auth.uid == resource.data.userId;
+       allow read, create, update, delete: if request.auth != null && request.resource.data.userId == request.auth.uid;
     }
-
+    
+    // Add other collections with proper rules here in the future
   }
 }

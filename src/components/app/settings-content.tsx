@@ -29,6 +29,7 @@ export function SettingsContent() {
     const [initialLoading, setInitialLoading] = useState(true);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [deleteConfirmText, setDeleteConfirmText] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
 
     useEffect(() => {
         async function loadProfile() {
@@ -116,6 +117,7 @@ export function SettingsContent() {
         }
 
         setLoading(true);
+        setSuccessMessage("");
         try {
             if (auth.currentUser.displayName !== profile.displayName) {
                 await updateProfile(auth.currentUser, {
@@ -133,6 +135,9 @@ export function SettingsContent() {
             };
 
             await updateUserProfile(user.uid, firestoreData);
+            
+            setSuccessMessage("Profile updated successfully!");
+            setTimeout(() => setSuccessMessage(""), 3000);
 
             toast({
                 title: "Profile Updated",
@@ -202,6 +207,7 @@ export function SettingsContent() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
+                         {successMessage && <div data-testid="success-message" className="text-green-700 text-sm p-3 bg-green-100 border border-green-200 rounded-md">{successMessage}</div>}
                         <div className="flex items-center gap-6">
                             <div className="relative">
                                 <Avatar className="h-24 w-24">
@@ -238,6 +244,7 @@ export function SettingsContent() {
                                 <Input
                                     id="displayName"
                                     name="displayName"
+                                    data-testid="display-name"
                                     value={profile.displayName || ''}
                                     onChange={handleInputChange}
                                     placeholder="Your Name"
@@ -253,6 +260,7 @@ export function SettingsContent() {
                                 <Label htmlFor="location">Location</Label>
                                 <LocationInput
                                     id="location"
+                                    data-testid="location"
                                     value={profile.location || ''}
                                     onValueChange={(value) => handleLocationSelect('location', value)}
                                     placeholder="City, Country"
@@ -273,13 +281,13 @@ export function SettingsContent() {
                                 <Input id="favoriteScripture" name="favoriteScripture" placeholder="e.g., John 3:16" value={profile.favoriteScripture || ''} onChange={handleInputChange} />
                             </div>
                             <div className="md:col-span-2 space-y-2">
-                                <Label htmlFor="quote">Favorite Quote</Label>
-                                <Textarea id="quote" name="quote" placeholder="A quote that inspires you..." value={profile.quote || ''} onChange={handleInputChange} />
+                                <Label htmlFor="quote">Bio / Favorite Quote</Label>
+                                <Textarea id="quote" name="quote" data-testid="bio" placeholder="A quote that inspires you..." value={profile.quote || ''} onChange={handleInputChange} />
                             </div>
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button type="submit" disabled={loading || initialLoading || uploading} data-testid="save-profile-button">
+                        <Button type="submit" disabled={loading || initialLoading || uploading} data-testid="update-profile-button">
                             {loading ? "Saving..." : "Save Changes"}
                         </Button>
                     </CardFooter>
