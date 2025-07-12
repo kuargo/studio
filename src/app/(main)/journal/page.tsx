@@ -63,11 +63,11 @@ export default function JournalPage() {
     const [loadingEntries, setLoadingEntries] = useState(true);
 
     useEffect(() => {
-        if (!authReady) return;
-
-        if (!user) {
-            setLoadingEntries(false);
-            setEntries([]);
+        if (!authReady || !user) {
+            if (!user) {
+                setLoadingEntries(false);
+                setEntries([]);
+            }
             return;
         }
 
@@ -83,12 +83,20 @@ export default function JournalPage() {
                 setEntries(sortedEntries);
                 setLoadingEntries(false);
             },
-            (error) => {
-                console.error("Journal snapshot error:", error);
+            (error: any) => {
                 if (error.code === 'permission-denied') {
-                     console.log("Permission denied on journal listener, likely during auth transition.");
+                     console.log("Permission denied on journal listener, likely during auth transition or due to incorrect security rules.");
                     setEntries([]);
+                } else if (error.code === 'failed-precondition') {
+                    console.error("Firestore Error: Missing Index.", "This query requires a composite index. Please create it in your Firebase console:", error.message);
+                    toast({
+                        variant: "destructive",
+                        title: "Database Error",
+                        description: "A required database index is missing. Please contact support.",
+                        duration: 10000,
+                    });
                 } else {
+                    console.error("Journal snapshot error:", error);
                     toast({ variant: "destructive", title: "Error", description: "Could not fetch your journal entries." });
                 }
                 setLoadingEntries(false);
@@ -278,3 +286,5 @@ export default function JournalPage() {
     </div>
   );
 }
+
+    

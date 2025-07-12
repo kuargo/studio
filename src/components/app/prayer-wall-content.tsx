@@ -85,14 +85,21 @@ export function PrayerWallContent() {
                 setPrayerRequests(requests);
                 setInitialLoading(false);
             },
-            (error) => {
-                console.error("Prayer Wall snapshot error: ", error);
-                if (error.code !== 'permission-denied') {
-                     toast({
+            (error: any) => {
+                if (error.code === 'failed-precondition') {
+                    console.error("Firestore Error: Missing Index.", "This query requires a composite index. Please create it in your Firebase console:", error.message);
+                    toast({
                         variant: "destructive",
-                        title: "Error",
-                        description: "Could not fetch prayer requests."
+                        title: "Database Error",
+                        description: "A required database index is missing. Please contact support.",
+                        duration: 10000,
                     });
+                } else if (error.code === 'permission-denied') {
+                    console.error("Firestore Error: Permission Denied.", "Check your Firestore security rules.", error);
+                    toast({ variant: "destructive", title: "Permission Denied", description: "You don't have permission to view the prayer wall." });
+                } else {
+                    console.error("Prayer Wall snapshot error:", error);
+                    toast({ variant: "destructive", title: "Error", description: "Could not fetch prayer requests." });
                 }
                 setInitialLoading(false);
             }
@@ -354,3 +361,5 @@ function PrayerCard({ id, name, avatar, aiHint, request, prayCount, timestamp, c
         </Card>
     )
 }
+
+    
