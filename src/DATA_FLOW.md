@@ -14,7 +14,31 @@ This document outlines the logical flow of data and user interactions throughout
 
 ---
 
-## 2. User Authentication & Profile Flow
+## 2. Enhanced Security Layer
+
+This diagram illustrates the ideal security model for handling client requests that modify data. Each request passes through multiple layers of validation and protection.
+
+```mermaid
+graph TD
+    A[Client Request] --> B[Auth Guard];
+    B --> C[Rate Limiting];
+    C --> D[Input Validation];
+    D --> E[Business Logic];
+    E --> F[Firestore Rules];
+    F --> G[Database Write];
+```
+
+**Explanation:**
+1.  **Auth Guard**: The `layout.tsx` file and server actions verify the user is authenticated with Firebase Auth.
+2.  **Rate Limiting**: (Future TODO) A Cloud Function or middleware would prevent abuse by limiting requests per user.
+3.  **Input Validation**: Zod schemas on server actions validate the shape and type of incoming data.
+4.  **Business Logic**: The server action contains the core logic, ensuring the request is valid.
+5.  **Firestore Rules**: Security rules on the database provide the final, non-bypassable check before data is written.
+6.  **Database Write**: The action is successfully completed.
+
+---
+
+## 3. User Authentication & Profile Flow
 
 This is the foundational flow for the entire application.
 
@@ -47,7 +71,7 @@ graph TD
 
 ---
 
-## 3. Social Feed & Prayer Wall Flow (Content Creation & Display)
+## 4. Social Feed & Prayer Wall Flow (Content Creation & Display)
 
 This flow is nearly identical for the Social Feed and Prayer Wall and demonstrates the core content loop.
 
@@ -85,7 +109,7 @@ graph TD
 
 ---
 
-## 4. Faith Reels & Sermon Remix Flow (UGC & Creative Tools)
+## 5. Faith Reels & Sermon Remix Flow (UGC & Creative Tools)
 
 This flow outlines how user-generated video content would be handled.
 
