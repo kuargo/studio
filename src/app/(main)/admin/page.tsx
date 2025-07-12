@@ -50,7 +50,10 @@ export default function AdminPage() {
     const { authReady, isAdmin } = useAuth();
 
     useEffect(() => {
-        if (!authReady || !isAdmin) {
+        if (!authReady) {
+            return;
+        }
+        if (!isAdmin) {
             setLoading(false);
             return;
         }

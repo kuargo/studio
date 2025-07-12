@@ -71,8 +71,6 @@ export function PrayerWallContent() {
 
     useEffect(() => {
         if (!authReady) {
-            setInitialLoading(false);
-            setPrayerRequests([]);
             return;
         }
 
