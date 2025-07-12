@@ -31,8 +31,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
     // If a user is logged in, check for terms acceptance and admin routes.
     if (user) {
+      // For any page that isn't the legal acceptance page, check if terms have been accepted.
       if (pathname !== '/legal/accept') {
         getUserProfile(user.uid).then(profile => {
+          // If a profile exists and terms are not accepted, redirect them.
           if (profile && !profile.termsAccepted) {
             toast({
               title: "Welcome! One last step...",
@@ -40,9 +42,13 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             });
             router.push('/legal/accept');
           }
+        }).catch(error => {
+            console.error("Failed to check user profile for terms acceptance:", error);
         });
       }
 
+      // Explicitly protect the /admin route. If the user is not an admin,
+      // show a toast and redirect them immediately.
       if (pathname.startsWith('/admin') && !isAdmin) {
         toast({
           variant: "destructive",
@@ -57,14 +63,14 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   // While auth state is resolving, show a full-page loader.
   // This prevents any child components from rendering and trying to access
   // Firestore before the auth state is ready.
-  if (!authReady) {
+  if (!authReady || (!user && pathname !== '/login')) {
     return <AuthLoader />;
   }
   
-  // If auth is ready but there is no user, this component will trigger the
-  // redirect effect above and return null for a moment.
-  if (!user) {
-    return null;
+  // If the user is not an admin and tries to access the admin page,
+  // we render null to prevent a flash of the admin content before the redirect effect runs.
+  if (pathname.startsWith('/admin') && !isAdmin) {
+      return null;
   }
   
   // Only when auth is ready AND a user exists, render the main app layout.
