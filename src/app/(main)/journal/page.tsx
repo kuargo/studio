@@ -67,9 +67,8 @@ export default function JournalPage() {
 
     useEffect(() => {
         if (!authReady || !user) {
-            if (!user) {
-                setLoadingEntries(false);
-                setEntries([]);
+            if (!authReady && !user) {
+                 setLoadingEntries(false);
             }
             return;
         }
