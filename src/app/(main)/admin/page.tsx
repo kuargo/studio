@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 
 type UserData = {
     uid: string;
@@ -46,8 +47,14 @@ export default function AdminPage() {
     const [users, setUsers] = useState<UserData[]>([]);
     const [loading, setLoading] = useState(true);
     const { toast } = useToast();
+    const { authReady, isAdmin } = useAuth();
 
     useEffect(() => {
+        if (!authReady || !isAdmin) {
+            setLoading(false);
+            return;
+        }
+
         const fetchUsers = async () => {
             try {
                 const querySnapshot = await getDocs(collection(db, 'users'));
@@ -58,7 +65,7 @@ export default function AdminPage() {
                 toast({
                     variant: "destructive",
                     title: "Error fetching users",
-                    description: "Could not load user data from Firestore."
+                    description: "Could not load user data from Firestore. Check console and security rules."
                 });
             } finally {
                 setLoading(false);
@@ -66,7 +73,7 @@ export default function AdminPage() {
         };
 
         fetchUsers();
-    }, [toast]);
+    }, [toast, authReady, isAdmin]);
 
     return (
         <div className="space-y-6">

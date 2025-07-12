@@ -57,7 +57,7 @@ const PrayerWallSkeleton = () => (
 
 
 export function PrayerWallContent() {
-    const { user } = useAuth();
+    const { user, authReady } = useAuth();
     const { toast } = useToast();
     const [newRequest, setNewRequest] = useState("");
     const [loading, setLoading] = useState(false);
@@ -70,8 +70,7 @@ export function PrayerWallContent() {
     const [loadingPrayer, setLoadingPrayer] = useState(false);
 
     useEffect(() => {
-        // Don't try to fetch data if the user isn't authenticated yet.
-        if (!user) {
+        if (!authReady) {
             setInitialLoading(false);
             setPrayerRequests([]);
             return;
@@ -102,7 +101,7 @@ export function PrayerWallContent() {
         );
 
         return () => unsubscribe();
-    }, [user, toast]);
+    }, [authReady, toast]);
 
 
     const handlePostRequest = async () => {

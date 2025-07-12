@@ -41,7 +41,7 @@ const JournalSkeleton = () => (
 );
 
 export default function JournalPage() {
-    const { user } = useAuth();
+    const { user, authReady } = useAuth();
     const { toast } = useToast();
 
     // Form state
@@ -63,6 +63,8 @@ export default function JournalPage() {
     const [loadingEntries, setLoadingEntries] = useState(true);
 
     useEffect(() => {
+        if (!authReady) return;
+
         if (!user) {
             setLoadingEntries(false);
             setEntries([]);
@@ -94,7 +96,7 @@ export default function JournalPage() {
         );
 
         return () => unsubscribe();
-    }, [user, toast]);
+    }, [user, authReady, toast]);
 
 
     const handleSaveEntry = async () => {

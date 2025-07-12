@@ -14,8 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useAuth } from "@/hooks/use-auth";
 import { createSocialPost, toggleLikePost } from "@/lib/firestore";
 import { useToast } from "@/hooks/use-toast";
-import { db, auth } from "@/lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -74,7 +73,7 @@ const EmptyFeed = () => (
 
 
 export function SocialFeedContent() {
-    const { user } = useAuth();
+    const { user, authReady } = useAuth();
     const { toast } = useToast();
     const [newPost, setNewPost] = useState("");
     const [posts, setPosts] = useState<Post[]>([]);
@@ -82,48 +81,35 @@ export function SocialFeedContent() {
     const [posting, setPosting] = useState(false);
 
     useEffect(() => {
-        let snapshotUnsubscribe: (() => void) | null = null;
-        const authUnsubscribe = onAuthStateChanged(auth, (authUser) => {
-            if (snapshotUnsubscribe) {
-                snapshotUnsubscribe();
-            }
+        if (!authReady) {
+            return;
+        }
 
-            if (authUser) {
-                const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
-                snapshotUnsubscribe = onSnapshot(q,
-                    (querySnapshot) => {
-                        const fetchedPosts = querySnapshot.docs.map(doc => ({
-                            id: doc.id,
-                            ...doc.data()
-                        } as Post));
-                        setPosts(fetchedPosts);
-                        setLoading(false);
-                    },
-                    (error) => {
-                        console.error("Social Feed snapshot error:", error);
-                        if (error.code !== 'permission-denied') {
-                            toast({
-                                variant: "destructive",
-                                title: "Error",
-                                description: "Could not fetch social feed."
-                            });
-                        }
-                        setLoading(false);
-                    }
-                );
-            } else {
-                setPosts([]);
+        const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
+        const unsubscribe = onSnapshot(q,
+            (querySnapshot) => {
+                const fetchedPosts = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                } as Post));
+                setPosts(fetchedPosts);
+                setLoading(false);
+            },
+            (error) => {
+                console.error("Social Feed snapshot error:", error);
+                if (error.code !== 'permission-denied') {
+                    toast({
+                        variant: "destructive",
+                        title: "Error",
+                        description: "Could not fetch social feed."
+                    });
+                }
                 setLoading(false);
             }
-        });
+        );
 
-        return () => {
-            authUnsubscribe();
-            if (snapshotUnsubscribe) {
-                snapshotUnsubscribe();
-            }
-        };
-    }, [toast]);
+        return () => unsubscribe();
+    }, [authReady, toast]);
 
 
     const handlePostSubmit = async () => {
@@ -330,7 +316,7 @@ function PostCard({ post, timeAgo }: { post: Post, timeAgo: (date: Timestamp | n
             <CardFooter className="p-2 border-t">
                 {post.type === 'prayer_request' ? (
                     <div className="flex-1 px-2">
-                        <PrayButton prayerId={post.id!} count={post.prayCount!} aria-label="Pray for this request" />
+                        <PrayButton prayerId={post.id!} count={post.prayCount!} />
                     </div>
                 ) : (
                     <div className="flex justify-around text-muted-foreground w-full">
