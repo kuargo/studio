@@ -16,6 +16,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { MoreHorizontal } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 type UserData = {
     uid: string;
@@ -77,6 +78,13 @@ export default function AdminPage() {
 
         fetchUsers();
     }, [toast, authReady, isAdmin]);
+
+    const handleAdminAction = (action: string, userName: string) => {
+        toast({
+            title: `Action: ${action}`,
+            description: `A backend function would be triggered to perform this action on user ${userName}.`
+        });
+    }
 
     return (
         <div className="space-y-6">
@@ -182,10 +190,45 @@ export default function AdminPage() {
                                                             </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem>View Profile</DropdownMenuItem>
-                                                            <DropdownMenuItem>Make Admin</DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => handleAdminAction('View Profile', user.displayName)}>View Profile</DropdownMenuItem>
+                                                            
+                                                            <AlertDialog>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Make Admin</DropdownMenuItem>
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader>
+                                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                                        <AlertDialogDescription>
+                                                                            This will grant admin privileges to {user.displayName}. This action can be reversed, but should be done with caution.
+                                                                        </AlertDialogDescription>
+                                                                    </AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                        <AlertDialogAction onClick={() => handleAdminAction('Make Admin', user.displayName)}>Confirm</AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
+                                                            
                                                             <DropdownMenuSeparator />
-                                                            <DropdownMenuItem className="text-destructive">Disable User</DropdownMenuItem>
+                                                            
+                                                            <AlertDialog>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>Disable User</DropdownMenuItem>
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader>
+                                                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                                        <AlertDialogDescription>
+                                                                            This will disable {user.displayName}'s account and prevent them from logging in. This action can be reversed.
+                                                                        </AlertDialogDescription>
+                                                                    </AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                        <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={() => handleAdminAction('Disable User', user.displayName)}>Yes, disable user</AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
                                                 </TableCell>

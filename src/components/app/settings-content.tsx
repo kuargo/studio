@@ -14,9 +14,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, Loader2 } from "lucide-react";
+import { Camera, Loader2, LogOut } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 import { LocationInput } from "./location-input";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+
 
 export function SettingsContent() {
     const { user } = useAuth();
@@ -26,6 +28,7 @@ export function SettingsContent() {
     const [uploading, setUploading] = useState(false);
     const [initialLoading, setInitialLoading] = useState(true);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
     useEffect(() => {
         async function loadProfile() {
@@ -146,6 +149,14 @@ export function SettingsContent() {
             setLoading(false);
         }
     };
+    
+    const handleAccountAction = (action: string) => {
+        toast({
+            title: `Action: ${action}`,
+            description: `A backend function would be triggered to ${action.toLowerCase()} your account.`
+        });
+    }
+
 
     if (initialLoading) {
         return (
@@ -273,6 +284,76 @@ export function SettingsContent() {
                         </Button>
                     </CardFooter>
                 </form>
+            </Card>
+            
+            <Card className="border-destructive">
+                 <CardHeader>
+                    <CardTitle className="text-destructive">Danger Zone</CardTitle>
+                    <CardDescription>
+                        Manage your account status and data. These actions are permanent or require significant effort to undo.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                     <div className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                            <p className="font-semibold">Deactivate Account</p>
+                            <p className="text-sm text-muted-foreground">Temporarily hide your profile and content.</p>
+                        </div>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="outline">Deactivate</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Deactivate your account?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Your profile and content will be hidden until you sign back in. Are you sure you want to proceed?
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleAccountAction('Deactivate Account')}>Confirm Deactivation</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                     </div>
+                      <div className="flex items-center justify-between p-4 border border-destructive/50 rounded-lg">
+                        <div>
+                            <p className="font-semibold">Delete Account</p>
+                            <p className="text-sm text-muted-foreground">Permanently delete your account and all data.</p>
+                        </div>
+                         <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive">Delete</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This action cannot be undone. This will permanently delete your account, profile, and all associated content (posts, journals, etc.).
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <div className="py-2 space-y-2">
+                                    <Label htmlFor="delete-confirm">Please type <span className="font-bold text-destructive">DELETE</span> to confirm.</Label>
+                                    <Input 
+                                        id="delete-confirm" 
+                                        value={deleteConfirmText}
+                                        onChange={(e) => setDeleteConfirmText(e.target.value)}
+                                    />
+                                </div>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel onClick={() => setDeleteConfirmText('')}>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction 
+                                        disabled={deleteConfirmText !== 'DELETE'}
+                                        onClick={() => handleAccountAction('Delete Account')}
+                                    >
+                                        Yes, delete my account
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                     </div>
+                </CardContent>
             </Card>
         </div>
     );
