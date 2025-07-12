@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,6 +25,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 
+const phoneRegex = new RegExp(
+  /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/
+);
+
 const formSchema = z.object({
   fullName: z.string().min(3, { message: "Full name is required." }),
   profession: z.string().min(3, { message: "Profession is required." }),
@@ -31,7 +36,10 @@ const formSchema = z.object({
   qualifications: z.string().min(10, { message: "Please list your qualifications." }),
   services: z.string().min(10, { message: "Please list the services you offer." }),
   availability: z.string().min(5, { message: "Please describe your availability." }),
-  contact: z.string().min(5, { message: "A contact method is required." }),
+  contact: z.string().min(5, { message: "A contact method is required." })
+    .refine(value => z.string().email().safeParse(value).success || phoneRegex.test(value), {
+        message: "Please provide a valid email or phone number for verification."
+    }),
 });
 
 export function ProviderRegistrationForm() {
@@ -176,3 +184,5 @@ export function ProviderRegistrationForm() {
     </>
   );
 }
+
+    

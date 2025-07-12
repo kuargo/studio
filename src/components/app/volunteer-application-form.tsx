@@ -28,10 +28,14 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Checkbox } from "../ui/checkbox";
 import { useAuth } from "@/hooks/use-auth";
 
+const phoneRegex = new RegExp(
+  /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/
+);
+
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name is required." }),
   email: z.string().email(),
-  phone: z.string().optional(),
+  phone: z.string().regex(phoneRegex, 'Invalid phone number').optional().or(z.literal('')),
   likelihood: z.enum(["high", "medium", "low"], {
     required_error: "Please select your interest level.",
   }),
@@ -194,3 +198,5 @@ export function VolunteerApplicationForm({ opportunityTitle }: VolunteerApplicat
     </>
   );
 }
+
+    

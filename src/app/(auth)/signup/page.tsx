@@ -1,8 +1,11 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import {
   createUserWithEmailAndPassword,
   updateProfile,
@@ -12,6 +15,14 @@ import {
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Card,
   CardContent,
@@ -28,6 +39,26 @@ import { createUserProfile } from "@/lib/firestore";
 import { Separator } from "@/components/ui/separator";
 import { Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+
+const passwordValidation = new RegExp(
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/
+);
+
+const formSchema = z.object({
+    email: z.string().email({ message: "Please enter a valid email address." }),
+    password: z.string().min(8, { message: "Password must be at least 8 characters." })
+        .regex(passwordValidation, {
+            message: "Password must contain an uppercase letter, a lowercase letter, a number, and a special character.",
+        }),
+    confirmPassword: z.string(),
+    agreedToTerms: z.boolean().refine(val => val === true, {
+        message: "You must agree to the terms and conditions.",
+    }),
+}).refine(data => data.password === data.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+});
+
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
@@ -55,76 +86,50 @@ const PasswordRequirement = ({ isValid, children }: { isValid: boolean; children
 export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<null | 'google' | 'facebook'>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      confirmPassword: "",
+      agreedToTerms: false,
+    },
+  });
 
-  const passwordValidation = useMemo(() => {
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumber = /[0-9]/.test(password);
-    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
-    const hasValidLength = password.length >= 8;
-    return { hasUpperCase, hasLowerCase, hasNumber, hasSpecialChar, hasValidLength, allValid: hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar && hasValidLength };
-  }, [password]);
+  const password = form.watch("password");
+
+  const passwordValidation = {
+    hasUpperCase: /[A-Z]/.test(password),
+    hasLowerCase: /[a-z]/.test(password),
+    hasNumber: /[0-9]/.test(password),
+    hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+    hasValidLength: password.length >= 8,
+  };
 
   const handleAuthSuccess = () => {
-    // The main layout's AuthGuard will handle redirection
-    // to either /dashboard or /legal/accept.
     router.push('/dashboard');
   };
 
-  const handleEmailSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-     if (!agreedToTerms) {
-        toast({
-            variant: "destructive",
-            title: "Terms & Conditions",
-            description: "You must agree to the terms and conditions to sign up.",
-        });
-        return;
-    }
-    if (password !== confirmPassword) {
-      toast({
-        variant: "destructive",
-        title: "Passwords Do Not Match",
-        description: "Please check your passwords and try again.",
-      });
-      return;
-    }
-
-    if (!passwordValidation.allValid) {
-        toast({
-            variant: "destructive",
-            title: "Weak Password",
-            description: "Please ensure your password meets all requirements.",
-        });
-        return;
-    }
-
-    setLoading(true);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       
-      const displayName = userCredential.user.displayName || email.split('@')[0];
+      const displayName = userCredential.user.displayName || values.email.split('@')[0];
       await updateProfile(userCredential.user, { displayName });
 
       await createUserProfile(userCredential.user, {
         displayName,
-        termsAccepted: true
+        termsAccepted: values.agreedToTerms
       });
 
       handleAuthSuccess();
     } catch (error: any) {
       handleAuthError(error, "Signup Failed");
-    } finally {
-      setLoading(false);
     }
-  };
+  }
 
   const handleSocialLogin = async (providerName: 'google' | 'facebook') => {
     setSocialLoading(providerName);
@@ -134,11 +139,12 @@ export default function SignupPage() {
     
     try {
       const result = await signInWithPopup(auth, provider);
-      // Create profile on first social login, if it doesn't exist
       await createUserProfile(result.user, { termsAccepted: false });
       handleAuthSuccess();
-    } catch (error: any) {
-      handleAuthError(error, "Social Signup Failed");
+    } catch (error: any)      {
+        if (error.code !== 'auth/popup-closed-by-user') {
+            handleAuthError(error, "Social Signup Failed");
+        }
     } finally {
       setSocialLoading(null);
     }
@@ -186,10 +192,10 @@ export default function SignupPage() {
       </CardHeader>
        <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <Button variant="outline" onClick={() => handleSocialLogin('google')} disabled={!!socialLoading}>
+            <Button variant="outline" onClick={() => handleSocialLogin('google')} disabled={!!socialLoading || form.formState.isSubmitting}>
               {socialLoading === 'google' ? "Signing up..." : <><GoogleIcon className="mr-2 h-5 w-5"/> Google</>}
             </Button>
-            <Button variant="outline" className="text-[#1877F2] hover:text-[#1877F2]" onClick={() => handleSocialLogin('facebook')} disabled={!!socialLoading}>
+            <Button variant="outline" className="text-[#1877F2] hover:text-[#1877F2]" onClick={() => handleSocialLogin('facebook')} disabled={!!socialLoading || form.formState.isSubmitting}>
               {socialLoading === 'facebook' ? "Signing up..." : <><FacebookIcon className="mr-2 h-4 w-4"/> Facebook</>}
             </Button>
           </div>
@@ -198,86 +204,113 @@ export default function SignupPage() {
               <span className="text-xs text-muted-foreground">OR</span>
               <Separator className="flex-1"/>
           </div>
-        <form onSubmit={handleEmailSignup} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="name@example.com"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    required
-                    placeholder="Create a strong password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                            <Input type="email" placeholder="name@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
                 />
-                <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="icon" 
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
-                    onClick={() => setShowPassword(prev => !prev)}
-                >
-                    {showPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
-                </Button>
-              </div>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-2">
-                    <PasswordRequirement isValid={passwordValidation.hasValidLength}>8+ characters</PasswordRequirement>
-                    <PasswordRequirement isValid={passwordValidation.hasUpperCase}>1 uppercase</PasswordRequirement>
-                    <PasswordRequirement isValid={passwordValidation.hasLowerCase}>1 lowercase</PasswordRequirement>
-                    <PasswordRequirement isValid={passwordValidation.hasNumber}>1 number</PasswordRequirement>
-                    <PasswordRequirement isValid={passwordValidation.hasSpecialChar}>1 special char</PasswordRequirement>
-                </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirm Password</Label>
-              <div className="relative">
-                <Input
-                    id="confirm-password"
-                    type={showPassword ? "text" : "password"}
-                    required
-                    placeholder="Re-enter your password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                            <div className="relative">
+                                <Input
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Create a strong password"
+                                    {...field}
+                                />
+                                <Button 
+                                    type="button" 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                                    onClick={() => setShowPassword(prev => !prev)}
+                                >
+                                    {showPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
+                                </Button>
+                            </div>
+                        </FormControl>
+                         <div className="grid grid-cols-2 gap-x-4 gap-y-1 pt-2">
+                            <PasswordRequirement isValid={passwordValidation.hasValidLength}>8+ characters</PasswordRequirement>
+                            <PasswordRequirement isValid={passwordValidation.hasUpperCase}>1 uppercase</PasswordRequirement>
+                            <PasswordRequirement isValid={passwordValidation.hasLowerCase}>1 lowercase</PasswordRequirement>
+                            <PasswordRequirement isValid={passwordValidation.hasNumber}>1 number</PasswordRequirement>
+                            <PasswordRequirement isValid={passwordValidation.hasSpecialChar}>1 special char</PasswordRequirement>
+                        </div>
+                        <FormMessage />
+                    </FormItem>
+                    )}
                 />
-                <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="icon" 
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
-                    onClick={() => setShowPassword(prev => !prev)}
-                >
-                     {showPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
+                 <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Confirm Password</FormLabel>
+                        <FormControl>
+                             <div className="relative">
+                                <Input
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Re-enter your password"
+                                    {...field}
+                                />
+                                <Button 
+                                    type="button" 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                                    onClick={() => setShowPassword(prev => !prev)}
+                                >
+                                    {showPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
+                                </Button>
+                            </div>
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="agreedToTerms"
+                    render={({ field }) => (
+                        <FormItem className="flex items-start space-x-2 pt-2">
+                        <FormControl>
+                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                            <FormLabel htmlFor="terms" className="text-sm font-normal text-muted-foreground">
+                                I agree to the{" "}
+                                <Link href="/legal/terms" target="_blank" className="underline text-primary hover:text-primary/80">
+                                    Terms of Service
+                                </Link>{" "}
+                                and{" "}
+                                <Link href="/legal/privacy" target="_blank" className="underline text-primary hover:text-primary/80">
+                                    Privacy Policy
+                                </Link>.
+                            </FormLabel>
+                             <FormMessage />
+                        </div>
+                        </FormItem>
+                    )}
+                />
+                <Button type="submit" className="w-full" disabled={form.formState.isSubmitting || !!socialLoading}>
+                    {form.formState.isSubmitting ? "Creating Account..." : "Sign Up with Email"}
                 </Button>
-              </div>
-            </div>
-            <div className="flex items-start space-x-2">
-                <Checkbox id="terms" checked={agreedToTerms} onCheckedChange={(checked) => setAgreedToTerms(!!checked)} className="mt-1"/>
-                <Label htmlFor="terms" className="text-sm font-normal text-muted-foreground">
-                    I agree to the{" "}
-                    <Link href="/legal/terms" target="_blank" className="underline text-primary hover:text-primary/80">
-                        Terms of Service
-                    </Link>{" "}
-                    and{" "}
-                    <Link href="/legal/privacy" target="_blank" className="underline text-primary hover:text-primary/80">
-                        Privacy Policy
-                    </Link>.
-                </Label>
-            </div>
-             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating Account..." : "Sign Up with Email"}
-            </Button>
-        </form>
+            </form>
+        </Form>
       </CardContent>
       <CardFooter>
           <p className="text-sm text-center text-muted-foreground w-full">
@@ -290,3 +323,5 @@ export default function SignupPage() {
     </Card>
   );
 }
+
+    

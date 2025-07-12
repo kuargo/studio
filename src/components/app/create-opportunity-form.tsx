@@ -48,6 +48,14 @@ const formSchema = z.object({
   stipend: z.string().optional(),
   ageRestriction: z.string().optional(),
   equipmentNeeded: z.string().optional(),
+}).refine(data => {
+    if (data.stipend && isNaN(parseFloat(data.stipend.replace(/[^0-9.]/g, '')))) {
+        return false;
+    }
+    return true;
+}, {
+    message: "Stipend must be a valid number.",
+    path: ["stipend"],
 });
 
 export function CreateOpportunityForm() {
@@ -244,7 +252,7 @@ export function CreateOpportunityForm() {
                     <FormItem>
                         <FormLabel className="text-xs">Stipend (Optional)</FormLabel>
                         <FormControl>
-                        <Input placeholder="e.g., $50 per event" {...field} />
+                        <Input placeholder="e.g., 50" {...field} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -294,3 +302,5 @@ export function CreateOpportunityForm() {
     </>
   );
 }
+
+    

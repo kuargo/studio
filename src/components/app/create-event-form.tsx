@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,6 +35,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Globe, Building } from "lucide-react";
 
+const phoneRegex = new RegExp(
+  /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/
+);
+
 const formSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters." }),
   description: z.string().min(10, { message: "Description must be at least 10 characters." }),
@@ -44,7 +49,10 @@ const formSchema = z.object({
   location: z.string().optional(),
   url: z.string().url({ message: "Please enter a valid URL." }).optional(),
   contactName: z.string().min(2, { message: "Contact name is required." }),
-  contactInfo: z.string().min(5, { message: "Contact information is required." }),
+  contactInfo: z.string().min(5, { message: "Contact information is required." })
+    .refine(value => z.string().email().safeParse(value).success || phoneRegex.test(value), {
+        message: "Please provide a valid email or phone number."
+    }),
 }).refine(data => {
     if (data.venueType === 'physical') return !!data.location && data.location.length > 0;
     return true;
@@ -288,3 +296,5 @@ export function CreateEventForm() {
     </>
   );
 }
+
+    
