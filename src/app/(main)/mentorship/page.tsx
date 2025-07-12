@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, UserCheck, MessageSquare, BookOpen, Briefcase, Heart, Building2 } from "lucide-react";
+import { Search, UserCheck, MessageSquare, BookOpen, Briefcase, Heart, Building2, Wand2 } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription, DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { MentorApplicationForm } from "@/components/app/mentor-application-form";
 import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 
 const mentors = [
   { name: "Pastor John", avatar: "https://placehold.co/100x100/a5b4fc/1e3a8a.png", aiHint: "man smiling", role: "Senior Pastor", specialties: ["Theology", "Leadership", "Marriage Counseling"] },
@@ -83,15 +84,25 @@ export default function MentorshipPage() {
                               <DialogHeader>
                                 <DialogTitle>Request Mentorship from {mentor.name}</DialogTitle>
                                 <DialogDescription>
-                                    Your request will be sent to {mentor.name} for review. They will be notified and will be able to contact you through the app's messaging system once it's implemented.
+                                    Use the AI assistant to help you draft a clear and thoughtful request.
                                 </DialogDescription>
                               </DialogHeader>
+                              <div className="space-y-4 py-4">
+                                  <Textarea 
+                                    placeholder={`Hi ${mentor.name},\n\nI'm seeking mentorship because...`} 
+                                    className="min-h-[150px]"
+                                  />
+                                  <div className="flex items-center gap-2">
+                                    <Input placeholder="Tell the AI what to improve (e.g., 'make it more formal')" />
+                                    <Button variant="outline" size="icon"><Wand2/></Button>
+                                  </div>
+                              </div>
                               <DialogFooter>
                                 <DialogClose asChild>
                                     <Button variant="outline">Cancel</Button>
                                 </DialogClose>
                                 <DialogClose asChild>
-                                    <Button onClick={() => toast({ title: "Request Sent!", description: `Your mentorship request to ${mentor.name} has been sent.` })}>Confirm Request</Button>
+                                    <Button onClick={() => toast({ title: "Request Sent!", description: `Your mentorship request to ${mentor.name} has been sent.` })}>Send Request</Button>
                                 </DialogClose>
                               </DialogFooter>
                             </DialogContent>

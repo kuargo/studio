@@ -4,70 +4,69 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { BrainCircuit, CalendarPlus, Ear, HeartPulse, Users, Scale, ShieldCheck, LifeBuoy, Baby, FileCheck, Phone, Handshake, UserCheck } from "lucide-react";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { BrainCircuit, CalendarPlus, Ear, HeartPulse, Users, Scale, ShieldCheck, LifeBuoy, Baby, FileCheck, Phone, Handshake, UserCheck, Send, Bot } from "lucide-react";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { ProviderRegistrationForm } from "@/components/app/provider-registration-form";
 import { BookSessionForm } from "@/components/app/book-session-form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
-
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
 
 const resources = [
   {
     icon: Ear,
     title: "Guided Prayer & Meditation",
-    description: "Audio-led sessions to help you focus on God and find peace.",
-    cta: "Listen Now",
+    description: "Audio-led sessions to help you find peace.",
+    cta: "Start a Session",
     color: "text-blue-500",
     bg: "bg-blue-500/10",
   },
   {
     icon: BrainCircuit,
-    title: "Stress Management Hub",
-    description: "Practical exercises and biblical wisdom for navigating anxiety and stress.",
-    cta: "Find Techniques",
+    title: "Stress & Anxiety",
+    description: "Biblical wisdom for navigating anxiety.",
+    cta: "Get Guidance",
     color: "text-green-500",
     bg: "bg-green-500/10",
   },
   {
     icon: ShieldCheck,
     title: "Addiction & Recovery",
-    description: "Find resources and support for overcoming addictions in a faith-based context.",
+    description: "Find support for overcoming addictions.",
     cta: "Find Help",
     color: "text-teal-500",
     bg: "bg-teal-500/10",
   },
    {
     icon: Scale,
-    title: "Mediation & Conflict Resolution",
-    description: "Request help resolving church, group, or personal conflicts with certified mediators.",
+    title: "Conflict Resolution",
+    description: "Request help resolving conflicts.",
     cta: "Get Assistance",
     color: "text-orange-500",
     bg: "bg-orange-500/10",
   },
    {
     icon: Baby,
-    title: "Marriage & Family Counseling",
-    description: "Resources for building strong, Christ-centered families and relationships.",
+    title: "Marriage & Family",
+    description: "Resources for Christ-centered families.",
     cta: "Strengthen Family",
     color: "text-rose-500",
     bg: "bg-rose-500/10",
   },
     {
     icon: FileCheck,
-    title: "Legal & Financial Guidance",
-    description: "Connect with Christian professionals for assistance with legal or financial matters.",
+    title: "Legal & Financial",
+    description: "Connect with Christian professionals.",
     cta: "Seek Counsel",
     color: "text-indigo-500",
     bg: "bg-indigo-500/10",
   },
   {
     icon: Users,
-    title: "Find a Support Group",
-    description: "Join a community of people who understand what you're going through.",
+    title: "Support Groups",
+    description: "Join others who understand.",
     cta: "Browse Groups",
     color: "text-violet-500",
     bg: "bg-violet-500/10",
@@ -81,91 +80,72 @@ const providers = [
      { name: "David Chen", avatar: "https://placehold.co/100x100/a7f3d0/065f46.png", aiHint: "man outdoors", specialties: ["Conflict Resolution", "Mediation"], verified: true },
 ]
 
-function ResourceDialogContent({ title }: { title: string }) {
-    const { toast } = useToast();
-    const showComingSoon = () => toast({ title: "Feature Coming Soon" });
-    const linkButtonClasses = "underline text-primary hover:text-primary/80 text-left w-full justify-start p-0 h-auto";
+function AiAssistantDialog({ title, description, trigger }: { title: string, description: string, trigger: React.ReactNode }) {
+  const [messages, setMessages] = React.useState<{ role: 'user' | 'bot', text: string }[]>([]);
+  const [input, setInput] = React.useState('');
 
-    switch (title) {
-        case "Guided Prayer & Meditation":
-            return (
-                <div className="space-y-3">
-                    <p>Here are some resources to guide you in prayer and meditation:</p>
-                    <ul className="list-disc pl-5 space-y-2">
-                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>10-Minute Guided Christian Meditation</Button></li>
-                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>Lectio Divina: Hearing God through Scripture</Button></li>
-                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>Soaking Worship & Instrumental Prayer Playlist</Button></li>
-                    </ul>
+  const handleSend = () => {
+    if (!input) return;
+    const newMessages = [...messages, { role: 'user' as const, text: input }];
+    setMessages(newMessages);
+    setInput('');
+    // Simulate AI response
+    setTimeout(() => {
+      setMessages([...newMessages, { role: 'bot' as const, text: `This is a placeholder response about ${title}. In a real app, Genkit would provide a thoughtful answer here.` }]);
+    }, 1000);
+  };
+  
+  return (
+      <Dialog>
+        <DialogTrigger asChild>{trigger}</DialogTrigger>
+        <DialogContent className="sm:max-w-[525px]">
+          <DialogHeader>
+            <DialogTitle>AI Assistant: {title}</DialogTitle>
+            <DialogDescription>{description}</DialogDescription>
+          </DialogHeader>
+          <div className="h-[50vh] flex flex-col">
+            <ScrollArea className="flex-1 p-4 border rounded-md bg-muted/50">
+              <div className="space-y-4">
+                 <div className="flex items-start gap-3">
+                    <Avatar className="h-8 w-8 border">
+                        <AvatarFallback><Bot/></AvatarFallback>
+                    </Avatar>
+                    <div className="bg-background p-3 rounded-lg text-sm">
+                        <p>Hello! How can I help you with {title} today? Feel free to ask any questions you have.</p>
+                    </div>
                 </div>
-            );
-        case "Stress Management Hub":
-            return (
-                 <div className="space-y-3">
-                    <p className="font-semibold">Biblical Breathing Exercise:</p>
-                    <p>Inhale for 4 seconds meditating on "The Lord is my Shepherd", hold for 4 seconds, and exhale for 6 seconds meditating on "I shall not want." This practice grounds you in scripture and calms your nervous system.</p>
-                     <p className="font-semibold">The 5-4-3-2-1 Grounding Technique:</p>
-                     <p>Acknowledge 5 things you can see, 4 things you can touch, 3 things you can hear, 2 things you can smell, and 1 thing you can taste. This helps you connect with the present moment.</p>
-                     <Button variant="link" className={cn(linkButtonClasses, "mt-2")} onClick={showComingSoon}>Read More: A Christian Perspective on Managing Anxiety</Button>
-                </div>
-            );
-        case "Addiction & Recovery":
-             return (
-                 <div className="space-y-3">
-                    <p>You are not alone in this fight. God offers freedom and healing. Here are some starting points for help:</p>
-                    <ul className="list-disc pl-5 space-y-2">
-                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>Celebrate Recovery - Find a Local Group</Button></li>
-                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>Focus on the Family: Help for Addiction</Button></li>
-                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>Testimony: A Story of Freedom in Christ (Video)</Button></li>
-                    </ul>
-                </div>
-            );
-        case "Mediation & Conflict Resolution":
-             return (
-                 <div className="space-y-3">
-                    <p className="font-semibold">The 4 G's of Peacemaking:</p>
-                    <ul className="list-disc pl-5 space-y-2">
-                        <li><strong>Glorify God:</strong> How can I honor God in this situation?</li>
-                        <li><strong>Get the Log Out of Your Eye:</strong> How have I contributed to this conflict?</li>
-                        <li><strong>Gently Restore:</strong> How can I help others own their part?</li>
-                        <li><strong>Go and Be Reconciled:</strong> How can I show I'm committed to making things right?</li>
-                    </ul>
-                </div>
-            );
-        case "Marriage & Family Counseling":
-             return (
-                 <div className="space-y-3">
-                    <p>Resources to build a stronger, Christ-centered family:</p>
-                     <ul className="list-disc pl-5 space-y-2">
-                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>Focus on the Family: Marriage Resources</Button></li>
-                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>Article: The 5 Love Languages Explained</Button></li>
-                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>Sermon: A Christ-Centered Home</Button></li>
-                    </ul>
-                    <p className="pt-2">For personalized guidance, please consider booking a session with one of our verified counselors.</p>
-                </div>
-            );
-        case "Legal & Financial Guidance":
-             return (
-                 <div className="space-y-3">
-                    <p className="font-semibold text-destructive">Disclaimer: The information provided here is for informational purposes only and not a substitute for professional legal or financial advice.</p>
-                    <p>We encourage you to connect with Christian professionals who integrate faith and practice. Browse our provider directory for verified legal and financial experts in our community or check out these resources:</p>
-                     <ul className="list-disc pl-5 space-y-2">
-                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>Christian Legal Society</Button></li>
-                        <li><Button variant="link" className={linkButtonClasses} onClick={showComingSoon}>Kingdom Advisors</Button></li>
-                    </ul>
-                </div>
-            );
-        case "Find a Support Group":
-             return (
-                <div className="space-y-4 text-center">
-                   <p>Our Social Feed and Prayer Wall are great places to find and form support groups. Engage with posts, comment, and connect with others on similar journeys.</p>
-                    <Button asChild>
-                        <Link href="/social-feed">Visit the Social Feed</Link>
-                    </Button>
-                </div>
-            );
-        default:
-            return <p>More information coming soon.</p>;
-    }
+                {messages.map((msg, i) => (
+                  <div key={i} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+                    {msg.role === 'bot' && (
+                        <Avatar className="h-8 w-8 border">
+                            <AvatarFallback><Bot/></AvatarFallback>
+                        </Avatar>
+                    )}
+                     <div className={`p-3 rounded-lg text-sm max-w-[80%] ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-background'}`}>
+                        <p>{msg.text}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+            <div className="mt-4 flex gap-2">
+              <Textarea 
+                placeholder="Ask a question..." 
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSend();
+                    }
+                }}
+              />
+              <Button onClick={handleSend}><Send/></Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+  );
 }
 
 
@@ -255,22 +235,11 @@ export default function WellBeingPage() {
                                 </div>
                             </CardHeader>
                             <CardFooter>
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Button className="w-full" variant="secondary">
-                                            {res.cta}
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                        <DialogHeader>
-                                            <DialogTitle>{res.title}</DialogTitle>
-                                            <DialogDescription>{res.description}</DialogDescription>
-                                        </DialogHeader>
-                                        <div className="pt-4 space-y-4 text-sm text-muted-foreground">
-                                           <ResourceDialogContent title={res.title} />
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
+                                <AiAssistantDialog 
+                                  title={res.title} 
+                                  description={res.description}
+                                  trigger={<Button className="w-full" variant="secondary">{res.cta}</Button>}
+                                />
                             </CardFooter>
                         </Card>
                     ))}
