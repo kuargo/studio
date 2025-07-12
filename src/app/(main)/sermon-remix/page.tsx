@@ -55,7 +55,7 @@ export default function SermonRemixPage() {
         <Card>
           <CardHeader>
             <CardTitle>Sermon Remix Studio</CardTitle>
-            <CardDescription>Select a sermon, clip your favorite moment, and create a shareable reel for the community.</CardDescription>
+            <CardDescription>Select a sermon, clip your favorite moment (15-60s), and create a shareable reel for the community.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="aspect-video bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-500 mb-4">
