@@ -6,33 +6,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Heart, MessageCircle, Share2, Image as ImageIcon, Video, Filter, MoreHorizontal, Trophy, Sparkles } from "lucide-react";
+import { Heart, MessageCircle, Share2, Image as ImageIcon, Video, Filter, MoreHorizontal, Trophy, Sparkles, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { PrayButton } from "@/components/app/pray-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
-import { createSocialPost, toggleLikePost } from "@/lib/firestore";
+import { createSocialPost, toggleLikePost, getSocialFeedPosts, Post } from "@/lib/firestore";
 import { useToast } from "@/hooks/use-toast";
-import { db } from "@/lib/firebase";
-import { collection, query, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
+import { Timestamp } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import type { DocumentSnapshot } from "firebase/firestore";
 
-type Post = {
-    id: string;
-    userId: string;
-    content: string;
-    user: { name: string; avatar: string; aiHint: string; };
-    timestamp: Timestamp;
-    likes: number;
-    likedBy: string[];
-    comments: number;
-    type: 'testimony' | 'image' | 'prayer_request' | 'text';
-    imageUrl?: string;
-    aiHint?: string;
-    prayCount?: number;
-};
+
+const POSTS_PER_PAGE = 5;
 
 const PostSkeleton = () => (
     <div className="space-y-6">
@@ -73,50 +61,39 @@ const EmptyFeed = () => (
 
 
 export function SocialFeedContent() {
-    const { user, authReady } = useAuth();
+    const { user } = useAuth();
     const { toast } = useToast();
     const [newPost, setNewPost] = useState("");
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
     const [posting, setPosting] = useState(false);
 
-    useEffect(() => {
-        if (!authReady) {
-            return;
+    // Pagination state
+    const [lastVisible, setLastVisible] = useState<DocumentSnapshot | null>(null);
+    const [hasMore, setHasMore] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+
+     useEffect(() => {
+        loadPosts();
+    }, []);
+
+    const loadPosts = async () => {
+        if (!hasMore || loadingMore) return;
+        
+        setLoadingMore(true);
+        try {
+            const { posts: newPosts, lastVisible: newLastVisible } = await getSocialFeedPosts(POSTS_PER_PAGE, lastVisible);
+            setPosts(prevPosts => lastVisible ? [...prevPosts, ...newPosts] : newPosts);
+            setLastVisible(newLastVisible);
+            setHasMore(newPosts.length === POSTS_PER_PAGE);
+        } catch (error) {
+            console.error("Error fetching posts:", error);
+            toast({ variant: "destructive", title: "Error", description: "Could not fetch posts." });
+        } finally {
+            setLoading(false);
+            setLoadingMore(false);
         }
-
-        const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
-        const unsubscribe = onSnapshot(q,
-            (querySnapshot) => {
-                const fetchedPosts = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                } as Post));
-                setPosts(fetchedPosts);
-                setLoading(false);
-            },
-            (error: any) => {
-                if (error.code === 'failed-precondition') {
-                    console.error("Firestore Error: Missing Index.", "This query requires a composite index. Please create it in your Firebase console:", error.message);
-                    toast({
-                        variant: "destructive",
-                        title: "Database Error",
-                        description: "A required database index is missing. Please contact support.",
-                        duration: 10000,
-                    });
-                } else if (error.code === 'permission-denied') {
-                    console.error("Firestore Error: Permission Denied.", "Check your Firestore security rules.", error);
-                    toast({ variant: "destructive", title: "Permission Denied", description: "You don't have permission to view the social feed." });
-                } else {
-                    console.error("Social Feed snapshot error:", error);
-                    toast({ variant: "destructive", title: "Error", description: "Could not fetch social feed." });
-                }
-                setLoading(false);
-            }
-        );
-
-        return () => unsubscribe();
-    }, [authReady, toast]);
+    };
 
 
     const handlePostSubmit = async () => {
@@ -130,6 +107,12 @@ export function SocialFeedContent() {
                 title: "Posted!",
                 description: "Your post is now live on the feed.",
             });
+            // Reset and fetch from scratch to show the new post at the top
+            setPosts([]);
+            setLastVisible(null);
+            setHasMore(true);
+            loadPosts();
+
         } catch (error) {
             console.error("Error creating post:", error);
             toast({
@@ -208,35 +191,34 @@ export function SocialFeedContent() {
                     <Button variant="outline" size="sm"><Filter className="mr-2 h-4 w-4" /> Filter</Button>
                 </div>
                 
-                {loading ? <PostSkeleton /> : (
-                    <>
-                        <TabsContent value="foryou">
-                            {posts.length > 0 ? (
-                                <div className="space-y-6">
-                                    {posts.map((post) => <PostCard key={post.id} post={post} timeAgo={timeAgo} />)}
-                                </div>
-                            ) : (
-                                <EmptyFeed />
-                            )}
-                        </TabsContent>
-                        <TabsContent value="following">
-                            {posts.length > 0 ? (
-                                <div className="space-y-6">
-                                    {posts.slice().reverse().map((post, i) => <PostCard key={i} post={post} timeAgo={timeAgo} />)}
-                                </div>
-                            ) : (
-                                 <EmptyFeed />
-                            )}
-                        </TabsContent>
-                        <TabsContent value="live">
-                            <div className="text-center py-12 text-muted-foreground">
-                                <Video className="mx-auto h-12 w-12" />
-                                <h3 className="mt-2 text-lg font-medium">No Live Feeds</h3>
-                                <p className="text-sm">There are no live videos at the moment. Check back later!</p>
+                <TabsContent value="foryou">
+                    {loading ? <PostSkeleton /> : (
+                        posts.length > 0 ? (
+                            <div className="space-y-6">
+                                {posts.map((post) => <PostCard key={post.id} post={post} timeAgo={timeAgo} />)}
+                                {hasMore && (
+                                    <div className="text-center">
+                                        <Button onClick={loadPosts} disabled={loadingMore}>
+                                            {loadingMore ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Loading...</> : "Load More"}
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
-                        </TabsContent>
-                    </>
-                )}
+                        ) : (
+                            <EmptyFeed />
+                        )
+                    )}
+                </TabsContent>
+                <TabsContent value="following">
+                     {loading ? <PostSkeleton /> : <EmptyFeed />}
+                </TabsContent>
+                <TabsContent value="live">
+                    <div className="text-center py-12 text-muted-foreground">
+                        <Video className="mx-auto h-12 w-12" />
+                        <h3 className="mt-2 text-lg font-medium">No Live Feeds</h3>
+                        <p className="text-sm">There are no live videos at the moment. Check back later!</p>
+                    </div>
+                </TabsContent>
             </Tabs>
         </div>
     );

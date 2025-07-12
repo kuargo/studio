@@ -1,5 +1,5 @@
 
-import { doc, setDoc, serverTimestamp, collection, addDoc, getDoc, updateDoc, runTransaction, arrayUnion, arrayRemove, increment, Timestamp, query, where, getCountFromServer } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, collection, addDoc, getDoc, updateDoc, runTransaction, arrayUnion, arrayRemove, increment, Timestamp, query, where, getCountFromServer, orderBy, limit, startAfter, getDocs, DocumentSnapshot } from "firebase/firestore";
 import type { User } from "firebase/auth";
 import { db } from "./firebase";
 
@@ -28,6 +28,22 @@ export type JournalEntryData = {
     isPublic: boolean;
     tags: string[];
     timestamp: any; // serverTimestamp()
+};
+
+// Shape for Post data, aligning with social-feed-content
+export type Post = {
+    id: string;
+    userId: string;
+    content: string;
+    user: { name: string; avatar: string; aiHint: string; };
+    timestamp: Timestamp;
+    likes: number;
+    likedBy: string[];
+    comments: number;
+    type: 'testimony' | 'image' | 'prayer_request' | 'text';
+    imageUrl?: string;
+    aiHint?: string;
+    prayCount?: number;
 };
 
 
@@ -322,4 +338,36 @@ export const getUserStats = async (uid: string) => {
             posts: 0,
         };
     }
+};
+
+/**
+ * Fetches social feed posts with pagination.
+ * @param postsLimit The number of posts to fetch per page.
+ * @param lastVisible The last visible document snapshot from the previous fetch, or null for the first page.
+ * @returns An object containing the posts and the last visible document snapshot.
+ */
+export const getSocialFeedPosts = async (postsLimit: number, lastVisible: DocumentSnapshot | null) => {
+    if (!db) {
+        throw new Error("Firestore not initialized.");
+    }
+
+    let q;
+    const postsCollection = collection(db, "posts");
+
+    if (lastVisible) {
+        q = query(postsCollection, orderBy("timestamp", "desc"), startAfter(lastVisible), limit(postsLimit));
+    } else {
+        q = query(postsCollection, orderBy("timestamp", "desc"), limit(postsLimit));
+    }
+
+    const documentSnapshots = await getDocs(q);
+    
+    const posts = documentSnapshots.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    } as Post));
+    
+    const newLastVisible = documentSnapshots.docs[documentSnapshots.docs.length - 1];
+
+    return { posts, lastVisible: newLastVisible };
 };
