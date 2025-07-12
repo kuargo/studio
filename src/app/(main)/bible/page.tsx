@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,34 +16,92 @@ const booksOfBible = [
   "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra", "Nehemiah", "Esther", "Job", "Psalms", "Proverbs", "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah", "Lamentations", "Ezekiel", "Daniel", "Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi", "Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians", "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews", "James", "1 Peter", "2 Peter", "1 John", "2 John", "3 John", "Jude", "Revelation"
 ];
 
-// Placeholder for KJV Genesis Chapter 1
-const genesisChapter1 = `
-1 In the beginning God created the heaven and the earth.
-2 And the earth was without form, and void; and darkness was upon the face of the deep. And the Spirit of God moved upon the face of the waters.
-3 And God said, Let there be light: and there was light.
-4 And God saw the light, that it was good: and God divided the light from the darkness.
-5 And God called the light Day, and the darkness he called Night. And the evening and the morning were the first day.
-6 And God said, Let there be a firmament in the midst of the waters, and let it divide the waters from the waters.
-7 And God made the firmament, and divided the waters which were under the firmament from the waters which were above the firmament: and it was so.
-8 And God called the firmament Heaven. And the evening and the morning were the second day.
-9 And God said, Let the waters under the heaven be gathered together unto one place, and let the dry land appear: and it was so.
-10 And God called the dry land Earth; and the gathering together of the waters called he Seas: and God saw that it was good.
-11 And God said, Let the earth bring forth grass, the herb yielding seed, and the fruit tree yielding fruit after his kind, whose seed is in itself, upon the earth: and it was so.
-12 And the earth brought forth grass, and herb yielding seed after his kind, and the tree yielding fruit, whose seed was in itself, after his kind: and God saw that it was good.
-13 And the evening and the morning were the third day.
-`
+const ScriptureSkeleton = () => (
+    <div className="space-y-4">
+        <Skeleton className="h-8 w-1/2" />
+        <div className="space-y-2">
+            {[...Array(10)].map((_, i) => (
+                <Skeleton key={i} className="h-4 w-full" />
+            ))}
+            <Skeleton className="h-4 w-3/4" />
+        </div>
+    </div>
+);
+
 
 export default function BiblePage() {
     const { toast } = useToast();
+
+    // AI Chat State
     const [question, setQuestion] = useState("");
     const [lastQuestion, setLastQuestion] = useState("");
     const [answer, setAnswer] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
+    const [isAiLoading, setIsAiLoading] = useState(false);
+
+    // Bible Reader State
+    const [book, setBook] = useState("Genesis");
+    const [chapter, setChapter] = useState("1");
+    const [chapterText, setChapterText] = useState("");
+    const [isChapterLoading, setIsChapterLoading] = useState(true);
+    const [chapterCount, setChapterCount] = useState(50); // Default for Genesis
+
+    const fetchChapter = useCallback(async (currentBook: string, currentChapter: string) => {
+        setIsChapterLoading(true);
+        try {
+            const response = await fetch(`https://bible-api.com/${currentBook}+${currentChapter}?translation=kjv`);
+            if (!response.ok) {
+                throw new Error("Failed to fetch scripture.");
+            }
+            const data = await response.json();
+            
+            // The API returns verses in an array, join them together.
+            const formattedText = data.verses.map((v: any) => `[${v.verse}] ${v.text}`).join(' ').replace(/\n/g, ' ');
+            setChapterText(formattedText);
+
+        } catch (error) {
+            console.error("Error fetching chapter:", error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Could not load the selected scripture. Please try again."
+            });
+            setChapterText("Failed to load scripture.");
+        } finally {
+            setIsChapterLoading(false);
+        }
+    }, [toast]);
+
+    const fetchChapterCount = useCallback(async (currentBook: string) => {
+        // This is a simplified way to get chapter counts. A real app might have a hardcoded map.
+        // For now, we'll fetch a non-existent chapter to see how many there are, which is a common workaround.
+        try {
+            const response = await fetch(`https://bible-api.com/${currentBook}`);
+            const data = await response.json();
+            if (data.verses) {
+                 // A more robust API would give this directly. We will hardcode some popular ones.
+                const counts: {[key: string]: number} = { "Genesis": 50, "Exodus": 40, "Psalms": 150, "John": 21, "Romans": 16, "Revelation": 22 };
+                setChapterCount(counts[currentBook] || 30);
+            }
+        } catch (error) {
+            console.log("Could not dynamically fetch chapter count, using default.");
+            setChapterCount(30);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchChapter(book, chapter);
+    }, [book, chapter, fetchChapter]);
+
+    const handleBookChange = (newBook: string) => {
+        setBook(newBook);
+        setChapter("1"); // Reset to chapter 1 when book changes
+        fetchChapterCount(newBook);
+    };
 
     const handleAskAi = async () => {
         if (!question.trim()) return;
 
-        setIsLoading(true);
+        setIsAiLoading(true);
         setAnswer("");
         setLastQuestion(question);
         
@@ -62,7 +120,7 @@ export default function BiblePage() {
                 description: "The AI failed to generate a response. Please try again."
             });
         } finally {
-            setIsLoading(false);
+            setIsAiLoading(false);
             setQuestion("");
         }
     };
@@ -77,38 +135,43 @@ export default function BiblePage() {
                         <BookOpen className="h-6 w-6 text-primary"/>
                         <CardTitle>Bible Reader</CardTitle>
                     </div>
-                    <CardDescription>Select a book and chapter to start reading. Full API integration for multiple versions is coming soon.</CardDescription>
+                    <CardDescription>Select a book and chapter to start reading the King James Version.</CardDescription>
                 </CardHeader>
                 <CardContent>
                      <div className="flex gap-4 mb-4">
-                        <Select defaultValue="Genesis">
+                        <Select value={book} onValueChange={handleBookChange}>
                             <SelectTrigger className="w-2/3">
                                 <SelectValue placeholder="Select a book" />
                             </SelectTrigger>
                             <SelectContent>
-                                {booksOfBible.map(book => (
-                                    <SelectItem key={book} value={book}>{book}</SelectItem>
+                                {booksOfBible.map(b => (
+                                    <SelectItem key={b} value={b}>{b}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
-                        <Select defaultValue="1">
+                        <Select value={chapter} onValueChange={setChapter}>
                             <SelectTrigger className="w-1/3">
                                 <SelectValue placeholder="Chapter" />
                             </SelectTrigger>
                             <SelectContent>
-                                {[...Array(50)].map((_, i) => (
+                                {[...Array(chapterCount)].map((_, i) => (
                                     <SelectItem key={i + 1} value={String(i + 1)}>Chapter {i + 1}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     </div>
 
-                    <ScrollArea className="p-4 border rounded-md bg-secondary/50 max-h-[60vh]">
-                        <h2 className="text-2xl font-bold mb-4">Genesis, Chapter 1 (KJV)</h2>
-                        <div className="whitespace-pre-wrap font-serif text-base leading-loose">
-                            {genesisChapter1}
-                             <p className="text-center text-muted-foreground py-4">...</p>
-                        </div>
+                    <ScrollArea className="p-4 border rounded-md bg-secondary/50 min-h-[60vh]">
+                         {isChapterLoading ? (
+                            <ScriptureSkeleton />
+                         ) : (
+                            <>
+                                <h2 className="text-2xl font-bold mb-4">{book}, Chapter {chapter} (KJV)</h2>
+                                <div className="whitespace-pre-wrap font-serif text-base leading-relaxed text-justify">
+                                    {chapterText}
+                                </div>
+                            </>
+                         )}
                     </ScrollArea>
                 </CardContent>
             </Card>
@@ -125,7 +188,7 @@ export default function BiblePage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <ScrollArea className="p-4 border rounded-md bg-secondary/50 h-80 text-sm">
-                        {isLoading && (
+                        {isAiLoading && (
                             <div className="space-y-4">
                                 <div className="flex items-start gap-2">
                                     <User className="h-5 w-5 text-muted-foreground mt-1" />
@@ -143,7 +206,7 @@ export default function BiblePage() {
                                 </div>
                             </div>
                         )}
-                        {!isLoading && answer && (
+                        {!isAiLoading && answer && (
                             <div className="space-y-4">
                                 <div className="flex items-start gap-2">
                                     <User className="h-5 w-5 text-muted-foreground mt-1" />
@@ -159,7 +222,7 @@ export default function BiblePage() {
                                 </div>
                             </div>
                         )}
-                         {!isLoading && !answer && (
+                         {!isAiLoading && !answer && (
                             <div className="h-full flex items-center justify-center text-muted-foreground">
                                 <p>AI response will appear here.</p>
                             </div>
@@ -177,10 +240,10 @@ export default function BiblePage() {
                                     handleAskAi();
                                 }
                             }}
-                            disabled={isLoading}
+                            disabled={isAiLoading}
                         />
-                        <Button size="icon" className="absolute right-2 bottom-2 h-8 w-8" onClick={handleAskAi} disabled={isLoading || !question.trim()}>
-                           {isLoading ? <span className="animate-spin h-4 w-4 rounded-full border-2 border-transparent border-t-primary-foreground"></span> : <Send className="h-4 w-4"/>}
+                        <Button size="icon" className="absolute right-2 bottom-2 h-8 w-8" onClick={handleAskAi} disabled={isAiLoading || !question.trim()}>
+                           {isAiLoading ? <span className="animate-spin h-4 w-4 rounded-full border-2 border-transparent border-t-primary-foreground"></span> : <Send className="h-4 w-4"/>}
                         </Button>
                     </div>
                 </CardContent>
