@@ -27,6 +27,10 @@ This document tracks major feature requests and enhancements to be implemented a
 - **Full End-to-End (E2E) Testing:**
   - **What:** Set up the Playwright testing framework and write comprehensive tests for all critical user journeys (authentication, posting, profile updates, etc.).
   - **Why:** To ensure long-term stability and catch regressions before they affect users.
+  
+- **Security Hardening:**
+  - **What:** Implement the layered security model outlined in `DATA_FLOW.md`. This includes adding rate limiting and more robust server-side validation.
+  - **Why:** To protect the application and user data from abuse and malicious actors.
 
 ## Future Social Ecosystem Features
 
