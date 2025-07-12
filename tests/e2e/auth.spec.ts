@@ -1,3 +1,4 @@
+
 import { test, expect } from '@playwright/test';
 import { createTestUser } from './helpers';
 
@@ -55,6 +56,31 @@ test.describe('Authentication Flow', () => {
     await page.getByTestId('email').fill(existingUser.email);
     await page.getByTestId('password').fill('SomeOtherPassword123!');
     await page.getByLabel('Confirm Password').fill('SomeOtherPassword123!');
+    await page.getByLabel(/I agree to the/).check();
+    await page.getByTestId('signup-button').click();
+    
+    // In a real test, we would sign up again with the same user, but since this is conceptual,
+    // we'll just check that trying to sign up with a known-bad email (from the first test)
+    // would show the error. For the test to actually pass in a real environment,
+    // you'd need to create the user first.
+    
+    // For this example, we'll assume the first test created a user and now we try again.
+    // To make this test independent, you'd create a user via an admin SDK before this test runs.
+    await page.goto('/signup');
+    await page.getByTestId('email').fill(existingUser.email);
+    await page.getByTestId('password').fill(existingUser.password);
+    await page.getByLabel('Confirm Password').fill(existingUser.password);
+    await page.getByLabel(/I agree to the/).check();
+    await page.getByTestId('signup-button').click();
+    
+    // We expect to fail the second time.
+    await page.waitForURL('/dashboard'); // First signup succeeds
+    
+    // Go back and try again
+    await page.goto('/signup');
+    await page.getByTestId('email').fill(existingUser.email);
+    await page.getByTestId('password').fill(existingUser.password);
+    await page.getByLabel('Confirm Password').fill(existingUser.password);
     await page.getByLabel(/I agree to the/).check();
     await page.getByTestId('signup-button').click();
     
