@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/lib/firebase";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
 import { createJournalEntry, JournalEntryData } from "@/lib/firestore";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,12 +15,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { PlusCircle, Lock, Unlock, Smile, ThumbsUp, Lightbulb, Wand2 } from "lucide-react";
+import { PlusCircle, Lock, Unlock, Smile, ThumbsUp, Lightbulb, Wand2, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getJournalSuggestion, JournalAssistantInput } from "@/ai/flows/journal-assistant-flow";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 
 type JournalEntry = JournalEntryData & { id: string };
 
@@ -43,6 +45,7 @@ const JournalSkeleton = () => (
 export default function JournalPage() {
     const { user, authReady } = useAuth();
     const { toast } = useToast();
+    const isAiConfigured = !!process.env.NEXT_PUBLIC_GOOGLE_AI_API_KEY;
 
     // Form state
     const [title, setTitle] = useState("");
@@ -73,14 +76,14 @@ export default function JournalPage() {
 
         const q = query(
             collection(db, "journalEntries"),
-            where("userId", "==", user.uid)
+            where("userId", "==", user.uid),
+            orderBy("timestamp", "desc")
         );
 
         const unsubscribe = onSnapshot(q,
             (snapshot) => {
                 const fetchedEntries = snapshot.docs.map(doc => ({ ...doc.data() as JournalEntryData, id: doc.id }));
-                const sortedEntries = fetchedEntries.sort((a, b) => (b.timestamp?.toDate()?.getTime() ?? 0) - (a.timestamp?.toDate()?.getTime() ?? 0));
-                setEntries(sortedEntries);
+                setEntries(fetchedEntries);
                 setLoadingEntries(false);
             },
             (error: any) => {
@@ -139,7 +142,7 @@ export default function JournalPage() {
     };
 
     const handleGetSuggestion = async () => {
-        if (!aiTopic) return;
+        if (!aiTopic || !isAiConfigured) return;
         setAiLoading(true);
         setAiSuggestion("");
         try {
@@ -171,9 +174,20 @@ export default function JournalPage() {
                             <PlusCircle className="text-primary"/> New Journal Entry
                         </CardTitle>
                         <Dialog open={aiOpen} onOpenChange={setAiOpen}>
-                            <DialogTrigger asChild>
-                                <Button variant="outline"><Wand2 className="mr-2 h-4 w-4"/> AI Assistant</Button>
-                            </DialogTrigger>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline" disabled={!isAiConfigured}><Wand2 className="mr-2 h-4 w-4"/> AI Assistant</Button>
+                                        </DialogTrigger>
+                                    </TooltipTrigger>
+                                     {!isAiConfigured && (
+                                        <TooltipContent>
+                                            <p>AI is not configured. See AI_SETUP.md</p>
+                                        </TooltipContent>
+                                    )}
+                                </Tooltip>
+                            </TooltipProvider>
                             <DialogContent>
                                 <DialogHeader>
                                     <DialogTitle>AI Journal Assistant</DialogTitle>
@@ -202,6 +216,12 @@ export default function JournalPage() {
                     <CardDescription>Log your dreams, visions, and prophetic impressions. Your entries are private by default.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                     {!isAiConfigured && (
+                        <div className="flex items-center gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+                           <AlertTriangle className="h-5 w-5"/> 
+                           <p>AI features are disabled. Please configure your Google AI API key in <code>.env.local</code> to enable the AI Assistant.</p>
+                        </div>
+                    )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                          <Input 
                             placeholder="Entry Title (e.g., 'Dream about...')"
@@ -286,5 +306,3 @@ export default function JournalPage() {
     </div>
   );
 }
-
-    

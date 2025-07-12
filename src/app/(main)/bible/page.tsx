@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Wand2, BookOpen, Send, User, Bot } from "lucide-react";
+import { Wand2, BookOpen, Send, User, Bot, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { askBibleAi, BibleChatInput } from "@/ai/flows/bible-chat-flow";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const booksOfBible = [
   "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra", "Nehemiah", "Esther", "Job", "Psalms", "Proverbs", "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah", "Lamentations", "Ezekiel", "Daniel", "Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi", "Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians", "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews", "James", "1 Peter", "2 Peter", "1 John", "2 John", "3 John", "Jude", "Revelation"
@@ -31,6 +32,7 @@ const ScriptureSkeleton = () => (
 
 export default function BiblePage() {
     const { toast } = useToast();
+    const isAiConfigured = !!process.env.NEXT_PUBLIC_GOOGLE_AI_API_KEY;
 
     // AI Chat State
     const [question, setQuestion] = useState("");
@@ -99,7 +101,7 @@ export default function BiblePage() {
     };
 
     const handleAskAi = async () => {
-        if (!question.trim()) return;
+        if (!question.trim() || !isAiConfigured) return;
 
         setIsAiLoading(true);
         setAnswer("");
@@ -187,6 +189,12 @@ export default function BiblePage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                     {!isAiConfigured && (
+                        <div className="flex items-center gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+                           <AlertTriangle className="h-5 w-5"/> 
+                           <p>AI features are disabled. Please configure your Google AI API key in <code>.env.local</code>.</p>
+                        </div>
+                    )}
                     <ScrollArea className="p-4 border rounded-md bg-secondary/50 h-80 text-sm">
                         {isAiLoading && (
                             <div className="space-y-4">
@@ -240,11 +248,22 @@ export default function BiblePage() {
                                     handleAskAi();
                                 }
                             }}
-                            disabled={isAiLoading}
+                            disabled={isAiLoading || !isAiConfigured}
                         />
-                        <Button size="icon" className="absolute right-2 bottom-2 h-8 w-8" onClick={handleAskAi} disabled={isAiLoading || !question.trim()}>
-                           {isAiLoading ? <span className="animate-spin h-4 w-4 rounded-full border-2 border-transparent border-t-primary-foreground"></span> : <Send className="h-4 w-4"/>}
-                        </Button>
+                         <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button size="icon" className="absolute right-2 bottom-2 h-8 w-8" onClick={handleAskAi} disabled={isAiLoading || !question.trim() || !isAiConfigured}>
+                                       {isAiLoading ? <span className="animate-spin h-4 w-4 rounded-full border-2 border-transparent border-t-primary-foreground"></span> : <Send className="h-4 w-4"/>}
+                                    </Button>
+                                </TooltipTrigger>
+                                {!isAiConfigured && (
+                                     <TooltipContent>
+                                        <p>AI is not configured. See AI_SETUP.md</p>
+                                    </TooltipContent>
+                                )}
+                            </Tooltip>
+                        </TooltipProvider>
                     </div>
                 </CardContent>
             </Card>

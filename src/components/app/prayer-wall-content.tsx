@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, ThumbsUp, MessageCircle, Smile, CheckCheck, Sparkles, Trophy, BookOpen, Wand2 } from "lucide-react";
+import { Send, ThumbsUp, MessageCircle, Smile, CheckCheck, Sparkles, Trophy, BookOpen, Wand2, AlertTriangle } from "lucide-react";
 import { PrayButton } from "@/components/app/pray-button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
@@ -21,6 +21,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { askPrayerAssistant, PrayerAssistantInput } from "@/ai/flows/prayer-assistant-flow";
 import { createPrayerRequest } from "@/lib/firestore";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 
 type PrayerRequest = {
     id: string;
@@ -60,6 +62,8 @@ const PrayerWallSkeleton = () => (
 export function PrayerWallContent() {
     const { user, authReady } = useAuth();
     const { toast } = useToast();
+    const isAiConfigured = !!process.env.NEXT_PUBLIC_GOOGLE_AI_API_KEY;
+
     const [newRequest, setNewRequest] = useState("");
     const [loading, setLoading] = useState(false);
     const [prayerRequests, setPrayerRequests] = useState<PrayerRequest[]>([]);
@@ -133,7 +137,7 @@ export function PrayerWallContent() {
     };
     
     const handleGetPrayer = async () => {
-        if (!prayerTopic.trim()) return;
+        if (!prayerTopic.trim() || !isAiConfigured) return;
         setLoadingPrayer(true);
         setPrayerResponse("");
         try {
@@ -246,10 +250,17 @@ export function PrayerWallContent() {
                         <CardDescription>Need help finding the words? Let our AI assist you in crafting a prayer.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
+                        {!isAiConfigured && (
+                            <div className="flex items-center gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+                               <AlertTriangle className="h-5 w-5"/> 
+                               <p>AI features are disabled. Please configure your Google AI API key.</p>
+                            </div>
+                        )}
                         <Textarea 
                             placeholder="e.g., For strength during a difficult time"
                             value={prayerTopic}
                             onChange={(e) => setPrayerTopic(e.target.value)}
+                            disabled={!isAiConfigured}
                         />
                         {loadingPrayer && <Skeleton className="h-24 w-full" />}
                         {prayerResponse && (
@@ -259,9 +270,22 @@ export function PrayerWallContent() {
                         )}
                     </CardContent>
                     <CardFooter>
-                        <Button className="w-full" onClick={handleGetPrayer} disabled={loadingPrayer || !prayerTopic.trim()}>
-                            {loadingPrayer ? "Generating..." : "Ask for a Prayer"}
-                        </Button>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className="w-full">
+                                        <Button className="w-full" onClick={handleGetPrayer} disabled={loadingPrayer || !prayerTopic.trim() || !isAiConfigured}>
+                                            {loadingPrayer ? "Generating..." : "Ask for a Prayer"}
+                                        </Button>
+                                    </div>
+                                </TooltipTrigger>
+                                 {!isAiConfigured && (
+                                    <TooltipContent>
+                                        <p>AI is not configured. See AI_SETUP.md</p>
+                                    </TooltipContent>
+                                )}
+                            </Tooltip>
+                        </TooltipProvider>
                     </CardFooter>
                 </Card>
             </div>
@@ -352,5 +376,3 @@ function PrayerCard({ id, name, avatar, aiHint, request, prayCount, timestamp, c
         </Card>
     )
 }
-
-    
