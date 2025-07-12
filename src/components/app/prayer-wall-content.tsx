@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, where, Timestamp } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { askPrayerAssistant, PrayerAssistantInput } from "@/ai/flows/prayer-assistant-flow";
+import { createPrayerRequest } from "@/lib/firestore";
 
 type PrayerRequest = {
     id: string;
@@ -87,7 +88,7 @@ export function PrayerWallContent() {
             },
             (error: any) => {
                 if (error.code === 'failed-precondition') {
-                    console.error("Firestore Error: Missing Index.", "This query requires a composite index. Please create it in your Firebase console:", error.message);
+                    console.error("Firestore Error: Missing Index.", "This query requires a composite index on the 'timestamp' field in the 'prayerRequests' collection. Please create it in your Firebase console:", error.message);
                     toast({
                         variant: "destructive",
                         title: "Database Error",
@@ -95,7 +96,7 @@ export function PrayerWallContent() {
                         duration: 10000,
                     });
                 } else if (error.code === 'permission-denied') {
-                    console.error("Firestore Error: Permission Denied.", "Check your Firestore security rules.", error);
+                    console.error("Firestore Error: Permission Denied.", "Check your Firestore security rules for 'prayerRequests'.", error);
                     toast({ variant: "destructive", title: "Permission Denied", description: "You don't have permission to view the prayer wall." });
                 } else {
                     console.error("Prayer Wall snapshot error:", error);
@@ -113,18 +114,7 @@ export function PrayerWallContent() {
         if (!user || !newRequest.trim()) return;
         setLoading(true);
         try {
-            await addDoc(collection(db, "prayerRequests"), {
-                userId: user.uid,
-                name: user.displayName || "Anonymous",
-                avatar: user.photoURL || "",
-                aiHint: "person portrait",
-                request: newRequest,
-                timestamp: serverTimestamp(),
-                prayCount: 0,
-                comments: [],
-                type: 'request',
-                category: 'Personal' // Default category
-            });
+            await createPrayerRequest(user, newRequest);
             setNewRequest("");
             toast({
                 title: "Success!",
@@ -180,7 +170,7 @@ export function PrayerWallContent() {
                             className="min-h-[100px]"
                             value={newRequest}
                             onChange={(e) => setNewRequest(e.target.value)}
-                            disabled={!user}
+                            disabled={!user || loading}
                             data-testid="new-prayer-request-textarea"
                         />
                     </CardContent>
@@ -362,3 +352,5 @@ function PrayerCard({ id, name, avatar, aiHint, request, prayCount, timestamp, c
         </Card>
     )
 }
+
+    

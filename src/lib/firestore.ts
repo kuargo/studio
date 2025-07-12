@@ -86,9 +86,11 @@ export const updateUserProfile = async (uid: string, data: Partial<UserProfileDa
     delete cleanProfileData.uid;
     delete cleanProfileData.createdAt;
     delete cleanProfileData.email;
-    delete cleanProfileData.termsAccepted;
     // We handle photoURL updates in a separate function to keep logic clean
-    delete cleanProfileData.photoURL;
+    if (cleanProfileData.photoURL === undefined) {
+        delete cleanProfileData.photoURL;
+    }
+
 
     cleanProfileData.updatedAt = serverTimestamp();
 
@@ -173,6 +175,36 @@ export const updatePrayerCount = async (prayerId: string, incrementValue: 1 | -1
 };
 
 /**
+ * Creates a new prayer request in the Prayer Wall.
+ * @param user The authenticated user object.
+ * @param request The text content of the prayer request.
+ */
+export const createPrayerRequest = async (user: User, request: string) => {
+    if (!db || !user) {
+        throw new Error("User must be logged in to create a prayer request.");
+    }
+
+    try {
+        await addDoc(collection(db, "prayerRequests"), {
+            userId: user.uid,
+            name: user.displayName || "Anonymous",
+            avatar: user.photoURL || "https://placehold.co/100x100.png",
+            aiHint: "person portrait",
+            request: request,
+            timestamp: serverTimestamp(),
+            prayCount: 0,
+            comments: [],
+            type: 'request',
+            category: 'Personal' // Default category
+        });
+    } catch (error) {
+        console.error("Error creating prayer request:", error);
+        throw new Error("Could not create prayer request.");
+    }
+};
+
+
+/**
  * Creates a new post in the Social Feed.
  * @param user The authenticated user object.
  * @param content The text content of the post.
@@ -189,22 +221,24 @@ export const createSocialPost = async (user: User, content: string) => {
         postType = 'prayer_request';
     }
 
+    const postData = {
+        userId: user.uid,
+        user: {
+            name: user.displayName || "Anonymous",
+            avatar: user.photoURL || "https://placehold.co/100x100.png",
+            aiHint: "person portrait",
+        },
+        content: content,
+        timestamp: serverTimestamp(),
+        type: postType,
+        likes: 0,
+        likedBy: [] as string[],
+        comments: 0,
+        ...(postType === 'prayer_request' && { prayCount: 0 })
+    };
+
     try {
-        await addDoc(collection(db, "posts"), {
-            userId: user.uid,
-            user: {
-                name: user.displayName || "Anonymous",
-                avatar: user.photoURL || "https://placehold.co/100x100.png",
-                aiHint: "person portrait",
-            },
-            content: content,
-            timestamp: serverTimestamp(),
-            type: postType,
-            likes: 0,
-            likedBy: [],
-            comments: 0,
-            prayCount: postType === 'prayer_request' ? 0 : undefined,
-        });
+        await addDoc(collection(db, "posts"), postData);
     } catch (error) {
         console.error("Error creating social post:", error);
         throw new Error("Could not create post.");
@@ -230,7 +264,8 @@ export const toggleLikePost = async (postId: string, userId: string) => {
             }
 
             const postData = postDoc.data();
-            const hasLiked = postData.likedBy.includes(userId);
+            const likedBy = postData.likedBy || [];
+            const hasLiked = likedBy.includes(userId);
 
             if (hasLiked) {
                 // Unlike the post
@@ -251,3 +286,5 @@ export const toggleLikePost = async (postId: string, userId: string) => {
         throw new Error("Could not update like status.");
     }
 };
+
+    
