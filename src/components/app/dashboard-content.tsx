@@ -1,7 +1,9 @@
 
 "use client";
 
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { getUserStats } from "@/lib/firestore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -30,6 +32,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Skeleton } from "../ui/skeleton";
 
 const theVibeAndCoreItems = [
     { 
@@ -94,19 +97,63 @@ const prayerRequests = [
     { id: "dashboard-david-r", name: "David R.", request: "Please pray for my family's health and protection.", avatar: "https://placehold.co/100x100/a5b4fc/1e3a8a.png", aiHint: "man portrait", initialPrayers: 28 },
 ];
 
-const userStats = [
-  { label: 'Friends', value: 125, icon: Users, href: '#', color: 'text-blue-500', bgColor: 'bg-blue-500/10' },
-  { label: 'Following', value: 72, icon: UserCheck, href: '#', color: 'text-teal-500', bgColor: 'bg-teal-500/10' },
-  { label: 'Prayers', value: 48, icon: Heart, href: '/prayer-wall', color: 'text-rose-500', bgColor: 'bg-rose-500/10' },
-  { label: 'Streak', value: 12, icon: Flame, href: '/journal', unit: 'days', color: 'text-orange-500', bgColor: 'bg-orange-500/10' },
-  { label: 'Groups', value: 5, icon: Users, href: '#', color: 'text-indigo-500', bgColor: 'bg-indigo-500/10' },
-  { label: 'Events', value: 3, icon: Calendar, href: '/events', color: 'text-purple-500', bgColor: 'bg-purple-500/10' },
-];
+type UserStats = {
+    journalEntries: number;
+    prayerRequests: number;
+    posts: number;
+};
+
+const StatCardSkeleton = () => (
+    <div className="grid grid-cols-3 md:grid-cols-6 gap-2 text-center w-full">
+        {[...Array(6)].map((_, i) => (
+            <div key={i} className="rounded-lg p-2">
+                <Skeleton className="h-9 w-9 rounded-full mx-auto mb-2" />
+                <Skeleton className="h-4 w-10 mx-auto" />
+                <Skeleton className="h-3 w-12 mx-auto mt-1" />
+            </div>
+        ))}
+    </div>
+);
 
 
 export function DashboardContent() {
-    const { user } = useAuth();
+    const { user, authReady } = useAuth();
+    const [stats, setStats] = useState<UserStats | null>(null);
+    const [loadingStats, setLoadingStats] = useState(true);
+
+    useEffect(() => {
+        if (authReady && user) {
+            const fetchStats = async () => {
+                setLoadingStats(true);
+                try {
+                    const userStats = await getUserStats(user.uid);
+                    setStats(userStats);
+                } catch (error) {
+                    console.error("Failed to fetch user stats:", error);
+                    // Set stats to 0 on failure so UI doesn't break
+                    setStats({ journalEntries: 0, prayerRequests: 0, posts: 0 });
+                } finally {
+                    setLoadingStats(false);
+                }
+            };
+            fetchStats();
+        } else if (!authReady) {
+            setLoadingStats(true);
+        } else {
+            setLoadingStats(false);
+            setStats({ journalEntries: 0, prayerRequests: 0, posts: 0 });
+        }
+    }, [user, authReady]);
     
+    const userStats = [
+      { label: 'Posts', value: stats?.posts, icon: Newspaper, href: '/social-feed', color: 'text-blue-500', bgColor: 'bg-blue-500/10' },
+      { label: 'Following', value: 72, icon: UserCheck, href: '#', color: 'text-teal-500', bgColor: 'bg-teal-500/10' },
+      { label: 'Prayers', value: stats?.prayerRequests, icon: Heart, href: '/prayer-wall', color: 'text-rose-500', bgColor: 'bg-rose-500/10' },
+      { label: 'Streak', value: stats?.journalEntries, icon: Flame, href: '/journal', unit: 'days', color: 'text-orange-500', bgColor: 'bg-orange-500/10' },
+      { label: 'Groups', value: 5, icon: Users, href: '#', color: 'text-indigo-500', bgColor: 'bg-indigo-500/10' },
+      { label: 'Events', value: 3, icon: Calendar, href: '/events', color: 'text-purple-500', bgColor: 'bg-purple-500/10' },
+    ];
+
     return (
         <div className="space-y-8">
             <Card className="overflow-hidden border-0 shadow-lg">
@@ -123,20 +170,22 @@ export function DashboardContent() {
                     </div>
                 </div>
                 <CardFooter className="bg-card p-4">
-                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2 text-center w-full">
-                        {userStats.map(stat => (
-                             <Link href={stat.href} key={stat.label} className="group rounded-lg p-2 hover:bg-accent/50 transition-colors duration-200">
-                                 <div className={cn(
-                                     "p-2 rounded-full w-fit mx-auto mb-2 transition-all duration-200 group-hover:scale-110", 
-                                     stat.bgColor
-                                 )}>
-                                    <stat.icon className={cn("h-5 w-5", stat.color)}/>
-                                 </div>
-                                <p className="font-semibold text-base">{stat.value}</p>
-                                <p className="text-xs text-muted-foreground">{stat.label} {stat.unit}</p>
-                            </Link>
-                        ))}
-                    </div>
+                    {loadingStats ? <StatCardSkeleton /> : (
+                        <div className="grid grid-cols-3 md:grid-cols-6 gap-2 text-center w-full">
+                            {userStats.map(stat => (
+                                <Link href={stat.href} key={stat.label} className="group rounded-lg p-2 hover:bg-accent/50 transition-colors duration-200">
+                                    <div className={cn(
+                                        "p-2 rounded-full w-fit mx-auto mb-2 transition-all duration-200 group-hover:scale-110", 
+                                        stat.bgColor
+                                    )}>
+                                        <stat.icon className={cn("h-5 w-5", stat.color)}/>
+                                    </div>
+                                    <p className="font-semibold text-base">{stat.value ?? 0}</p>
+                                    <p className="text-xs text-muted-foreground">{stat.label} {stat.value ? stat.unit : ''}</p>
+                                </Link>
+                            ))}
+                        </div>
+                    )}
                 </CardFooter>
             </Card>
             
@@ -166,7 +215,6 @@ export function DashboardContent() {
                                                                 {item.pillar}
                                                             </div>
                                                             <h3 className="font-semibold text-sm leading-tight group-hover:underline">{item.title}</h3>
-                                                            {/* <p className="text-xs text-muted-foreground mt-1">{item.description}</p> */}
                                                         </div>
                                                     </CardContent>
                                                 </Card>

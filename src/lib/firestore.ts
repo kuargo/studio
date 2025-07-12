@@ -1,5 +1,5 @@
 
-import { doc, setDoc, serverTimestamp, collection, addDoc, getDoc, updateDoc, runTransaction, arrayUnion, arrayRemove, increment, Timestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, collection, addDoc, getDoc, updateDoc, runTransaction, arrayUnion, arrayRemove, increment, Timestamp, query, where, getCountFromServer } from "firebase/firestore";
 import type { User } from "firebase/auth";
 import { db } from "./firebase";
 
@@ -287,4 +287,39 @@ export const toggleLikePost = async (postId: string, userId: string) => {
     }
 };
 
-    
+/**
+ * Fetches aggregate stats for a given user.
+ * @param uid The user's ID.
+ * @returns An object with counts for journalEntries, prayerRequests, and posts.
+ */
+export const getUserStats = async (uid: string) => {
+    if (!db || !uid) {
+        throw new Error("User not authenticated or Firestore not available.");
+    }
+
+    const journalQuery = query(collection(db, "journalEntries"), where("userId", "==", uid));
+    const prayerQuery = query(collection(db, "prayerRequests"), where("userId", "==", uid));
+    const postQuery = query(collection(db, "posts"), where("userId", "==", uid));
+
+    try {
+        const [journalSnapshot, prayerSnapshot, postSnapshot] = await Promise.all([
+            getCountFromServer(journalQuery),
+            getCountFromServer(prayerQuery),
+            getCountFromServer(postQuery)
+        ]);
+
+        return {
+            journalEntries: journalSnapshot.data().count,
+            prayerRequests: prayerSnapshot.data().count,
+            posts: postSnapshot.data().count,
+        };
+    } catch (error) {
+        console.error("Error getting user stats:", error);
+        // In case of error (e.g., missing index), return zeroed stats
+        return {
+            journalEntries: 0,
+            prayerRequests: 0,
+            posts: 0,
+        };
+    }
+};
