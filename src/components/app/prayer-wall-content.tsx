@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, ThumbsUp, MessageCircle, Smile, CheckCheck, Sparkles, Trophy, BookOpen, Wand2, AlertTriangle } from "lucide-react";
+import { Send, ThumbsUp, MessageCircle, Smile, CheckCheck, Sparkles, Trophy, BookOpen, Wand2, AlertTriangle, Loader2 } from "lucide-react";
 import { PrayButton } from "@/components/app/pray-button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
@@ -20,23 +20,11 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { askPrayerAssistant, PrayerAssistantInput } from "@/ai/flows/prayer-assistant-flow";
-import { createPrayerRequest } from "@/lib/firestore";
+import { createPrayerRequest, getPrayerRequests, PrayerRequest } from "@/lib/firestore";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { DocumentSnapshot } from "firebase/firestore";
 
-
-type PrayerRequest = {
-    id: string;
-    userId: string;
-    name: string;
-    avatar: string;
-    aiHint: string;
-    request: string;
-    category: 'Personal' | 'Family' | 'Church' | 'Praise' | 'Answered' | 'Testimony' | 'Verdict';
-    timestamp: Timestamp;
-    prayCount: number;
-    comments: { name: string; text: string; }[];
-    type: 'request' | 'testimony' | 'verdict' | 'answered';
-};
+const REQUESTS_PER_PAGE = 5;
 
 const PrayerWallSkeleton = () => (
     <div className="space-y-4 mt-4">
@@ -58,65 +46,97 @@ const PrayerWallSkeleton = () => (
     </div>
 );
 
+const EmptyFeed = ({ message }: { message: string }) => (
+    <div className="text-center py-12 text-muted-foreground">
+        <Sparkles className="mx-auto h-12 w-12" />
+        <h3 className="mt-2 text-lg font-medium">{message}</h3>
+        <p className="text-sm">Be the first to share something!</p>
+    </div>
+);
+
 
 export function PrayerWallContent() {
-    const { user, authReady } = useAuth();
+    const { user } = useAuth();
     const { toast } = useToast();
     const isAiConfigured = !!process.env.NEXT_PUBLIC_GOOGLE_AI_API_KEY;
 
     const [newRequest, setNewRequest] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [prayerRequests, setPrayerRequests] = useState<PrayerRequest[]>([]);
-    const [initialLoading, setInitialLoading] = useState(true);
+    const [posting, setPosting] = useState(false);
 
-    // AI Prayer Assistant State
+    // AI Assistant State
     const [prayerTopic, setPrayerTopic] = useState("");
     const [prayerResponse, setPrayerResponse] = useState("");
     const [loadingPrayer, setLoadingPrayer] = useState(false);
 
-    useEffect(() => {
-        if (!authReady) {
-            return;
-        }
+    // New state for handling multiple feeds
+    const [feeds, setFeeds] = useState<{ [key: string]: { items: PrayerRequest[], lastVisible: DocumentSnapshot | null, hasMore: boolean } }>({
+        all: { items: [], lastVisible: null, hasMore: true },
+        requests: { items: [], lastVisible: null, hasMore: true },
+        answered: { items: [], lastVisible: null, hasMore: true },
+        testimonies: { items: [], lastVisible: null, hasMore: true },
+        verdicts: { items: [], lastVisible: null, hasMore: true },
+    });
+    const [loadingFeeds, setLoadingFeeds] = useState<{ [key: string]: boolean }>({});
+    const [activeTab, setActiveTab] = useState<string>("all");
+    const [initialLoading, setInitialLoading] = useState(true);
 
-        const q = query(collection(db, "prayerRequests"), orderBy("timestamp", "desc"));
+    const loadRequests = async (tab: string) => {
+        if (loadingFeeds[tab] || !feeds[tab].hasMore) return;
+
+        setLoadingFeeds(prev => ({ ...prev, [tab]: true }));
         
-        const unsubscribe = onSnapshot(q,
-            (querySnapshot) => {
-                const requests = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                } as PrayerRequest));
-                setPrayerRequests(requests);
-                setInitialLoading(false);
-            },
-            (error: any) => {
-                if (error.code === 'failed-precondition') {
-                    console.error("Firestore Error: Missing Index.", "This query requires a composite index on the 'timestamp' field in the 'prayerRequests' collection. Please create it in your Firebase console:", error.message);
-                    toast({
-                        variant: "destructive",
-                        title: "Database Error",
-                        description: "A required database index is missing. Please contact support.",
-                        duration: 10000,
-                    });
-                } else if (error.code === 'permission-denied') {
-                    console.error("Firestore Error: Permission Denied.", "Check your Firestore security rules for 'prayerRequests'.", error);
-                    toast({ variant: "destructive", title: "Permission Denied", description: "You don't have permission to view the prayer wall." });
-                } else {
-                    console.error("Prayer Wall snapshot error:", error);
-                    toast({ variant: "destructive", title: "Error", description: "Could not fetch prayer requests." });
-                }
-                setInitialLoading(false);
-            }
-        );
+        const typeFilter = tab === 'all' ? undefined : tab as PrayerRequest['type'];
 
-        return () => unsubscribe();
-    }, [authReady, toast]);
+        try {
+            const { requests: newRequests, lastVisible: newLastVisible } = await getPrayerRequests(REQUESTS_PER_PAGE, feeds[tab].lastVisible, typeFilter);
+            
+            setFeeds(prevFeeds => ({
+                ...prevFeeds,
+                [tab]: {
+                    items: [...prevFeeds[tab].items, ...newRequests],
+                    lastVisible: newLastVisible,
+                    hasMore: newRequests.length === REQUESTS_PER_PAGE
+                }
+            }));
+            
+        } catch (error) {
+            console.error("Error fetching prayer requests for tab", tab, error);
+            toast({ variant: "destructive", title: "Error", description: "Could not fetch prayer requests." });
+        } finally {
+            setLoadingFeeds(prev => ({ ...prev, [tab]: false }));
+            if (initialLoading) setInitialLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        // Load initial data for the 'all' tab
+        loadRequests('all');
+    }, []);
+
+    const handleTabChange = (value: string) => {
+        setActiveTab(value);
+        if (feeds[value].items.length === 0 && feeds[value].hasMore) {
+            loadRequests(value);
+        }
+    };
+    
+    const resetFeeds = () => {
+        const resetState = { items: [], lastVisible: null, hasMore: true };
+        setFeeds({
+            all: { ...resetState },
+            requests: { ...resetState },
+            answered: { ...resetState },
+            testimonies: { ...resetState },
+            verdicts: { ...resetState },
+        });
+        // After resetting, reload the current tab's data
+        setTimeout(() => loadRequests(activeTab), 0);
+    };
 
 
     const handlePostRequest = async () => {
         if (!user || !newRequest.trim()) return;
-        setLoading(true);
+        setPosting(true);
         try {
             await createPrayerRequest(user, newRequest);
             setNewRequest("");
@@ -124,6 +144,8 @@ export function PrayerWallContent() {
                 title: "Success!",
                 description: "Your prayer request has been posted.",
             });
+            // Reset and reload feeds
+            resetFeeds();
         } catch (error) {
             console.error("Error posting request: ", error);
             toast({
@@ -132,7 +154,7 @@ export function PrayerWallContent() {
                 description: "Could not post your request. Please try again."
             });
         } finally {
-            setLoading(false);
+            setPosting(false);
         }
     };
     
@@ -155,9 +177,27 @@ export function PrayerWallContent() {
             setLoadingPrayer(false);
         }
     };
-
-    const filterPosts = (type: PrayerRequest['type']) => {
-        return prayerRequests.filter(p => p.type === type);
+    
+    const renderFeed = (tab: string) => {
+        const feed = feeds[tab];
+        if (loadingFeeds[tab] && feed.items.length === 0) {
+            return <PrayerWallSkeleton />;
+        }
+        if (feed.items.length === 0 && !feed.hasMore) {
+            return <EmptyFeed message={`No ${tab} to show.`} />;
+        }
+        return (
+            <div className="space-y-4">
+                {feed.items.map(p => <PrayerCard key={p.id} {...p} />)}
+                {feed.hasMore && (
+                    <div className="text-center">
+                        <Button onClick={() => loadRequests(tab)} disabled={loadingFeeds[tab]}>
+                            {loadingFeeds[tab] ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Loading...</> : "Load More"}
+                        </Button>
+                    </div>
+                )}
+            </div>
+        );
     }
     
     return (
@@ -174,19 +214,19 @@ export function PrayerWallContent() {
                             className="min-h-[100px]"
                             value={newRequest}
                             onChange={(e) => setNewRequest(e.target.value)}
-                            disabled={!user || loading}
+                            disabled={!user || posting}
                             data-testid="new-prayer-request-textarea"
                         />
                     </CardContent>
                     <CardFooter className="flex justify-between items-center">
                         <p className="text-xs text-muted-foreground">You can post anonymously in settings.</p>
-                        <Button onClick={handlePostRequest} disabled={loading || !newRequest.trim() || !user} data-testid="submit-prayer-request-button">
-                            {loading ? "Posting..." : <><Send className="mr-2 h-4 w-4" /> Post to Wall</>}
+                        <Button onClick={handlePostRequest} disabled={posting || !newRequest.trim() || !user} data-testid="submit-prayer-request-button">
+                            {posting ? "Posting..." : <><Send className="mr-2 h-4 w-4" /> Post to Wall</>}
                         </Button>
                     </CardFooter>
                 </Card>
 
-                <Tabs defaultValue="all" className="w-full">
+                <Tabs defaultValue="all" className="w-full" onValueChange={handleTabChange}>
                     <TabsList className="grid w-full grid-cols-5">
                         <TabsTrigger value="all">All</TabsTrigger>
                         <TabsTrigger value="requests">Requests</TabsTrigger>
@@ -196,31 +236,11 @@ export function PrayerWallContent() {
                     </TabsList>
                      {initialLoading ? <PrayerWallSkeleton /> : (
                         <>
-                            <TabsContent value="all" className="mt-4">
-                                <div className="space-y-4">
-                                    {prayerRequests.map(p => <PrayerCard key={p.id} {...p} />)}
-                                </div>
-                            </TabsContent>
-                            <TabsContent value="requests" className="mt-4">
-                                <div className="space-y-4">
-                                    {filterPosts('request').map(p => <PrayerCard key={p.id} {...p} />)}
-                                </div>
-                            </TabsContent>
-                            <TabsContent value="answered" className="mt-4">
-                                <div className="space-y-4">
-                                    {filterPosts('answered').map(p => <PrayerCard key={p.id} {...p} />)}
-                                </div>
-                            </TabsContent>
-                            <TabsContent value="testimonies" className="mt-4">
-                                 <div className="space-y-4">
-                                    {filterPosts('testimony').map(p => <PrayerCard key={p.id} {...p} />)}
-                                </div>
-                            </TabsContent>
-                            <TabsContent value="verdicts" className="mt-4">
-                                 <div className="space-y-4">
-                                    {filterPosts('verdict').map(p => <PrayerCard key={p.id} {...p} />)}
-                                </div>
-                            </TabsContent>
+                            <TabsContent value="all" className="mt-4">{renderFeed('all')}</TabsContent>
+                            <TabsContent value="requests" className="mt-4">{renderFeed('requests')}</TabsContent>
+                            <TabsContent value="answered" className="mt-4">{renderFeed('answered')}</TabsContent>
+                            <TabsContent value="testimonies" className="mt-4">{renderFeed('testimonies')}</TabsContent>
+                            <TabsContent value="verdicts" className="mt-4">{renderFeed('verdicts')}</TabsContent>
                         </>
                      )}
                 </Tabs>
@@ -344,14 +364,14 @@ function PrayerCard({ id, name, avatar, aiHint, request, prayCount, timestamp, c
                             <Button variant="ghost" size="sm" className="flex items-center gap-1.5"><ThumbsUp className="w-4 h-4" /> Agree</Button>
                             <Button variant="ghost" size="sm" className="flex items-center gap-1.5"><Smile className="w-4 h-4" /> Encourage</Button>
                             <CollapsibleTrigger asChild>
-                                <Button variant="ghost" size="sm" className="flex items-center gap-1.5"><MessageCircle className="w-4 h-4" /> {comments.length > 0 ? comments.length : ''} Comment</Button>
+                                <Button variant="ghost" size="sm" className="flex items-center gap-1.5"><MessageCircle className="w-4 h-4" /> {comments?.length > 0 ? comments.length : ''} Comment</Button>
                             </CollapsibleTrigger>
                         </div>
                     </div>
                     <CollapsibleContent>
                         <Separator />
                         <div className="bg-secondary/50 p-4 space-y-4">
-                            {comments.map((comment, index) => (
+                            {comments?.map((comment, index) => (
                                 <div key={index} className="flex gap-2 text-sm">
                                     <Avatar className="h-8 w-8">
                                         <AvatarFallback>{comment.name.charAt(0)}</AvatarFallback>

@@ -46,6 +46,20 @@ export type Post = {
     prayCount?: number;
 };
 
+export type PrayerRequest = {
+    id: string;
+    userId: string;
+    name: string;
+    avatar: string;
+    aiHint: string;
+    request: string;
+    category: 'Personal' | 'Family' | 'Church' | 'Praise' | 'Answered' | 'Testimony' | 'Verdict';
+    timestamp: Timestamp;
+    prayCount: number;
+    comments: { name: string; text: string; }[];
+    type: 'request' | 'testimony' | 'verdict' | 'answered';
+};
+
 
 export const createUserProfile = async (user: User, additionalData: Record<string, any> = {}) => {
   if (!user || !db) return;
@@ -370,4 +384,41 @@ export const getSocialFeedPosts = async (postsLimit: number, lastVisible: Docume
     const newLastVisible = documentSnapshots.docs[documentSnapshots.docs.length - 1];
 
     return { posts, lastVisible: newLastVisible };
+};
+
+
+/**
+ * Fetches prayer requests with pagination.
+ * @param reqsLimit The number of requests to fetch per page.
+ * @param lastVisible The last visible document snapshot from the previous fetch, or null for the first page.
+ * @returns An object containing the prayer requests and the last visible document snapshot.
+ */
+export const getPrayerRequests = async (reqsLimit: number, lastVisible: DocumentSnapshot | null, typeFilter?: PrayerRequest['type']) => {
+    if (!db) {
+        throw new Error("Firestore not initialized.");
+    }
+
+    const reqsCollection = collection(db, "prayerRequests");
+    let q;
+
+    const constraints = [orderBy("timestamp", "desc"), limit(reqsLimit)];
+    if (typeFilter) {
+        constraints.unshift(where("type", "==", typeFilter));
+    }
+     if (lastVisible) {
+        constraints.push(startAfter(lastVisible));
+    }
+
+    q = query(reqsCollection, ...constraints);
+    
+    const documentSnapshots = await getDocs(q);
+    
+    const requests = documentSnapshots.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    } as PrayerRequest));
+    
+    const newLastVisible = documentSnapshots.docs[documentSnapshots.docs.length - 1];
+
+    return { requests, lastVisible: newLastVisible };
 };
