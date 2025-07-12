@@ -4,29 +4,65 @@ import { createTestUser } from './helpers';
 test.describe('Authentication Flow', () => {
 
   test('should allow a new user to sign up and then log out', async ({ page }) => {
-    // This is a conceptual test outline.
-    // In a real test, we would use the createTestUser() helper
-    // and interact with the UI to complete the signup flow.
     const newUser = createTestUser();
 
     // 1. Navigate to the signup page
     await page.goto('/signup');
-    
-    // 2. Fill out the form
-    // Example: await page.getByTestId('email').fill(newUser.email);
-
-    // 3. Assert that after signup, the user is on the dashboard
-    // Example: await expect(page).toHaveURL('/dashboard');
-
-    // 4. Click the user menu and log out
-    // Example: await page.getByTestId('user-menu').click();
-    // Example: await page.getByTestId('logout-button').click();
-
-    // 5. Assert that the user is redirected to the login page
-    // Example: await expect(page).toHaveURL('/login');
-
-    // Placeholder assertion to make the test pass for now
     await expect(page).toHaveTitle(/Connect Hub/);
+
+    // 2. Fill out the signup form
+    await page.getByTestId('email').fill(newUser.email);
+    await page.getByTestId('password').fill(newUser.password);
+    await page.getByLabel('Confirm Password').fill(newUser.password);
+    
+    // Check the terms and conditions box
+    await page.getByLabel(/I agree to the/).check();
+    
+    // 3. Submit the form
+    await page.getByTestId('signup-button').click();
+
+    // 4. Assert that the user is on the dashboard
+    // We wait for the URL to change to /dashboard, which indicates a successful signup and redirect.
+    await page.waitForURL('/dashboard');
+    await expect(page).toHaveURL('/dashboard');
+
+    // 5. Assert that the user's name is in the user menu, confirming they are logged in
+    await page.getByTestId('user-menu').click();
+    const userDisplayName = page.getByTestId('user-display-name');
+    await expect(userDisplayName).toBeVisible();
+    await expect(userDisplayName).toHaveText(newUser.email.split('@')[0]);
+
+    // 6. Log out
+    await page.getByTestId('logout-button').click();
+
+    // 7. Assert that the user is redirected to the login page
+    await page.waitForURL('/login');
+    await expect(page).toHaveURL('/login');
   });
+
+  test('should show an error for an existing email during signup', async ({ page }) => {
+    // This is a conceptual test outline. To run this, we would first need
+    // to programmatically create a user in the database before the test runs.
+    const existingUser = createTestUser();
+    
+    // Conceptual Step 1: Create the user via an API or Firebase Admin SDK helper
+    // await createFirebaseUser(existingUser.email, existingUser.password);
+
+    // Navigate to signup
+    await page.goto('/signup');
+
+    // Attempt to sign up with the same email
+    await page.getByTestId('email').fill(existingUser.email);
+    await page.getByTestId('password').fill('SomeOtherPassword123!');
+    await page.getByLabel('Confirm Password').fill('SomeOtherPassword123!');
+    await page.getByLabel(/I agree to the/).check();
+    await page.getByTestId('signup-button').click();
+    
+    // Assert that an error message is shown
+    const errorMessage = page.getByTestId('error-message');
+    await expect(errorMessage).toBeVisible();
+    await expect(errorMessage).toContainText('This email address is already in use');
+  });
+
 
 });
