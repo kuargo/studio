@@ -4,8 +4,8 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { BrainCircuit, CalendarPlus, Ear, HeartPulse, Users, Scale, ShieldCheck, LifeBuoy, Baby, FileCheck, Phone, Handshake, UserCheck, Send, Bot } from "lucide-react";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { BrainCircuit, CalendarPlus, Ear, HeartPulse, Users, Scale, ShieldCheck, LifeBuoy, Baby, FileCheck, Phone, Handshake, UserCheck, Send, Bot, Wand2 } from "lucide-react";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { ProviderRegistrationForm } from "@/components/app/provider-registration-form";
 import { BookSessionForm } from "@/components/app/book-session-form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -18,7 +18,7 @@ const resources = [
   {
     icon: Ear,
     title: "Guided Prayer & Meditation",
-    description: "Audio-led sessions to help you find peace.",
+    description: "Audio-led sessions to help you find peace. Let our AI guide you through a reflective session.",
     cta: "Start a Session",
     color: "text-blue-500",
     bg: "bg-blue-500/10",
@@ -26,7 +26,7 @@ const resources = [
   {
     icon: BrainCircuit,
     title: "Stress & Anxiety",
-    description: "Biblical wisdom for navigating anxiety.",
+    description: "Find biblical wisdom and practical steps for navigating anxiety. Ask our AI for initial guidance.",
     cta: "Get Guidance",
     color: "text-green-500",
     bg: "bg-green-500/10",
@@ -34,7 +34,7 @@ const resources = [
   {
     icon: ShieldCheck,
     title: "Addiction & Recovery",
-    description: "Find support for overcoming addictions.",
+    description: "Find support and resources for overcoming addictions. Our AI can provide confidential first steps.",
     cta: "Find Help",
     color: "text-teal-500",
     bg: "bg-teal-500/10",
@@ -42,7 +42,7 @@ const resources = [
    {
     icon: Scale,
     title: "Conflict Resolution",
-    description: "Request help resolving conflicts.",
+    description: "Request help resolving conflicts, with AI assistance to articulate your thoughts.",
     cta: "Get Assistance",
     color: "text-orange-500",
     bg: "bg-orange-500/10",
@@ -50,7 +50,7 @@ const resources = [
    {
     icon: Baby,
     title: "Marriage & Family",
-    description: "Resources for Christ-centered families.",
+    description: "Resources for Christ-centered families. Get AI-powered conversation starters.",
     cta: "Strengthen Family",
     color: "text-rose-500",
     bg: "bg-rose-500/10",
@@ -58,7 +58,7 @@ const resources = [
     {
     icon: FileCheck,
     title: "Legal & Financial",
-    description: "Connect with Christian professionals.",
+    description: "Connect with Christian professionals. Use our AI to help formulate your questions.",
     cta: "Seek Counsel",
     color: "text-indigo-500",
     bg: "bg-indigo-500/10",
@@ -66,7 +66,7 @@ const resources = [
   {
     icon: Users,
     title: "Support Groups",
-    description: "Join others who understand.",
+    description: "Join others who understand. Find the right group for you.",
     cta: "Browse Groups",
     color: "text-violet-500",
     bg: "bg-violet-500/10",
@@ -89,7 +89,6 @@ function AiAssistantDialog({ title, description, trigger }: { title: string, des
     const newMessages = [...messages, { role: 'user' as const, text: input }];
     setMessages(newMessages);
     setInput('');
-    // Simulate AI response
     setTimeout(() => {
       setMessages([...newMessages, { role: 'bot' as const, text: `This is a placeholder response about ${title}. In a real app, Genkit would provide a thoughtful answer here.` }]);
     }, 1000);
@@ -232,13 +231,14 @@ export default function WellBeingPage() {
                                         <res.icon className={`w-6 h-6 ${res.color}`} />
                                     </div>
                                     <h3 className="font-semibold text-base">{res.title}</h3>
+                                    <p className="text-sm text-muted-foreground mt-2">{res.description}</p>
                                 </div>
                             </CardHeader>
                             <CardFooter>
                                 <AiAssistantDialog 
                                   title={res.title} 
                                   description={res.description}
-                                  trigger={<Button className="w-full" variant="secondary">{res.cta}</Button>}
+                                  trigger={<Button className="w-full" variant="secondary"><Wand2 className="mr-2"/>Ask AI</Button>}
                                 />
                             </CardFooter>
                         </Card>

@@ -84,7 +84,7 @@ export default function MentorshipPage() {
                               <DialogHeader>
                                 <DialogTitle>Request Mentorship from {mentor.name}</DialogTitle>
                                 <DialogDescription>
-                                    Use the AI assistant to help you draft a clear and thoughtful request.
+                                    Share a bit about why you're seeking guidance. You can use the AI assistant to help you draft a clear and thoughtful request.
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="space-y-4 py-4">
@@ -92,10 +92,26 @@ export default function MentorshipPage() {
                                     placeholder={`Hi ${mentor.name},\n\nI'm seeking mentorship because...`} 
                                     className="min-h-[150px]"
                                   />
-                                  <div className="flex items-center gap-2">
-                                    <Input placeholder="Tell the AI what to improve (e.g., 'make it more formal')" />
-                                    <Button variant="outline" size="icon"><Wand2/></Button>
-                                  </div>
+                                  <Dialog>
+                                      <DialogTrigger asChild>
+                                        <Button variant="outline"><Wand2 className="mr-2"/>AI Assistant</Button>
+                                      </DialogTrigger>
+                                      <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>AI Assistant: Draft Your Request</DialogTitle>
+                                            <DialogDescription>Tell the AI what you want to say, and it will help you craft a message to {mentor.name}.</DialogDescription>
+                                        </DialogHeader>
+                                         <div className="space-y-4">
+                                            <Textarea placeholder="e.g., Help me ask for guidance on my career path and how to integrate my faith." className="min-h-[100px]"/>
+                                            <Button>Generate Draft</Button>
+                                            <Card className="bg-muted">
+                                                <CardContent className="p-4 text-sm">
+                                                    AI-generated draft will appear here.
+                                                </CardContent>
+                                            </Card>
+                                        </div>
+                                      </DialogContent>
+                                  </Dialog>
                               </div>
                               <DialogFooter>
                                 <DialogClose asChild>
