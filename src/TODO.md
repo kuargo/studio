@@ -1,3 +1,4 @@
+
 # Future Feature & Enhancement Log
 
 This document tracks major feature requests and enhancements to be implemented after the initial stabilization process is complete.
@@ -27,7 +28,11 @@ This document tracks major feature requests and enhancements to be implemented a
 - **Full End-to-End (E2E) Testing:**
   - **What:** Set up the Playwright testing framework and write comprehensive tests for all critical user journeys (authentication, posting, profile updates, etc.).
   - **Why:** To ensure long-term stability and catch regressions before they affect users.
-  
+
+- **Implement Pagination for Feeds:**
+  - **What:** As outlined in `DATA_FLOW.md`, implement pagination or infinite scroll for the Social Feed and Prayer Wall.
+  - **Why:** To improve initial load time and reduce Firestore query costs.
+
 - **Security Hardening:**
   - **What:** Implement the layered security model outlined in `DATA_FLOW.md`. This includes adding rate limiting and more robust server-side validation.
   - **Why:** To protect the application and user data from abuse and malicious actors.

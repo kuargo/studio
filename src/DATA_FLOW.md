@@ -62,7 +62,35 @@ graph TD
 
 ---
 
-## 4. User Authentication & Profile Flow
+## 4. Performance Optimization
+
+This diagram outlines strategies to ensure the application remains fast and responsive as it scales.
+
+```mermaid
+graph TD
+    A[Data Request] --> B{Check Cache};
+    B -->|Hit| C[Return Cached Data];
+    B -->|Miss| D[Fetch from Firestore];
+    D --> E[Update Cache];
+    E --> F[Return Fresh Data];
+    
+    subgraph "Optimization Strategies"
+        G[Pagination];
+        H[Virtual Scrolling];
+        I[Image Lazy Loading];
+        J[Bundle Splitting];
+    end
+```
+
+**Explanation:**
+1.  **Caching**: For frequently accessed, non-critical data, a caching layer can reduce direct database reads.
+2.  **Pagination**: For long lists like the Social Feed, we should only load a small number of items initially and then load more as the user scrolls. This is a critical next step.
+3.  **Virtual Scrolling**: Used for very long lists where rendering all items (even with pagination) would slow down the browser. The Faith Reels page uses a form of this.
+4.  **Lazy Loading & Code Splitting**: The Next.js framework automatically handles lazy loading for images (`next/image`) and code splitting by route, which are foundational performance optimizations already in use.
+
+---
+
+## 5. User Authentication & Profile Flow
 
 This is the foundational flow for the entire application.
 
@@ -95,7 +123,7 @@ graph TD
 
 ---
 
-## 5. Social Feed & Prayer Wall Flow (Content Creation & Display)
+## 6. Social Feed & Prayer Wall Flow (Content Creation & Display)
 
 This flow is nearly identical for the Social Feed and Prayer Wall and demonstrates the core content loop.
 
@@ -133,7 +161,7 @@ graph TD
 
 ---
 
-## 6. Faith Reels & Sermon Remix Flow (UGC & Creative Tools)
+## 7. Faith Reels & Sermon Remix Flow (UGC & Creative Tools)
 
 This flow outlines how user-generated video content would be handled.
 
