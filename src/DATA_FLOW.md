@@ -90,7 +90,31 @@ graph TD
 
 ---
 
-## 5. User Authentication & Profile Flow
+## 5. Testing & Monitoring
+
+This diagram outlines the ideal software development lifecycle to ensure application quality and stability from development to production.
+
+```mermaid
+graph TD
+    A[Development] --> B[Unit & Integration Tests];
+    B --> C[E2E Tests with Playwright];
+    C --> D[Firebase Emulator Testing];
+    D --> E[Staging Environment];
+    E --> F[Production Deployment];
+    F --> G[Real-time Monitoring];
+    F --> H[Error Tracking];
+    F --> I[Performance Analytics];
+```
+
+**Explanation:**
+1.  **Local Testing**: Developers run unit, integration, and end-to-end (E2E) tests locally, often using the Firebase Emulator Suite to simulate the backend.
+2.  **Staging Environment**: Code is deployed to a production-like staging environment for final validation before going live.
+3.  **Production Deployment**: The code is released to users.
+4.  **Post-Deployment**: Once live, the application is continuously watched through monitoring, error tracking (e.g., Sentry, Bugsnag), and performance analytics to catch issues and understand user behavior.
+
+---
+
+## 6. User Authentication & Profile Flow
 
 This is the foundational flow for the entire application.
 
@@ -123,7 +147,7 @@ graph TD
 
 ---
 
-## 6. Social Feed & Prayer Wall Flow (Content Creation & Display)
+## 7. Social Feed & Prayer Wall Flow (Content Creation & Display)
 
 This flow is nearly identical for the Social Feed and Prayer Wall and demonstrates the core content loop.
 
@@ -161,7 +185,7 @@ graph TD
 
 ---
 
-## 7. Faith Reels & Sermon Remix Flow (UGC & Creative Tools)
+## 8. Faith Reels & Sermon Remix Flow (UGC & Creative Tools)
 
 This flow outlines how user-generated video content would be handled.
 
