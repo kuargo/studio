@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Heart, MessageCircle, Music, Search, Plus, Upload, Link as LinkIcon, Download, Coins, Wand2, Palette, Share2 } from "lucide-react";
@@ -46,10 +46,70 @@ const reels = [
 ];
 
 export default function FaithReelsPage() {
+  const [currentReelIndex, setCurrentReelIndex] = useState(0);
+  const [isAutoScrollPaused, setIsAutoScrollPaused] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const autoScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const userInteractionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const scrollToReel = (index: number) => {
+    if (scrollContainerRef.current) {
+      const reelHeight = scrollContainerRef.current.clientHeight;
+      scrollContainerRef.current.scrollTo({
+        top: index * reelHeight,
+        behavior: 'smooth',
+      });
+    }
+  };
+
+  const scheduleAutoScroll = () => {
+    if (autoScrollTimeoutRef.current) {
+      clearTimeout(autoScrollTimeoutRef.current);
+    }
+    autoScrollTimeoutRef.current = setTimeout(() => {
+      const nextIndex = (currentReelIndex + 1) % reels.length;
+      setCurrentReelIndex(nextIndex);
+      scrollToReel(nextIndex);
+    }, 8000); // 8-second delay
+  };
+
+  useEffect(() => {
+    if (!isAutoScrollPaused) {
+      scheduleAutoScroll();
+    }
+    return () => {
+      if (autoScrollTimeoutRef.current) clearTimeout(autoScrollTimeoutRef.current);
+      if (userInteractionTimeoutRef.current) clearTimeout(userInteractionTimeoutRef.current);
+    };
+  }, [currentReelIndex, isAutoScrollPaused]);
+  
+  const handleUserScroll = () => {
+    setIsAutoScrollPaused(true);
+    if (userInteractionTimeoutRef.current) {
+      clearTimeout(userInteractionTimeoutRef.current);
+    }
+    userInteractionTimeoutRef.current = setTimeout(() => {
+      setIsAutoScrollPaused(false);
+       // Manually update currentReelIndex based on scroll position
+      if (scrollContainerRef.current) {
+        const reelHeight = scrollContainerRef.current.clientHeight;
+        const newIndex = Math.round(scrollContainerRef.current.scrollTop / reelHeight);
+        if(newIndex !== currentReelIndex) {
+           setCurrentReelIndex(newIndex);
+        }
+      }
+    }, 3000); // Resume auto-scroll after 3 seconds of inactivity
+  };
+
+
   return (
     <div className="bg-black h-full w-full flex justify-center items-center">
       <div className="relative h-[calc(100vh-10rem)] w-full max-w-sm bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl">
-        <div className="absolute top-0 left-0 right-0 h-full snap-y snap-mandatory overflow-y-scroll no-scrollbar">
+        <div 
+          ref={scrollContainerRef}
+          className="absolute top-0 left-0 right-0 h-full snap-y snap-mandatory overflow-y-scroll no-scrollbar"
+          onScroll={handleUserScroll}
+        >
           {reels.map((reel) => <Reel key={reel.id} {...reel} />)}
         </div>
         
