@@ -1,4 +1,6 @@
 
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
@@ -8,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 
 const recentSermons = [
   { title: "The Good Shepherd", pastor: "Pastor John", date: "Aug 11, 2024", thumbnail: "https://placehold.co/150x84.png", aiHint: "pastor preaching"},
@@ -37,6 +40,15 @@ const featuredPodcasts = [
 ]
 
 export default function SermonRemixPage() {
+  const { toast } = useToast();
+  
+  const showComingSoonToast = () => {
+    toast({
+      title: "Feature Coming Soon",
+      description: "This functionality is under development.",
+    });
+  };
+
   return (
     <div className="grid lg:grid-cols-3 gap-8 items-start">
       <div className="lg:col-span-2 space-y-6">
@@ -57,17 +69,17 @@ export default function SermonRemixPage() {
                     <span className="text-sm font-mono">01:00</span>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    <Button variant="outline"><Scissors className="mr-2"/> Trim</Button>
-                    <Button variant="outline"><Music className="mr-2"/> Add Music</Button>
-                    <Button variant="outline"><Type className="mr-2"/> Add Text</Button>
-                    <Button variant="outline"><Clapperboard className="mr-2"/> Effects</Button>
+                    <Button variant="outline" onClick={showComingSoonToast}><Scissors className="mr-2"/> Trim</Button>
+                    <Button variant="outline" onClick={showComingSoonToast}><Music className="mr-2"/> Add Music</Button>
+                    <Button variant="outline" onClick={showComingSoonToast}><Type className="mr-2"/> Add Text</Button>
+                    <Button variant="outline" onClick={showComingSoonToast}><Clapperboard className="mr-2"/> Effects</Button>
                 </div>
                 <Textarea placeholder="Add a caption, #hashtags, and @mentions..." />
             </div>
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
-             <Button variant="outline" size="lg"><Download className="mr-2" /> Download</Button>
-            <Button size="lg"><Share2 className="mr-2" /> Export & Share</Button>
+             <Button variant="outline" size="lg" onClick={showComingSoonToast}><Download className="mr-2" /> Download</Button>
+            <Button size="lg" onClick={showComingSoonToast}><Share2 className="mr-2" /> Export & Share</Button>
           </CardFooter>
         </Card>
       </div>
@@ -82,11 +94,11 @@ export default function SermonRemixPage() {
                     <label className="text-sm font-medium">Import from URL</label>
                     <div className="flex gap-2">
                         <Input placeholder="Paste YouTube or podcast link..."/>
-                        <Button variant="outline" size="icon"><LinkIcon/></Button>
+                        <Button variant="outline" size="icon" onClick={showComingSoonToast}><LinkIcon/></Button>
                     </div>
                 </div>
                 {recentSermons.map(sermon => (
-                    <div key={sermon.title} className="flex gap-4 items-center p-2 rounded-md hover:bg-accent cursor-pointer">
+                    <div key={sermon.title} className="flex gap-4 items-center p-2 rounded-md hover:bg-accent cursor-pointer" onClick={showComingSoonToast}>
                         <Image src={sermon.thumbnail} width={150} height={84} alt={sermon.title} className="rounded-md aspect-video object-cover" data-ai-hint={sermon.aiHint} />
                         <div>
                             <p className="font-semibold">{sermon.title}</p>
@@ -101,7 +113,7 @@ export default function SermonRemixPage() {
             <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                     <span>Featured Channels</span>
-                    <Button variant="ghost" size="icon" className="h-8 w-8"><PlusCircle/></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={showComingSoonToast}><PlusCircle/></Button>
                 </CardTitle>
                 <CardDescription>Easily access content from popular ministries.</CardDescription>
             </CardHeader>
