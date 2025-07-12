@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { AuthLoader } from "@/components/app/auth-provider";
 import { useToast } from '@/hooks/use-toast';
 import { getUserProfile } from '@/lib/firestore';
+import ErrorBoundary from '@/components/app/error-boundary';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, authReady, isAdmin } = useAuth();
@@ -80,12 +81,14 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <SidebarNav />
       </Sidebar>
       <SidebarInset>
-        <div className="flex flex-col h-screen">
-          <Header />
-          <main className="flex-1 overflow-y-auto bg-secondary/50 p-4 md:p-6 lg:p-8">
-            {children}
-          </main>
-        </div>
+        <ErrorBoundary>
+          <div className="flex flex-col h-screen">
+            <Header />
+            <main className="flex-1 overflow-y-auto bg-secondary/50 p-4 md:p-6 lg:p-8">
+              {children}
+            </main>
+          </div>
+        </ErrorBoundary>
       </SidebarInset>
     </SidebarProvider>
   );

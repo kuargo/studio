@@ -139,10 +139,6 @@ export function SettingsContent() {
             setSuccessMessage("Profile updated successfully!");
             setTimeout(() => setSuccessMessage(""), 3000);
 
-            toast({
-                title: "Profile Updated",
-                description: "Your profile has been successfully updated.",
-            });
         } catch (error) {
             console.error(error);
             toast({

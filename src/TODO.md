@@ -1,4 +1,3 @@
-
 # Future Feature & Enhancement Log
 
 This document tracks major feature requests and enhancements to be implemented after the initial stabilization process is complete.
