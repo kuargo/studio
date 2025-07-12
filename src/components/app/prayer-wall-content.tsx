@@ -362,5 +362,3 @@ function PrayerCard({ id, name, avatar, aiHint, request, prayCount, timestamp, c
         </Card>
     )
 }
-
-    

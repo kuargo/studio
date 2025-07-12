@@ -353,5 +353,3 @@ function PostCard({ post, timeAgo }: { post: Post, timeAgo: (date: Timestamp | n
         </Card>
     );
 }
-
-    
