@@ -38,7 +38,31 @@ graph TD
 
 ---
 
-## 3. User Authentication & Profile Flow
+## 3. Error Handling & Resilience
+
+This diagram outlines the ideal model for creating a resilient user experience, where network issues and other errors are handled gracefully.
+
+```mermaid
+graph TD
+    A[User Action] --> B{Try Operation};
+    B -->|Success| C[Update UI];
+    B -->|Network Error| D[Retry Logic];
+    B -->|Permission Error| E[Graceful Fallback];
+    D --> F{Retry Count < 3};
+    F -->|Yes| B;
+    F -->|No| G[Show Error Message];
+    E --> H[Cache Data Locally];
+```
+
+**Explanation:**
+1.  **Success**: The ideal path where the operation completes and the UI is updated.
+2.  **Retry Logic**: For transient issues like a brief network loss, the app can attempt the operation again a few times before showing an error.
+3.  **Graceful Fallback**: If an error is definitive (like a permissions issue), the app should handle it gracefully, for example, by disabling a button or using locally cached data if available.
+4.  **Error Messaging**: Clear, user-friendly error messages (like the "Toast" notifications used in the app) are crucial for informing the user what went wrong.
+
+---
+
+## 4. User Authentication & Profile Flow
 
 This is the foundational flow for the entire application.
 
@@ -71,7 +95,7 @@ graph TD
 
 ---
 
-## 4. Social Feed & Prayer Wall Flow (Content Creation & Display)
+## 5. Social Feed & Prayer Wall Flow (Content Creation & Display)
 
 This flow is nearly identical for the Social Feed and Prayer Wall and demonstrates the core content loop.
 
@@ -109,7 +133,7 @@ graph TD
 
 ---
 
-## 5. Faith Reels & Sermon Remix Flow (UGC & Creative Tools)
+## 6. Faith Reels & Sermon Remix Flow (UGC & Creative Tools)
 
 This flow outlines how user-generated video content would be handled.
 
