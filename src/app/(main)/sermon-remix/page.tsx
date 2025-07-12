@@ -12,6 +12,7 @@ import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 
+// Data is now treated as if it were fetched from an API/database
 const recentSermons = [
   { title: "The Good Shepherd", pastor: "Pastor John", date: "Aug 11, 2024", thumbnail: "https://placehold.co/150x84.png", aiHint: "pastor preaching"},
   { title: "Love Your Neighbor", pastor: "Pastor Dave", date: "Aug 4, 2024", thumbnail: "https://placehold.co/150x84.png", aiHint: "church stage" },

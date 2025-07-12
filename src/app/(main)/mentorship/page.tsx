@@ -13,6 +13,7 @@ import { MentorApplicationForm } from "@/components/app/mentor-application-form"
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 
+// Data is now treated as if it were fetched from an API/database
 const mentors = [
   { name: "Pastor John", avatar: "https://placehold.co/100x100/a5b4fc/1e3a8a.png", aiHint: "man smiling", role: "Senior Pastor", specialties: ["Theology", "Leadership", "Marriage Counseling"] },
   { name: "Maria Garcia", avatar: "https://placehold.co/100x100/f9a8d4/4c1d95.png", aiHint: "woman portrait", role: "Worship Leader", specialties: ["Worship", "Songwriting", "Prayer"] },

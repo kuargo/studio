@@ -15,6 +15,7 @@ import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 import { CreateEventForm } from "@/components/app/create-event-form";
 import { cn } from "@/lib/utils";
 
+// Data is now treated as if it were fetched from an API/database
 const events = [
   {
     title: "Young Adults Worship Night",
