@@ -180,12 +180,13 @@ export function PrayerWallContent() {
                             className="min-h-[100px]"
                             value={newRequest}
                             onChange={(e) => setNewRequest(e.target.value)}
-                            disabled={!user} 
+                            disabled={!user}
+                            data-testid="new-prayer-request-textarea"
                         />
                     </CardContent>
                     <CardFooter className="flex justify-between items-center">
                         <p className="text-xs text-muted-foreground">You can post anonymously in settings.</p>
-                        <Button onClick={handlePostRequest} disabled={loading || !newRequest.trim() || !user}>
+                        <Button onClick={handlePostRequest} disabled={loading || !newRequest.trim() || !user} data-testid="submit-prayer-request-button">
                             {loading ? "Posting..." : <><Send className="mr-2 h-4 w-4" /> Post to Wall</>}
                         </Button>
                     </CardFooter>

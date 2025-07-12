@@ -268,7 +268,7 @@ export function SettingsContent() {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button type="submit" disabled={loading || initialLoading || uploading}>
+                        <Button type="submit" disabled={loading || initialLoading || uploading} data-testid="save-profile-button">
                             {loading ? "Saving..." : "Save Changes"}
                         </Button>
                     </CardFooter>

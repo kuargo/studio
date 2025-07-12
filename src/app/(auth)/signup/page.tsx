@@ -192,10 +192,10 @@ export default function SignupPage() {
       </CardHeader>
        <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <Button variant="outline" onClick={() => handleSocialLogin('google')} disabled={!!socialLoading || form.formState.isSubmitting}>
+            <Button variant="outline" onClick={() => handleSocialLogin('google')} disabled={!!socialLoading || form.formState.isSubmitting} data-testid="google-signup-button">
               {socialLoading === 'google' ? "Signing up..." : <><GoogleIcon className="mr-2 h-5 w-5"/> Google</>}
             </Button>
-            <Button variant="outline" className="text-[#1877F2] hover:text-[#1877F2]" onClick={() => handleSocialLogin('facebook')} disabled={!!socialLoading || form.formState.isSubmitting}>
+            <Button variant="outline" className="text-[#1877F2] hover:text-[#1877F2]" onClick={() => handleSocialLogin('facebook')} disabled={!!socialLoading || form.formState.isSubmitting} data-testid="facebook-signup-button">
               {socialLoading === 'facebook' ? "Signing up..." : <><FacebookIcon className="mr-2 h-4 w-4"/> Facebook</>}
             </Button>
           </div>
@@ -306,7 +306,7 @@ export default function SignupPage() {
                         </FormItem>
                     )}
                 />
-                <Button type="submit" className="w-full" disabled={form.formState.isSubmitting || !!socialLoading}>
+                <Button type="submit" className="w-full" disabled={form.formState.isSubmitting || !!socialLoading} data-testid="email-signup-button">
                     {form.formState.isSubmitting ? "Creating Account..." : "Sign Up with Email"}
                 </Button>
             </form>

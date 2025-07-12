@@ -173,6 +173,7 @@ export function SocialFeedContent() {
                             value={newPost}
                             onChange={(e) => setNewPost(e.target.value)}
                             disabled={!user || posting}
+                            data-testid="new-post-textarea"
                         />
                     </div>
                 </CardHeader>
@@ -181,7 +182,7 @@ export function SocialFeedContent() {
                         <Button variant="ghost" size="icon"><ImageIcon className="text-green-500"/></Button>
                         <Button variant="ghost" size="icon"><Video className="text-rose-500"/></Button>
                     </div>
-                    <Button onClick={handlePostSubmit} disabled={!user || posting || !newPost.trim()}>
+                    <Button onClick={handlePostSubmit} disabled={!user || posting || !newPost.trim()} data-testid="submit-post-button">
                         {posting ? "Posting..." : "Post"}
                     </Button>
                 </CardFooter>

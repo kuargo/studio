@@ -137,10 +137,10 @@ export default function LoginPage() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
-          <Button variant="outline" onClick={() => handleSocialLogin('google')} disabled={!!socialLoading}>
+          <Button variant="outline" onClick={() => handleSocialLogin('google')} disabled={!!socialLoading} data-testid="google-login-button">
             {socialLoading === 'google' ? "Signing in..." : <><GoogleIcon className="mr-2 h-5 w-5"/> Google</>}
           </Button>
-          <Button variant="outline" className="text-[#1877F2] hover:text-[#1877F2]" onClick={() => handleSocialLogin('facebook')} disabled={!!socialLoading}>
+          <Button variant="outline" className="text-[#1877F2] hover:text-[#1877F2]" onClick={() => handleSocialLogin('facebook')} disabled={!!socialLoading} data-testid="facebook-login-button">
              {socialLoading === 'facebook' ? "Signing in..." : <><FacebookIcon className="mr-2 h-4 w-4"/> Facebook</>}
           </Button>
         </div>
@@ -180,7 +180,7 @@ export default function LoginPage() {
               Forgot password?
             </Link>
           </div>
-           <Button type="submit" className="w-full" disabled={loading}>
+           <Button type="submit" className="w-full" disabled={loading} data-testid="email-login-button">
             {loading ? "Signing In..." : "Sign In with Email"}
           </Button>
         </form>
