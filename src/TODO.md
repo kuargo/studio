@@ -14,6 +14,10 @@ This document tracks major feature requests and enhancements to be implemented a
   - **What:** Follow the instructions in `AI_SETUP.md` to generate a free API key and add it to your `.env.local` file.
   - **Why:** This is required to enable all AI-powered features, such as the Journal Assistant, Prayer Assistant, and Bible Chat AI.
 
+- **Set Up Google Maps API Key:**
+  - **What:** Create a Google Cloud project, enable the "Maps JavaScript API" and "Places API", and get an API key. Add it to `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` in your `.env.local` file.
+  - **Why:** Required for the location search/autocomplete and for displaying maps on the Events and Volunteering pages.
+
 ## High Priority Enhancements
 
 - **Implement Data Flow Map:**
