@@ -72,6 +72,8 @@ jobs:
     name: End-to-End Tests (Placeholder)
     runs-on: ubuntu-latest
     needs: build_app
+    permissions:
+      contents: read
     
     steps:
       - name: Checkout code
